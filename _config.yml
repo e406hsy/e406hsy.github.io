@@ -31,7 +31,6 @@ masthead_title : # overrides the website title displayed in the masthead, use " 
 #github_username:  e406hsy
 #JEKYLL_ENV=production bundle exec jekyll build
 # Build settings
-theme: jekyll-theme-tactile
 plugins:
   - jekyll-feed
 
@@ -67,6 +66,7 @@ defaults:
       path: ""
       type: posts
     values:
+      layout: post
       author_profile: true
       read_time: true
       comments: # 블로그 댓글 기능 true
@@ -78,6 +78,7 @@ defaults:
       path: ""
       type: pages
     values:
+      layout: page
       author_profile: true
       read_time: false
       comments: false

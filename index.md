@@ -1,4 +1,4 @@
-{{sites.title}}
+
 
 ## Welcome to GitHub Pages
 

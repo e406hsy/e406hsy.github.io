@@ -67,7 +67,6 @@ defaults:
       path: ""
       type: posts
     values:
-      layout: post
       author_profile: true
       read_time: true
       comments: # 블로그 댓글 기능 true
@@ -79,7 +78,6 @@ defaults:
       path: ""
       type: pages
     values:
-      layout: page
       author_profile: true
       read_time: false
       comments: false

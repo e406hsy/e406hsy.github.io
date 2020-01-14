@@ -24,6 +24,7 @@ email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
   SoonYong, Hong<br>
   NHN developer.
+masthead_title : # overrides the website title displayed in the masthead, use " " for no title
 #baseurl: "" # the subpath of your site, e.g. /blog
 #url: "" # the base hostname & protocol for your site, e.g. http://example.com
 #twitter_username: jekyllrb
@@ -44,17 +45,14 @@ author:
   links:
     - label: "Email"
       icon: "fas fa-fw fa-envelope-square"
-      url: mailto:devinlifeidea@gmail.com
-    - label: "Website"
-      icon: "fas fa-fw fa-link"
-      url: "https://devinlife.com"
+      url: mailto:qkqhdml444@gmail.com
       
 # Site Footer
 footer:
   links:
     - label: "GitHub"
       icon: "fab fa-fw fa-github"
-      url: "https://github.com/devinlife"
+      url: "https://github.com/e406hsy"
       
 # Outputting
 permalink: /:categories/:title/

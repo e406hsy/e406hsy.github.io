@@ -1,8 +1,3 @@
----
-paginate: 5
----
-
-
 {{sites.title}}
 
 ## Welcome to GitHub Pages

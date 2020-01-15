@@ -22,8 +22,7 @@ title: Scribbled note
 name: yolo
 email: your-email@example.com
 description: >- # this means to ignore newlines until "baseurl:"
-  SoonYong, Hong<br>
-  NHN developer.
+  small talk about programming
 masthead_title : # overrides the website title displayed in the masthead, use " " for no title
 #baseurl: "" # the subpath of your site, e.g. /blog
 #url: "" # the base hostname & protocol for your site, e.g. http://example.com
@@ -71,7 +70,7 @@ defaults:
       layout: post
       author_profile: true
       read_time: true
-      comments: # 블로그 댓글 기능 true
+      comments: true
       share: true
       related: true
 

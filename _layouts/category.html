@@ -41,11 +41,13 @@
           {{ content }}
         </section>
         <h1>POSTS</h1>
+        <ul>
         {% for post in site.categories[page.title] %}
-            <a href="{{ post.url | absolute_url }}">
+            <li><a href="{{ post.url | absolute_url }}">
               {{ post.title }}
-            </a>
+            </a></li>
         {% endfor %}
+        </ul>
 
         <footer>
           <h5>{{site.author.name}}</h5>

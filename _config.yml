@@ -59,6 +59,7 @@ permalink: /:categories/:title/
 paginate: 5 # 첫 페이지에보여줄 최근 게시물 수를 지정
 paginate_path: /page:num/
 timezone: Asia/Seoul
+encoding: utf-8
 
 # Defaults
 defaults:
@@ -67,6 +68,7 @@ defaults:
       path: ""
       type: posts
     values:
+      layout: post
       author_profile: true
       read_time: true
       comments: # 블로그 댓글 기능 true
@@ -78,6 +80,7 @@ defaults:
       path: ""
       type: pages
     values:
+      layout: page
       author_profile: true
       read_time: false
       comments: false

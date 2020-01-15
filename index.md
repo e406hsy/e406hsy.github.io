@@ -1,4 +1,6 @@
-
+---
+layout: home
+---
 
 ## Welcome to GitHub Pages
 

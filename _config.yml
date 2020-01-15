@@ -37,9 +37,9 @@ plugins:
 
 # Site Author
 author:
-  name             : "취미코딩하는 개발자"
-  avatar           : "/assets/images/bio-photo-keyboard.jpg"
-  bio              : "회사에서는 월급 받고 집에서는 취미로 코딩하는 개발자"
+  name             : "Hong SoonYong"
+  avatar           : 
+  bio              : "NHN Developer"
   location         : "South Korea"
   email            :
   links:

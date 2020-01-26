@@ -29,8 +29,18 @@ markdown: kramdown
 inter_post_navigation: false
 highlightjs_theme: "monokai-sublime"
 
+# disqus setting
 disqus_shortname: "e406hsy"
 
+# local setting
+defaults:
+  -
+    scope:
+      path: "" # an empty string here means all files in the project
+      type: "posts"
+    values:
+      permalink: '/:categories/:slug/'
+      
 
 # Pagination Settings
 # https://github.com/sverrirs/jekyll-paginate-v2/blob/master/README-GENERATOR.md#site-configuration

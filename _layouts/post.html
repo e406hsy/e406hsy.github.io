@@ -18,10 +18,8 @@ disqus_disabled: false
 {% unless page.cover %} {% include page_divider.html %} {% endunless %}
 
 <section class="post-meta">
-  <div class="post-date">Created: {{ page.date | date: "%B %-d, %Y" }}</div>
-  {% if page.modifiedDate %}
-  <div class="post-date">Modified: {{ page.modifiedDate | date: "%B %-d, %Y" }}</div>
-  {% endif %}
+  <div class="post-date">Created: {{ page.createdDate | date: "%B %-d, %Y" }}</div>
+  <div class="post-date">Modified: {{ page.date | date: "%B %-d, %Y" }}</div>
   <div class="post-categories">
   {% if page.categories.size > 0 %}in {% for cat in page.categories %}
     {% if site.jekyll-archives %}

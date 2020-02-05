@@ -68,7 +68,7 @@ public String example(@RequestParam int index) {
 ---
 
 ### @RequestBody String [variableName]
-RequestBody 전체를 String으로 받아올 수 있다. Request Body가 [key]=[value](&[key]=[value])*의 형태를 가지고 있지 않다면 이 어노테이션을 통해 가져와 사용할 수 있다.
+RequestBody 전체를 String으로 받아올 수 있다. Request Body가 [key]=[value]\(&[key]=[value]\)*의 형태를 가지고 있지 않다면 이 어노테이션을 통해 가져와 사용할 수 있다.
 
 ```java
 @RequestMapping("/")

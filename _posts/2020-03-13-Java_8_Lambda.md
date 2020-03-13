@@ -34,7 +34,7 @@ tags: JAVA JAVA8
 ---
 
 ### 실행할 메쏘드가 여럿인 경우
-() -> { method1; method2; ...}
+() -> { method1; method2; ...}     
 ```java
 	Runnable runnable = () -> {System.out.println("line1"); System.out.println("line2");};   	
 	runnable.run();
@@ -47,12 +47,12 @@ tags: JAVA JAVA8
 
 ### 반환 해야할 타입이 있는 경우
 #### 메쏘드를 하나만 호출할 경우 return을 생략가능합니다.
-() -> value
+() -> value     
 () -> { method1; method2; ...; return value;}
 ```java
 	Supplier<String> supplier1 = () -> "line1";
     System.out.println(supplier1.get());
-    
+
 	Supplier<String> supplier2 = () -> {System.out.println("line2"); return "line3";};
     System.out.println(supplier2.get());
     /* 결과
@@ -65,7 +65,7 @@ tags: JAVA JAVA8
 
 ### 전달해야하는 파라메터가 있는 경우
 #### type은 생략 가능합니다.
-([type] parameter1, ...) -> method
+([type] parameter1, ...) -> method     
 ([type] paremeter1, [type] parameter2, ...) -> { method1; method2; ...; methodN;}
 ```java
 	Consumer<String> consumer = (parameter) -> System.out.println(parameter);
@@ -83,7 +83,7 @@ tags: JAVA JAVA8
 ---
 
 ### 전달해야하는 파라메터와 반환해야하는 타입이 있는 경우
-(parameter1, ...) -> value
+(parameter1, ...) -> value     
 (paremeter1, parameter2, ...) -> { method1; method2; ...; return value;}
 ```java
 		Function<String, String> func = (parameter) -> "Fuction works "+parameter;
@@ -133,7 +133,7 @@ tags: JAVA JAVA8
 ### Lambda 식에는 위의 인터페이스 이외에 커스텀 Interface 또한 가능합니다.
 
 #### 조건
-Interface에 메쏘드가 하나여야 합니다.
+Interface에 메쏘드가 하나여야 합니다.     
 해당 메쏘드의 파라메터 타입, 수, 순서, 리턴타입이 일치해야 합니다.
 
 ```java

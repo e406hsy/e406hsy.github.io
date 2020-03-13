@@ -52,6 +52,7 @@ tags: JAVA JAVA8
 ```java
 	Supplier<String> supplier1 = () -> "line1";
     System.out.println(supplier1.get());
+    
 	Supplier<String> supplier2 = () -> {System.out.println("line2"); return "line3";};
     System.out.println(supplier2.get());
     /* 결과
@@ -69,6 +70,7 @@ tags: JAVA JAVA8
 ```java
 	Consumer<String> consumer = (parameter) -> System.out.println(parameter);
 	consumer.accept("line1");
+
 	BiConsumer<String, String> biConsumer =
         (String parameter1, String parameter2) -> {System.out.println(parameter1); System.out.println(parameter2);};
 	biConsumer.accept("line2", "line3");
@@ -86,10 +88,13 @@ tags: JAVA JAVA8
 ```java
 		Function<String, String> func = (parameter) -> "Fuction works "+parameter;
 		System.out.println(func.apply("line1"));
+
 		IntFunction<String> intFunc = (parameter) -> "Fuction works line"+String.valueOf(parameter);
 		System.out.println(intFunc.apply(2));
+
 		Predicate<String> pred = (parameter) -> Boolean.parseBoolean(parameter);
 		System.out.println(pred.test("true"));
+
 		/* 결과
 		Fuction works line1
         Fuction works line2
@@ -106,23 +111,23 @@ tags: JAVA JAVA8
 #### Predicate - parameter O | return boolean
 
 * Runnable - no parameter, no return
-* Supplier<T> - no parameter, return T
+* Supplier\<T\> - no parameter, return T
     * [Int/Long/Double/Boolean]Consumer - no parameter, return [int/long/double/boolean]
-* Consumer<T> - parameter T, no return
+* Consumer\<T\> - parameter T, no return
     * BiConsumer<T1, T2> - parameter T1, parameter T2, no return
     * [Int/Long/Double]Consumer - parameter [int/long/double], no return
-    * Obj[Int/Long/Double]Consumer<T> - parameter T, parameter [int/long/double], no return
+    * Obj[Int/Long/Double]Consumer\<T\> - parameter T, parameter [int/long/double], no return
 * Function<T1, T2> - parameter T1, return T2
     * BiFunction<T1, T2, T3> - parameter T1, parameter T2, return T3
-    * [Int/Long/Double]Function<T> - parameter [int/long/double], return T
-    * To[Int/Long/Double]Function<T> - parameter T, return [int/long/double]
+    * [Int/Long/Double]Function\<T\> - parameter [int/long/double], return T
+    * To[Int/Long/Double]Function\<T\> - parameter T, return [int/long/double]
     * To[Int/Long/Double]BiFunction<T1, T2> - parameter T1, parameter T2, return [int/long/double]
     * IntTo[Long/Double]Function - parameter int, return [long/double]
     * LongTo[Int/Double]Function - parameter long, return [int/double]
     * DoubleTo[Int/Long]Function - parameter double, return [int/long] 
     * [Int/Long/Double]UnaryOperator - parameter [int/long/double], return [int/long/double]
     * [Int/Long/Double]BinaryOperator - parameter [int/long/double], parameter [int/long/double], return [int/long/double]
-* Predicate<T> - parameter T, return boolean
+* Predicate\<T\> - parameter T, return boolean
     * [Int/Long/Double]Predicate - parameter [int/long/double], return boolean
 
 ### Lambda 식에는 위의 인터페이스 이외에 커스텀 Interface 또한 가능합니다.

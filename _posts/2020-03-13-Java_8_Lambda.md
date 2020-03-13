@@ -1,12 +1,12 @@
 ---
 layout: post
-title:  "JAVA Lambda"
+title:  "Java Lambda"
 createdDate:   2020-03-13T10:33:00+09:00
 date:   2020-03-13T10:33:00+09:00
 pagination: enabled
 author: SoonYong Hong
-categories: JAVA
-tags: JAVA JAVA8
+categories: Java
+tags: Java Java8 lambda
 ---
 # JAVA Lambda 식 기초
 ---
@@ -246,6 +246,7 @@ public static void main(String[] args) {
 
 위의 예에서 Debug Disable된 상태에서는 someHeavyMethod는 작동할 필요가 없다.    
 lambda를 이용하면 lazy evaluation이 가능하다.
+
 ---
 #### anonymous class
 익명 객체를 람다식으로 대체하면 훨씬 간결하고 보기 좋은 코드를 만들 수 있다.

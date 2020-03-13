@@ -131,6 +131,7 @@ true
     * [Int/Long/Double]Predicate - parameter [int/long/double], return boolean
 
 ---
+
 ### Lambda 식에는 위의 인터페이스 이외에 커스텀 Interface 또한 가능합니다.
 
 #### 조건
@@ -162,6 +163,7 @@ public static void main(String[] args) {
 개발자에게 lambda식을 이용가능한 형태임을 알려주기위한 annotation입니다.     
 실제 컴파일러는 annotation을 확인하지 않고 Interface의 형태를 확인하여 lambda식이 이용가능한 형태인지 아닌지 확인합니다.     
 즉 해당 annotation이 없어도 조건을 만족한다면 lambda식이 이용가능합니다.
+
 ---
 ## Lambda식의 활용방법
 ---

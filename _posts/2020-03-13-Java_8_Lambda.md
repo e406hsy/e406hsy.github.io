@@ -25,23 +25,23 @@ tags: JAVA JAVA8
 () -> method
 
 ```java
-	Runnable runnable = () -> System.out.println("line");   	
-	runnable.run();
-    /* 결과
-    line
-    */
+Runnable runnable = () -> System.out.println("line");   	
+runnable.run();
+/* 결과
+line
+*/
 ```
 ---
 
 ### 실행할 메쏘드가 여럿인 경우
 () -> { method1; method2; ...}     
 ```java
-	Runnable runnable = () -> {System.out.println("line1"); System.out.println("line2");};   	
-	runnable.run();
-    /* 결과
-    line1
-    line2
-    */
+Runnable runnable = () -> {System.out.println("line1"); System.out.println("line2");};   	
+runnable.run();
+/* 결과
+line1
+line2
+*/
 ```
 ---
 
@@ -50,16 +50,16 @@ tags: JAVA JAVA8
 () -> value     
 () -> { method1; method2; ...; return value;}
 ```java
-	Supplier<String> supplier1 = () -> "line1";
-    System.out.println(supplier1.get());
+Supplier<String> supplier1 = () -> "line1";
+System.out.println(supplier1.get());
 
-	Supplier<String> supplier2 = () -> {System.out.println("line2"); return "line3";};
-    System.out.println(supplier2.get());
-    /* 결과
-    line1
-    line2
-    line3
-    */
+Supplier<String> supplier2 = () -> {System.out.println("line2"); return "line3";};
+System.out.println(supplier2.get());
+/* 결과
+line1
+line2
+line3
+*/
 ```
 ---
 
@@ -68,17 +68,17 @@ tags: JAVA JAVA8
 ([type] parameter1, ...) -> method     
 ([type] paremeter1, [type] parameter2, ...) -> { method1; method2; ...; methodN;}
 ```java
-	Consumer<String> consumer = (parameter) -> System.out.println(parameter);
-	consumer.accept("line1");
+Consumer<String> consumer = (parameter) -> System.out.println(parameter);
+consumer.accept("line1");
 
-	BiConsumer<String, String> biConsumer =
-        (String parameter1, String parameter2) -> {System.out.println(parameter1); System.out.println(parameter2);};
-	biConsumer.accept("line2", "line3");
-    /* 결과
-    line1
-    line2
-    line3
-    */
+BiConsumer<String, String> biConsumer =
+    (String parameter1, String parameter2) -> {System.out.println(parameter1); System.out.println(parameter2);};
+biConsumer.accept("line2", "line3");
+/* 결과
+line1
+line2
+line3
+*/
 ```
 ---
 
@@ -86,20 +86,20 @@ tags: JAVA JAVA8
 (parameter1, ...) -> value     
 (paremeter1, parameter2, ...) -> { method1; method2; ...; return value;}
 ```java
-		Function<String, String> func = (parameter) -> "Fuction works "+parameter;
-		System.out.println(func.apply("line1"));
+Function<String, String> func = (parameter) -> "Fuction works "+parameter;
+System.out.println(func.apply("line1"));
 
-		IntFunction<String> intFunc = (parameter) -> "Fuction works line"+String.valueOf(parameter);
-		System.out.println(intFunc.apply(2));
+IntFunction<String> intFunc = (parameter) -> "Fuction works line"+String.valueOf(parameter);
+System.out.println(intFunc.apply(2));
 
-		Predicate<String> pred = (parameter) -> Boolean.parseBoolean(parameter);
-		System.out.println(pred.test("true"));
+Predicate<String> pred = (parameter) -> Boolean.parseBoolean(parameter);
+System.out.println(pred.test("true"));
 
-		/* 결과
-		Fuction works line1
-        Fuction works line2
-        true
-		*/
+/* 결과
+Fuction works line1
+Fuction works line2
+true
+*/
 ```
 ---
 
@@ -137,22 +137,23 @@ Interface에 메쏘드가 하나여야 합니다.
 해당 메쏘드의 파라메터 타입, 수, 순서, 리턴타입이 일치해야 합니다.
 
 ```java
-    @FunctionalInterface
-	public interface MyLambdaInterface {
-		long onlyMethod(int int1, String str1);
-	}
-	public static void main(String[] args) {
-		MyLambdaInterface myLambdaInterface = (int_param, str_param) -> {
-			long value = (long) int_param;
-			value += Long.parseLong(str_param);
-			return value;
-		};
+@FunctionalInterface
+public interface MyLambdaInterface {
+	long onlyMethod(int int1, String str1);
+}
 
-		System.out.println(myLambdaInterface.onlyMethod(1, "2"));
-	}
-	/* 결과
-	3
-	*/
+public static void main(String[] args) {
+	MyLambdaInterface myLambdaInterface = (int_param, str_param) -> {
+		long value = (long) int_param;
+		value += Long.parseLong(str_param);
+		return value;
+	};
+
+	System.out.println(myLambdaInterface.onlyMethod(1, "2"));
+}
+/* 결과
+3
+*/
 ```
 위 예제와 같이 원하는 형태로 Interface를 정의하여 사용이 가능합니다.
 
@@ -165,80 +166,81 @@ Interface에 메쏘드가 하나여야 합니다.
 #### Lazy evaluation
 
 ```java
-    public static class Logger {
-		private boolean debug;
+public static class Logger {
+	private boolean debug;
 
-		public Logger() {
-			this.debug = true;
-		}
+	public Logger() {
+		this.debug = true;
+	}
 
-		void debug(String str, Supplier<String> strSupplier) {
-			if (debugEnabled()) {
-				this.write(str + " " + strSupplier.get());
-			}
-		}
-
-		void debug(String str, String str2) {
-			if (debugEnabled()) {
-				this.write(str + " " + str2);
-			}
-		}
-
-		private void write(String string) {
-			System.out.println(string);
-		}
-
-		private boolean debugEnabled() {
-			return this.debug;
-		}
-
-		public void enableDebug() {
-			System.out.println("Debug Enabled");
-			this.debug = true;
-		}
-
-		public void disableDebug() {
-			System.out.println("Debug disabled");
-			this.debug = false;
+	void debug(String str, Supplier<String> strSupplier) {
+		if (debugEnabled()) {
+			this.write(str + " " + strSupplier.get());
 		}
 	}
 
-	private static String someHeavyMethod(String returnValue) {
-		System.out.println("HeavyMethodDone");
-		return returnValue;
+	void debug(String str, String str2) {
+		if (debugEnabled()) {
+			this.write(str + " " + str2);
+		}
 	}
 
-	public static void main(String[] args) {
-		Logger logger = new Logger();
-		logger.enableDebug();
-		logger.debug("try without lambda", someHeavyMethod("line1"));
-		System.out.println();
+	private void write(String string) {
+		System.out.println(string);
+	}
 
-		logger.disableDebug();
-		logger.debug("try without lambda", someHeavyMethod("line2"));
-		System.out.println();
+	private boolean debugEnabled() {
+		return this.debug;
+	}
 
-		logger.enableDebug();
-		logger.debug("try with lambda", () -> someHeavyMethod("line3"));
-		System.out.println();
+	public void enableDebug() {
+		System.out.println("Debug Enabled");
+		this.debug = true;
+	}
+
+	public void disableDebug() {
+		System.out.println("Debug disabled");
+		this.debug = false;
+	}
+}
+
+private static String someHeavyMethod(String returnValue) {
+	System.out.println("HeavyMethodDone");
+	return returnValue;
+}
+
+public static void main(String[] args) {
+	Logger logger = new Logger();
+
+	logger.enableDebug();
+	logger.debug("try without lambda", someHeavyMethod("line1"));
+	System.out.println();
+
+	logger.disableDebug();
+	logger.debug("try without lambda", someHeavyMethod("line2"));
+	System.out.println();
+
+	logger.enableDebug();
+	logger.debug("try with lambda", () -> someHeavyMethod("line3"));
+	System.out.println();
 		
-		logger.disableDebug();
-		logger.debug("try with lambda", () -> someHeavyMethod("line4"));
-		/* 결과 
-		Debug Enabled
-		HeavyMethodDone
-		try without lambda line1
+	logger.disableDebug();
+	logger.debug("try with lambda", () -> someHeavyMethod("line4"));
+	/* 결과 
+	Debug Enabled
+	HeavyMethodDone
+	try without lambda line1
 
-		Debug disabled
-		HeavyMethodDone
+	Debug disabled
+	HeavyMethodDone
 
-		Debug Enabled
-		HeavyMethodDone
-		try with lambda line3
+	Debug Enabled
+	HeavyMethodDone
+	try with lambda line3
 
-		Debug disabled 
-		*/
-	}
+	Debug disabled 
+	*/
+}
 ```
 
 위의 예에서 Debug Disable된 상태에서는 someHeavyMethod는 작동할 필요가 없다.    
@@ -247,24 +249,24 @@ lambda를 이용하면 lazy evaluation이 가능하다.
 #### anonymous class
 익명 객체를 람다식으로 대체하면 훨씬 간결하고 보기 좋은 코드를 만들 수 있다.
 ```java
-	public interface Anonymous {
-		public void method();
-	}
-	public static void main(String[] args) {
-		Anonymous anonymous = new Anonymous(){
-			public void method() {
-				System.out.println("this can be replaced with lambda");
-			};
+public interface Anonymous {
+	public void method();
+}
+public static void main(String[] args) {
+	Anonymous anonymous = new Anonymous(){
+		public void method() {
+			System.out.println("this can be replaced with lambda");
 		};
+	};
 
-		anonymous.method();
+	anonymous.method();
 
-		Anonymous lambda = () -> System.out.println("this is replaced with lambda");
+	Anonymous lambda = () -> System.out.println("this is replaced with lambda");
 
-		lambda.method();
-		/* 결과
-		this can be replaced with lambda
-		this is replaced with lambda
-		*/
-	}
+	lambda.method();
+	/* 결과
+	this can be replaced with lambda
+	this is replaced with lambda
+	*/
+}
 ```

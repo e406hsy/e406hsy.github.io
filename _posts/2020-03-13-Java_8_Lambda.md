@@ -129,6 +129,7 @@ true
     * [Int/Long/Double]BinaryOperator - parameter [int/long/double], parameter [int/long/double], return [int/long/double]
 * Predicate\<T\> - parameter T, return boolean
     * [Int/Long/Double]Predicate - parameter [int/long/double], return boolean
+
 ---
 ### Lambda 식에는 위의 인터페이스 이외에 커스텀 Interface 또한 가능합니다.
 

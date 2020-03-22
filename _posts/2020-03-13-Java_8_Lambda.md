@@ -276,3 +276,8 @@ public static void main(String[] args) {
 }
 ```
 ---
+
+#### 참고 사이트
+이 내용은 아래 링크에 있는 내용을 기반으로 작성되었습니다.     
+[(영문) 오라클 technical article lambda part 1](https://www.oracle.com/technical-resources/articles/java/architect-lambdas-part1.html)     
+[(영문) 오라클 technical article lambda part 2](https://www.oracle.com/technical-resources/articles/java/architect-lambdas-part2.html)

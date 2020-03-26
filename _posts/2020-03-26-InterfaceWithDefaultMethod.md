@@ -122,6 +122,8 @@ public class classA implements MyInterface1, MyInterface2 {
 this is implemented at MyInterface2
 ```
 
+---
+
 ```java
 public Interface MyInterface1 {
     default void myMethod1() {

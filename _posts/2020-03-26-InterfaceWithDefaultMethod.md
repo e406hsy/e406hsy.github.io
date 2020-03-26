@@ -296,5 +296,7 @@ public class classA implements MyInterface2 {
 }
 ```
 #### 결과
-```The type classA must implement the inherited abstract method MyInterface2.myMethod1()```
+```
+The type classA must implement the inherited abstract method MyInterface2.myMethod1()
+```
 컴파일 에러

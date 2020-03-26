@@ -253,6 +253,8 @@ lambda를 이용하면 lazy evaluation이 가능하다.
 ---
 #### Anonymous Class
 익명 클래스의 객체를 람다식으로 대체하면 훨씬 간결하고 보기 좋은 코드를 만들 수 있다.
+단, 익명 클래스를 무조건 람다식으로 대체하는 것은 옳지 못하다.     
+경우에 따라서는 익명 클래스를 사용해야 하는 경우가 있다.
 ```java
 public interface Anonymous {
 	public void method();

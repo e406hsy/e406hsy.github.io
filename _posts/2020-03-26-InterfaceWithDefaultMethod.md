@@ -11,10 +11,14 @@ tags: Java
 
 # Interface With Default Method
 
+---
+
 ## BackGround
 Default Method가 없던 시절, Interface에 새로운 Method를 추가하는 것은 해당 Interface를 구현하는 수많은 구현체들의 코드를 수정해야 했다.    
 이는 Interface의 수정을 거의 불가능하게 하였고 (특히 API 개발자들에게)    
 Interface를 이용하는 구현체들의 내용을 수정하지 않고 Interface에 새로운 기능을 추가하고자 하는 욕구로부터 탄생하였다.
+
+---
 
 ## Syntax
 

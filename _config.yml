@@ -24,6 +24,7 @@ url: "" # the base hostname & protocol for your site
 cover: "/assets/header_image.jpg"
 logo: "/assets/logo.png"
 google-site-verification: "X189h5G_pkc_6mEjsDVmFPJtpRwy4xuVBCB-4q16Ad4"
+
 # Build settings
 markdown: kramdown
 inter_post_navigation: false

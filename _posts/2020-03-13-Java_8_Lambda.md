@@ -13,7 +13,7 @@ tags: Java Java8 lambda
 
 ## Lambda 식 이란
 
-람다식은 기본적으로 메소드를 하나만 가지고 있는 인터페이스의 구현체로 만들어진 객체이다.     
+람다식은 기본적으로 메소드를 하나만 가지고 있는 인터페이스의 구현체, 혹은 추상 메소드가 하나인 클래스로 만들어진 객체이다.     
 람다식은 다시 사용되지 않을 구현체를 클래스나 익명 클래스로 만들 필요 없이 구현체 및 객체를 만들 수 있게 해준다.         
 이러한 인터페이스의 가장 대표적인 예시는 Runnable 인터페이스이다.
 
@@ -160,9 +160,9 @@ public static void main(String[] args) {
 위 예제와 같이 원하는 형태로 Interface를 정의하여 사용이 가능합니다.
 
 #### @FunctionalInterface
-개발자에게 lambda식을 이용가능한 형태임을 알려주기위한 annotation입니다.     
-실제 컴파일러는 annotation을 확인하지 않고 Interface의 형태를 확인하여 lambda식이 이용가능한 형태인지 아닌지 확인합니다.     
-즉 해당 annotation이 없어도 조건을 만족한다면 lambda식이 이용가능합니다.
+lambda식을 이용가능한 형태임을 보장하기 위한 annotation입니다.     
+컴파일러는 해당 annotation이 있다면 Interface의 형태를 확인하여 lambda식이 이용가능한 형태인지 아닌지 확인합니다.     
+해당 annotation이 없어도 조건을 만족한다면 lambda식이 이용가능합니다.
 
 ---
 ## Lambda식의 활용방법

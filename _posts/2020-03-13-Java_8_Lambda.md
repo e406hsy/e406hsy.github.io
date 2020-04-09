@@ -2,7 +2,7 @@
 layout: post
 title:  "Java Lambda"
 createdDate:   2020-03-13T10:33:00+09:00
-date:   2020-03-13T10:33:00+09:00
+date:   2020-04-09T09:05:00+09:00
 pagination: enabled
 author: SoonYong Hong
 categories: Java

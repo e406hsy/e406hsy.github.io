@@ -22,9 +22,12 @@ Integer myInt = null;
 Integer myInt2 = Integer.valueOf(10);
 ```
 
+---
+
 ### List Of Wrapper Classs
+
 | Primitive Type | Wrapper Class |
-| --- | --- |
+|:---------------|:--------------|
 | byte | Byte | 
 | short | Short | 
 | int | Integer | 
@@ -37,6 +40,8 @@ Integer myInt2 = Integer.valueOf(10);
 
 단 Void 타입은 객체화 되지 않고 공 참조개념을 나타낸다.     
 Generic을 이용하여 선언된 Interface를 구현할 경우, 파라메터가 없음 혹은 리턴값이 없음을 나타내는데 사용된다.     
+
+---
 
 ### Autoboxing And Unboxing
 Autoboxing과 Unboxing은 JDK 1.5부터 지원되는 것으로     
@@ -60,6 +65,8 @@ Autoboxing의 예로 두 구현은 같은 동작을 한다.
 #### Unboxing이 일어나는 경우
 * 기본형으로 선언된 변수에 Wrapper Class를 할당하는 경우
 * 기본형을 파라메터로 가지는 메소드에 Wrapper Class를 전달하는 경우
+
+---
 
 ### Test
 ```java

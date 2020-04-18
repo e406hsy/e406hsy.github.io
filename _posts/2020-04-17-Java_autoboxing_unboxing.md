@@ -1,11 +1,11 @@
 ---
 layout: post
-title:  "Java : Autoboxing And Unboxing"
+title:  "[Java] Autoboxing And Unboxing"
 createdDate:   2020-04-17T08:26:00+09:00
 date:   2020-04-17T08:26:00+09:00
 pagination: enabled
 author: SoonYong Hong
-categories: Java
+categories: java
 tags: Java WrapperClass Autoboxing Unboxing
 ---
 # JAVA Autoboxing Unboxing

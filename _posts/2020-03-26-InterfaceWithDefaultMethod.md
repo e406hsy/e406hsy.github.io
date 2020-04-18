@@ -1,11 +1,11 @@
 ---
 layout: post
-title:  "JAVA : Interface With Default Method"
+title:  "[Java] Interface With Default Method"
 createdDate:   2020-03-26T20:40:00+09:00
 date:   2020-03-26T20:40:00+09:00
 pagination: enabled
 author: SoonYong Hong
-categories: Java
+categories: java
 tags: Java
 ---
 

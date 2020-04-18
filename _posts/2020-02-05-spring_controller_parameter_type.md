@@ -5,7 +5,7 @@ createdDate:   2020-02-05T20:48:00+09:00
 date:    2020-02-05T22:07:00+09:00
 pagination: enabled
 author: SoonYong Hong
-categories: Spring
+categories: spring
 tags: Spring SpringController
 ---
 # Spring Controller Parameter 정리

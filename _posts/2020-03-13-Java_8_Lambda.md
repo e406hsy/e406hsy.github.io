@@ -1,11 +1,11 @@
 ---
 layout: post
-title:  "Java Lambda"
+title:  "[Java] Lambda"
 createdDate:   2020-03-13T10:33:00+09:00
 date:   2020-04-16T22:08:00+09:00
 pagination: enabled
 author: SoonYong Hong
-categories: Java
+categories: java
 tags: Java Java8 lambda
 ---
 # JAVA Lambda 식 기초

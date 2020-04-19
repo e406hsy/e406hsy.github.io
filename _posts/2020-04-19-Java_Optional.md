@@ -12,7 +12,7 @@ tags: Java Optional
 ---
 
 ## Optional Class
-자바의 객체 데이터 타입의 변수는 null일 수가 있다.
+자바의 객체 데이터 타입의 변수는 null일 수가 있다.     
 Java 8에서 null을 관리하기 위하여 Optional Class가 소개되었다.
 
 ---

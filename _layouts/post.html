@@ -38,7 +38,7 @@ disqus_disabled: false
 {% if site.jekyll-archives %}
 {% if page.tags.size > 0 %}
 <section class="tags">
-  <strong>Tags:</strong> {% for tag in page.tags %}<p>{{ tag }}</p>{% if forloop.last == false %},&nbsp;{% endif %}{% endfor %}
+  <strong>Tags:</strong> {% for tag in page.tags %}<span>{{ tag }}</span>{% if forloop.last == false %},&nbsp;{% endif %}{% endfor %}
 </section>
 {% endif %}
 {% endif %}

@@ -15,6 +15,9 @@
   {% if site.naver-site-verification %}
   <meta name="naver-site-verification" content="{{ site.naver-site-verification }}">
   {% endif %}
+  {% if site.google_adsense %}
+  <script data-ad-client="{{site.google_adsense}}" async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+  {% endif %}
   
   <!-- External libraries -->
   <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css">

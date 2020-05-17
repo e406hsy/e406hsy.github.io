@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "[Spring Reference] 스프링 레퍼런스 개요"
+title:  "[Spring Reference] 스프링 레퍼런스 #0 개요"
 createdDate:   2020-05-17T13:04:00+09:00
 date:   2020-05-17T13:04:00+09:00
 pagination: enabled
@@ -56,4 +56,8 @@ tags: Spring Reference
 생각하고 있는 해결방법이나 수정을 제안하고 싶다면, [GitHub](https://github.com/spring-projects/spring-framework)에 pull request를 제출할 수 있습니다. 하지만 주의하십시오. 가장 사소한 이슈까지 모두, issue tracker에 작성되어서 토론이 진행되고 추후 레퍼런스를 위한 기록이 남겨질수 있도록 하기를 우리는 기대하고 있습니다.
 <h2 id="overview-getting-started"> 시작하기 </h2>
 스프링에 이제 막 시작하는 단계라면 [Spring Boot](https://projects.spring.io/spring-boot/)기반 어플리케이션을 만들기를 원하실 것입니다. 스프링 부트는 빠른 (강제되는) 방법으로 바로 제작가능한 스프링 기반의 어플리케이션을 만들도록 해줍니다. 스프링 부트는 컨벤션에 맞게 구성된 스프링에 기반하고 있으며 당신을 일으켜세워 가능한한 빠르게 배울수 있도록 디자인 되었습니다.     
-[start.spring.io](https://start.spring.io/)에서 기본 프로젝트를 만들어 볼 수도 있고 [Getting Started Building a RESTful Web Servicd](https://spring.io/guides/gs/rest-service/)와 같은 [시작하기 가이드](https://spring.io/guides)중 하나를 따라해 볼 수 있습니다. 이 가이드들은 이해하기 쉬우면서 문제 중심적이고 대부분 스프링 부트에 기반하고 있습니다. 특정 문제를 해결하는데 사용할 수 있는 스프링 포트폴리오에 기반한 다른 프로젝트 또한 포함합니다.
+[start.spring.io](https://start.spring.io/)에서 기본 프로젝트를 만들어 볼 수도 있고 [Getting Started Building a RESTful Web Servicd](https://spring.io/guides/gs/rest-service/)와 같은 [시작하기 가이드](https://spring.io/guides)중 하나를 따라해 볼 수 있습니다. 이 가이드들은 이해하기 쉬우면서 문제 중심적이고 대부분 스프링 부트에 기반하고 있습니다. 특정 문제를 해결하는데 사용할 수 있는 스프링 포트폴리오에 기반한 다른 프로젝트 또한 포함합니다.     
+
+---
+
+다음 : [Spring Reference Core](/spring_reference/spring-reference-core)

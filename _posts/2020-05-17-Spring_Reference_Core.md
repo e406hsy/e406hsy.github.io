@@ -9,245 +9,245 @@ categories: Spring_Reference
 tags: Spring Reference
 ---
 
-이 내용은 [스프링 문서 5.2.6.RELEASE](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/overview.html#overview)를 번역한 내용으로 오역이 있을 수 있습니다.
+이 내용은 [스프링 문서 5.2.6.RELEASE](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#spring-core)를 번역한 내용으로 오역이 있을 수 있습니다.
 
 현재 내용 작성중입니다.
 
 # 목차
-<h2><a href="#overview"> 핵심 기술 </a></h2>
+<h2><a href="#spring-core"> 핵심 기술 </a></h2>
 <ol>
-    <li><a href="#overview-spring"> IoC 컨테이너 </a>
+    <li><a href="#beans"> IoC 컨테이너 </a>
         <ol>
-            <li><a href="#">IoC 컨테이너와 빈의 소개</a></li>
-            <li><a href="#">컨테이너 개요</a>
+            <li><a href="#beans-introduction">IoC 컨테이너와 빈의 소개</a></li>
+            <li><a href="#beans-basics">컨테이너 개요</a>
                 <ol>
-                    <li><a href="#">메타데이터 설정하기</a></li>
-                    <li><a href="#">컨테이너 인스턴스 만들기</a>
+                    <li><a href="#beans-factory-metadata">메타데이터 설정하기</a></li>
+                    <li><a href="#beans-factory-instantiation">컨테이너 인스턴스 만들기</a>
                         <ul>
-                            <li><a href="#">XML 기반 설정 메타데이터 만들기</a><li>
-                            <li><a href="#">Groovy 빈 정의 DSL</a></li>
+                            <li><a href="#beans-factory-xml-import">XML 기반 설정 메타데이터 만들기</a><li>
+                            <li><a href="#groovy-bean-definition-dsl">Groovy 빈 정의 DSL</a></li>
                         </ul>
                     </li>
-                    <li><a href="#">컨테이너 이용하기</a>
+                    <li><a href="#bean-factory-client">컨테이너 이용하기</a>
                 </ol>
             </li>
-            <li><a href="#">빈 개요</a>
+            <li><a href="#beans-definition">빈 개요</a>
                 <ol>
-                    <li><a href="#">빈 이름 붙이기</a>
+                    <li><a href="#beans-beanname">빈 이름 붙이기</a>
                         <ul>
-                            <li><a href="#">빈 정의 외부에서 빈 별명 설정하기</a></li>
+                            <li><a href="#beans-beanname-alias">빈 정의 외부에서 빈 별명 설정하기</a></li>
                         </ul>
                     </li>
-                    <li><a href="#">빈 인스턴스 만들기</a>
+                    <li><a href="#beans-factory-class">빈 인스턴스 만들기</a>
                         <ul>
-                            <li><a href="#">컨테이너로 인스턴스 만들기</a></li>
-                            <li><a href="#">스태틱 팩토리 메소드로 만들기</a></li>
-                            <li><a href="#">인스턴스 팩토리 메소드로 만들기</a></li>
-                            <li><a href="#">빈의 런타임 타입 정의하기</a></li>
-                        </ul>
-                    </li>
-                </ol>
-            </li>
-            <li><a href="#">의존성</a>
-                <ol>
-                    <li><a href="#">의존성 주입</a>
-                        <ul>
-                            <li><a href="#">생성자 기반 의존성 주입</a></li>
-                            <li><a href="#">세터 기반 의존성 주입</a></li>
-                            <li><a href="#">의존성 결정 과정</a></li>
-                            <li><a href="#">의존성 주입 예제</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">의존성과 설정 상세</a>
-                        <ul>
-                            <li><a href="#">변경없는 값(Primitives, String 등등)</a></li>
-                            <li><a href="#">다른 빈 참조(협업)</a></li>
-                            <li><a href="#">내부 빈</a></li>
-                            <li><a href="#">컬렉션</a></li>
-                            <li><a href="#">Null과 비어있는 스트링</a></li>
-                            <li><a href="#">P 네임스페이스를 이용한 XML 단축</a></li>
-                            <li><a href="#">c 네임스페이스를 이용한 XML 단축</a></li>
-                            <li><a href="#">복합 프로퍼티 이름</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">depends-on 사용하기</a></li>
-                    <li><a href="#">지연 초기화 빈</a></li>
-                    <li><a href="#">Autowiring 협력자</a>
-                        <ul>
-                            <li><a href="#">자동 연결의 한계와 단점</a></li>
-                            <li><a href="#">자동 연결에 빈 제외하기</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">메소드 주입</a>
-                        <ul>
-                            <li><a href="#">Lookup 메소드 주입</a></li>
-                            <li><a href="#">임의의 메소드 대체</a></li>
+                            <li><a href="#beans-factory-class-ctor">컨테이너로 인스턴스 만들기</a></li>
+                            <li><a href="#beans-factory-class-static-factory-method">스태틱 팩토리 메소드로 만들기</a></li>
+                            <li><a href="#beans-factory-class-instance-factory-method">인스턴스 팩토리 메소드로 만들기</a></li>
+                            <li><a href="#beans-factory-type-determination">빈의 런타임 타입 결정하기</a></li>
                         </ul>
                     </li>
                 </ol>
             </li>
-            <li><a href="#">빈 스코프</a>
+            <li><a href="#beans-dependencies">의존성</a>
                 <ol>
-                    <li><a href="#">싱글톤 스코프</a></li>
-                    <li><a href="#">프로토타입 스코프</a></li>
-                    <li><a href="#">프로토타입 빈 의존성을 가지는 싱글톤 빈</a></li>
-                    <li><a href="#">Request, Session, Application, WebSocket 스코프</a>
+                    <li><a href="#beans-factory-collaborators">의존성 주입</a>
                         <ul>
-                            <li><a href="#">초기 웹 설정</a></li>
-                            <li><a href="#">Request 스코프</a></li>
-                            <li><a href="#">Session 스코프</a></li>
-                            <li><a href="#">Application 스코프</a></li>
-                            <li><a href="#">스코프 빈 의존성</a></li>
+                            <li><a href="#beans-constructor-injection">생성자 기반 의존성 주입</a></li>
+                            <li><a href="#beans-setter-injection">세터 기반 의존성 주입</a></li>
+                            <li><a href="#beans-dependency-resolution">의존성 결정 과정</a></li>
+                            <li><a href="#beans-some-examples">의존성 주입 예제</a></li>
                         </ul>
                     </li>
-                    <li><a href="#">커스텀 스코프</a>
+                    <li><a href="#beans-factory-properties-detailed">의존성과 설정 상세</a>
                         <ul>
-                            <li><a href="#">커스텀 스코프 만들기</a></li>
-                            <li><a href="#">커스텀 스코프 이용하기</a></li>
+                            <li><a href="#beans-value-element">변경없는 값(Primitives, String 등등)</a></li>
+                            <li><a href="#beans-ref-element">다른 빈 참조(협업)</a></li>
+                            <li><a href="#beans-inner-beans">내부 빈</a></li>
+                            <li><a href="#beans-collection-elements">컬렉션</a></li>
+                            <li><a href="#beans-null-element">Null과 비어있는 스트링</a></li>
+                            <li><a href="#beans-p-namespace">P 네임스페이스를 이용한 XML 단축</a></li>
+                            <li><a href="#beans-c-namespace">c 네임스페이스를 이용한 XML 단축</a></li>
+                            <li><a href="#beans-compound-property-names">복합 프로퍼티 이름</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#beans-factory-dependson">depends-on 사용하기</a></li>
+                    <li><a href="#beans-factory-lazy-init">지연 초기화 빈</a></li>
+                    <li><a href="#beans-factory-autowire">Autowiring 협력자</a>
+                        <ul>
+                            <li><a href="#beans-autowired-exceptions">자동 연결의 한계와 단점</a></li>
+                            <li><a href="#beans-factory-autowire-candidate">자동 연결에 빈 제외하기</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#beans-factory-method-injection">메소드 주입</a>
+                        <ul>
+                            <li><a href="#beans-factory-lookup-method-injection">Lookup 메소드 주입</a></li>
+                            <li><a href="#beans-factory-arbitrary-method-replacement">임의의 메소드 대체</a></li>
                         </ul>
                     </li>
                 </ol>
             </li>
-            <li><a href="#">빈의 특성 설정하기</a>
+            <li><a href="#beans-factory-scopes">빈 스코프</a>
                 <ol>
-                    <li><a href="#">콜백의 생명주기</a>
+                    <li><a href="#beans-factory-scopes-singleton">싱글톤 스코프</a></li>
+                    <li><a href="#beans-factory-scopes-prototype">프로토타입 스코프</a></li>
+                    <li><a href="#beans-factory-scopes-sing-prot-interaction">프로토타입 빈 의존성을 가지는 싱글톤 빈</a></li>
+                    <li><a href="#beans-factory-scopes-other">Request, Session, Application, WebSocket 스코프</a>
                         <ul>
-                            <li><a href="#">콜백 정의하기</a></li>
-                            <li><a href="#">파괴 콜백</a></li>
-                            <li><a href="#">기본 초기화 메소드, 파괴 메소드</a></li>
-                            <li><a href="#">생명주기 작동원리 조합하기</a></li>
-                            <li><a href="#">Startup, Shutdown 콜백</a></li>
-                            <li><a href="#">웹 어플리케이션이 아닌 환경에서 스프링 IoC 컨테이너 아름답게 종료하기</a></li>
+                            <li><a href="#beans-factory-scopes-other-web-configuration">초기 웹 설정</a></li>
+                            <li><a href="#beans-factory-scopes-request">Request 스코프</a></li>
+                            <li><a href="#beans-factory-scopes-session">Session 스코프</a></li>
+                            <li><a href="#beans-factory-scopes-application">Application 스코프</a></li>
+                            <li><a href="#beans-factory-scopes-other-injection">스코프 빈 의존성</a></li>
                         </ul>
                     </li>
-                    <li><a href="#">ApplicationContextAware, BeanNameAware</a></li>
-                    <li><a href="#">다른 Aware 인터페이스</a></li>
-                </ol>
-            </li>
-            <li><a href="#">빈의 정의 상속</a></li>
-            <li><a href="#">컨테이너 확장 시점</a>
-                <ol>
-                    <li><a href="#">BeanPostProcessor를 이용하여 빈 커스터마이징 하기</a>
+                    <li><a href="#beans-factory-scopes-custom">커스텀 스코프</a>
                         <ul>
-                            <li><a href="#">예제: Hello World, BeanPostProcessor 스타일</a></li>
-                            <li><a href="#">예제: RequiredAnnotationBeanPostProcessor</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">BeanFactoryPostProcessor를 이용하여 설정 메타데이터 설정하기</a>
-                        <ul>
-                            <li><a href="#">예제: 클래스 이름 대체 PropertySourcesPlaceholderConfigurer</a></li>
-                            <li><a href="#">예제: PropertyOverrideConfigurer</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">FactoryBean을 이용하여 인스턴스화 로직 커스터마이징 하기</a></li>
-                </ol>
-            </li>
-            <li><a href="#">어노테이션 기반 컨테이너 설정</a>
-                <ol>
-                    <li><a href="#">@Required</a></li>
-                    <li><a href="#">@Autowired 사용하기</a></li>
-                    <li><a href="#">@Primary를 이용하여 어노테이션 기반 자동 연결 미세 조정하기</a></li>
-                    <li><a href="#"></a>Qualifers를 이용하여 어노테이션 기반 자동 연결  미세 조정하기</li>
-                    <li><a href="#">제네릭을 자동연결 Qualifers로 이용하기</a></li>
-                    <li><a href="#">CustomAutowireConfig 이용하기</a></li>
-                    <li><a href="#">@Resource를 사용한 주입</a></li>
-                    <li><a href="#">@Value 사용하기</a></li>
-                    <li><a href="#">@PostConstruct와 @PreDestory 사용하기</a></li>
-                </ol>
-            </li>
-            <li><a href="#">클래스패스 스캐닝과 관리되는 컴포넌트</a>
-                <ol>
-                    <li><a href="#">@Component와 추가적인 정형화된 어노테이션</a></li>
-                    <li><a href="#">메타 어노테이션과 복합 어노테이션 이용하기</a></li>
-                    <li><a href="#">클래스 검색과 빈 정의 등록을 자동으로 수행하기 </a></li>
-                    <li><a href="#">필터를 이용하여 스캐닝 커스터마이징하기</a></li>
-                    <li><a href="#">컴포넌트 내부에 빈 메타데이터 정의하기</a></li>
-                    <li><a href="#">자동 검색된 컴포넌트 이름 붙이기</a></li>
-                    <li><a href="#">자동 검색된 컴포넌트에 스코프 부여하기</a></li>
-                    <li><a href="#">Qualifier 메타데이터 어노테이션으로 부여하기</a></li>
-                    <li><a href="#">후보 컴포넌트 색인 생성하기</a></li>
-                </ol>
-            </li>
-            <li><a href="#">JSR 330 표준 어노테이션 사용하기</a>
-                <ol>
-                    <li><a href="#">@Inject와 @Named를 이용한 의존성 주입</a></li>
-                    <li><a href="#">@Named와 @ManagedBean: @Component 어노테이션의 표준 표현</a></li>
-                    <li><a href="#">JSR-330 표준 어노테이션의 한계</a></li>
-                </ol>
-            </li>
-            <li><a href="#">자바 기반 컨테이너설정</a>
-                <ol>
-                    <li><a href="#">기본 개념: @Bean과 @Configuration</a></li>
-                    <li><a href="#">AnnotationConfigApplicationContext를 이용하여 스프링 컨테이너 인스턴스화 하기</a>
-                        <ul>
-                            <li><a href="#">간단하게 만들어보기</a></li>
-                            <li><a href="#">register(Class<?>...)을 이용하여 프로그래밍적으로 컨테이너 만들기</a></li>
-                            <li><a href="#">scan(String...)을 이용하여 컴포넌트 스캔 활성화하기</a></li>
-                            <li><a href="#">AnnotationConfigWebApplicationContext을 이용한 웹 어플리케이션 지원</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">@Bean 어노테이션 사용하기</a>
-                        <ul>
-                            <li><a href="#">빈 정의하기</a></li>
-                            <li><a href="#">빈 의존성</a></li>
-                            <li><a href="#">생명주기 콜백 받기</a></li>
-                            <li><a href="#">빈 스코프 설정하기</a></li>
-                            <li><a href="#">빈 이름 설정하기</a></li>
-                            <li><a href="#">빈 별명 설정하기</a></li>
-                            <li><a href="#">빈 설명</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">@Configuration 어노테이션 이용하기</a>
-                        <ul>
-                            <li><a href="#">내부 빈 의존성 주입하기</a></li>
-                            <li><a href="#">Lookup 메소드 주입하기</a></li>
-                            <li><a href="#">자바 기반 설정이 내부적으로 작동하는 방법에 대한 추가적인 정보</a></li>
-                        </ul>
-                    </li>
-                    <li><a href="#">자바 기반 설정 구성하기</a>
-                        <ul>
-                            <li><a href="#">@Import 어노테이션 사용하기</a></li>
-                            <li><a href="#">조건에 따라 @Configuration 클래스와 @Bean 메소드 포함시키기</a></li>
-                            <li><a href="#">자바 기반 설정과 XML 기반 설정 조합하기</a></li>
+                            <li><a href="#beans-factory-scopes-custom-creating">커스텀 스코프 만들기</a></li>
+                            <li><a href="#beans-factory-scopes-custom-using">커스텀 스코프 이용하기</a></li>
                         </ul>
                     </li>
                 </ol>
             </li>
-            <li><a href="#">환경 추상화</a>
+            <li><a href="#beans-factory-nature">빈의 특성 설정하기</a>
                 <ol>
-                    <li><a href="#">빈 정의 프로필</a>
+                    <li><a href="#beans-factory-lifecycle">콜백의 생명주기</a>
                         <ul>
-                            <li><a href="#">@Profile 이용하기</a></li>
-                            <li><a href="#">XML 빈 정의 프로필</a></li>
-                            <li><a href="#">프로필 활성화하기</a></li>
-                            <li><a href="#">기본 프로필</a></li>
+                            <li><a href="#beans-factory-lifecycle-initializingbean">콜백 정의하기</a></li>
+                            <li><a href="#beans-factory-lifecycle-disposablebean">파괴 콜백</a></li>
+                            <li><a href="#beans-factory-lifecycle-default-init-destroy-methods">기본 초기화 메소드, 파괴 메소드</a></li>
+                            <li><a href="#beans-factory-lifecycle-combined-effects">생명주기 작동원리 조합하기</a></li>
+                            <li><a href="#beans-factory-lifecycle-processor">Startup, Shutdown 콜백</a></li>
+                            <li><a href="#beans-factory-shutdown">웹 어플리케이션이 아닌 환경에서 스프링 IoC 컨테이너 아름답게 종료하기</a></li>
                         </ul>
                     </li>
-                    <li><a href="#">PropertySource 추상화</a></li>
-                    <li><a href="#">@PropertySource 사용하기</a></li>
-                    <li><a href="#">표현법의 PlaceHolder Resolution</a></li>
+                    <li><a href="#beans-factory-aware">ApplicationContextAware, BeanNameAware</a></li>
+                    <li><a href="#awar-list">다른 Aware 인터페이스</a></li>
                 </ol>
             </li>
-            <li><a href="#">LoadTimeWeaver 등록하기</a></li>
-            <li><a href="#">어플리케이션 콘텍스트의 추가적인 사용기능</a>
+            <li><a href="#beans-child-bean-definitions">빈의 정의 상속</a></li>
+            <li><a href="#beans-factory-extension">컨테이너 확장 시점</a>
                 <ol>
-                    <li><a href="#">MessageSource를 이용한 내재화</a></li>
-                    <li><a href="#">표준, 커스텀 이벤트</a>
+                    <li><a href="#beans-factory-extension-bpp">BeanPostProcessor를 이용하여 빈 커스터마이징 하기</a>
                         <ul>
-                            <li><a href="#">어노테이션 기반 이벤트 리스너</a></li>
-                            <li><a href="#">비동기 리스너</a></li>
-                            <li><a href="#">리스너 순서 정하기</a></li>
-                            <li><a href="#">Generic 이벤트</a></li>
+                            <li><a href="#beans-factory-extension-bpp-examples-hw">예제: Hello World, BeanPostProcessor 스타일</a></li>
+                            <li><a href="#beans-factory-extension-bpp-examples-rabpp">예제: RequiredAnnotationBeanPostProcessor</a></li>
                         </ul>
                     </li>
-                    <li><a href="#">로우레벨 자원에 편리한 접근</a></li>
-                    <li><a href="#">웹 어플리케이션을 위한 편리한 ApplicationContext 인스턴스화</a></li>
-                    <li><a href="#">스프링 ApplicationContext를 Java EE RAR 파일로 배포하기</a></li>
+                    <li><a href="#beans-factory-extension-factory-postprocessors">BeanFactoryPostProcessor를 이용하여 설정 메타데이터 설정하기</a>
+                        <ul>
+                            <li><a href="#beans-factory-placeholderconfigurer">예제: 클래스 이름 대체 PropertySourcesPlaceholderConfigurer</a></li>
+                            <li><a href="#beans-factory-overrideconfigurer">예제: PropertyOverrideConfigurer</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#beans-factory-extension-factorybean">FactoryBean을 이용하여 인스턴스화 로직 커스터마이징 하기</a></li>
                 </ol>
             </li>
-            <li><a href="#">빈 팩토리</a>
+            <li><a href="#beans-annotation-config">어노테이션 기반 컨테이너 설정</a>
                 <ol>
-                    <li><a href="#">BeanFactory 또는 ApplicationContext?</a></li>
+                    <li><a href="#beans-required-annotation">@Required</a></li>
+                    <li><a href="#beans-autowired-annotation">@Autowired 사용하기</a></li>
+                    <li><a href="#beans-autowired-annotation-primary">@Primary를 이용하여 어노테이션 기반 자동 연결 미세 조정하기</a></li>
+                    <li><a href="#beans-autowired-annotation-qualifiers"></a>Qualifers를 이용하여 어노테이션 기반 자동 연결  미세 조정하기</li>
+                    <li><a href="#beans-generics-as-qualifiers">제네릭을 자동연결 Qualifers로 이용하기</a></li>
+                    <li><a href="#beans-custom-autowire-configurer">CustomAutowireConfig 이용하기</a></li>
+                    <li><a href="#beans-resource-annotation">@Resource를 사용한 주입</a></li>
+                    <li><a href="#beans-value-annotations">@Value 사용하기</a></li>
+                    <li><a href="#beans-postconstruct-and-predestroy-annotations">@PostConstruct와 @PreDestory 사용하기</a></li>
+                </ol>
+            </li>
+            <li><a href="#beans-classpath-scanning">클래스패스 스캐닝과 관리되는 컴포넌트</a>
+                <ol>
+                    <li><a href="#beans-stereotype-annotations">@Component와 추가적인 정형화된 어노테이션</a></li>
+                    <li><a href="#beans-meta-annotations">메타 어노테이션과 복합 어노테이션 이용하기</a></li>
+                    <li><a href="#beans-scanning-autodetection">클래스 검색과 빈 정의 등록을 자동으로 수행하기 </a></li>
+                    <li><a href="#beans-scanning-filters">필터를 이용하여 스캐닝 커스터마이징하기</a></li>
+                    <li><a href="#beans-factorybeans-annotations">컴포넌트 내부에 빈 메타데이터 정의하기</a></li>
+                    <li><a href="#beans-scanning-name-generator">자동 검색된 컴포넌트 이름 붙이기</a></li>
+                    <li><a href="#beans-scanning-scope-resolver">자동 검색된 컴포넌트에 스코프 부여하기</a></li>
+                    <li><a href="#beans-scanning-qualifiers">Qualifier 메타데이터 어노테이션으로 부여하기</a></li>
+                    <li><a href="#beans-scanning-index">후보 컴포넌트 색인 생성하기</a></li>
+                </ol>
+            </li>
+            <li><a href="#beans-standard-annotations">JSR 330 표준 어노테이션 사용하기</a>
+                <ol>
+                    <li><a href="#beans-inject-named">@Inject와 @Named를 이용한 의존성 주입</a></li>
+                    <li><a href="#beans-named">@Named와 @ManagedBean: @Component 어노테이션의 표준 표현</a></li>
+                    <li><a href="#beans-stardard-annotations-limitations">JSR-330 표준 어노테이션의 한계</a></li>
+                </ol>
+            </li>
+            <li><a href="#beans-java">자바 기반 컨테이너설정</a>
+                <ol>
+                    <li><a href="#beans-java-basic-concepts">기본 개념: @Bean과 @Configuration</a></li>
+                    <li><a href="#beans-java-instantiating-container">AnnotationConfigApplicationContext를 이용하여 스프링 컨테이너 인스턴스화 하기</a>
+                        <ul>
+                            <li><a href="#beans-java-instantiating-container-constructor">간단하게 만들어보기</a></li>
+                            <li><a href="#beans-java-instantiating-container-register">register(Class<?>...)을 이용하여 프로그래밍적으로 컨테이너 만들기</a></li>
+                            <li><a href="#beans-java-instantiating-container-scan">scan(String...)을 이용하여 컴포넌트 스캔 활성화하기</a></li>
+                            <li><a href="#beans-java-instantiating-container-web">AnnotationConfigWebApplicationContext을 이용한 웹 어플리케이션 지원</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#beans-java-bean-annotation">@Bean 어노테이션 사용하기</a>
+                        <ul>
+                            <li><a href="#beans-java-declaring-a-bean">빈 정의하기</a></li>
+                            <li><a href="#beans-java-dependencies">빈 의존성</a></li>
+                            <li><a href="#beans-java-lifecycle-callbacks">생명주기 콜백 받기</a></li>
+                            <li><a href="#beans-java-specifying-bean-scope">빈 스코프 설정하기</a></li>
+                            <li><a href="#beans-java-customizing-bean-naming">빈 이름 설정하기</a></li>
+                            <li><a href="#beans-java-bean-aliasing">빈 별명 설정하기</a></li>
+                            <li><a href="#beans-java-bean-description">빈 설명</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#beans-java-configuration-annotation">@Configuration 어노테이션 이용하기</a>
+                        <ul>
+                            <li><a href="#beans-java-injecting-dependencies">내부 빈 의존성 주입하기</a></li>
+                            <li><a href="#beans-java-method-injection">Lookup 메소드 주입하기</a></li>
+                            <li><a href="#beans-java-further-information-java-config">자바 기반 설정이 내부적으로 작동하는 방법에 대한 추가적인 정보</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#beans-java-composing-configuration-classes">자바 기반 설정 구성하기</a>
+                        <ul>
+                            <li><a href="#beans-java-using-import">@Import 어노테이션 사용하기</a></li>
+                            <li><a href="#beans-java-conditional">조건에 따라 @Configuration 클래스와 @Bean 메소드 포함시키기</a></li>
+                            <li><a href="#beans-java-combining">자바 기반 설정과 XML 기반 설정 조합하기</a></li>
+                        </ul>
+                    </li>
+                </ol>
+            </li>
+            <li><a href="#beans-envirionment">환경 추상화</a>
+                <ol>
+                    <li><a href="#beans-definition-profiles">빈 정의 프로필</a>
+                        <ul>
+                            <li><a href="#beans-definition-profiles-java">@Profile 이용하기</a></li>
+                            <li><a href="#beans-definition-profiles-xml">XML 빈 정의 프로필</a></li>
+                            <li><a href="#beans-definition-profiles-enable">프로필 활성화하기</a></li>
+                            <li><a href="#beans-definition-profiles-default">기본 프로필</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#beans-property-source-abstaction">PropertySource 추상화</a></li>
+                    <li><a href="#beans-using-propertysource">@PropertySource 사용하기</a></li>
+                    <li><a href="#beans-placeholder-resolution-in-statements">표현법의 PlaceHolder Resolution</a></li>
+                </ol>
+            </li>
+            <li><a href="#context-load-time-weaver">LoadTimeWeaver 등록하기</a></li>
+            <li><a href="#context-introduction">어플리케이션 콘텍스트의 추가적인 사용기능</a>
+                <ol>
+                    <li><a href="#context-functionality-messagesource">MessageSource를 이용한 내재화</a></li>
+                    <li><a href="#context-functionality-events">표준, 커스텀 이벤트</a>
+                        <ul>
+                            <li><a href="#context-functionality-events-annotation">어노테이션 기반 이벤트 리스너</a></li>
+                            <li><a href="#context-functionality-events-async">비동기 리스너</a></li>
+                            <li><a href="#context-functionality-events-order">리스너 순서 정하기</a></li>
+                            <li><a href="#context-functionality-events-generics">Generic 이벤트</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#context-functionality-resources">로우레벨 자원에 편리한 접근</a></li>
+                    <li><a href="#context-create">웹 어플리케이션을 위한 편리한 ApplicationContext 인스턴스화</a></li>
+                    <li><a href="#context-deploy-rar">스프링 ApplicationContext를 Java EE RAR 파일로 배포하기</a></li>
+                </ol>
+            </li>
+            <li><a href="#beans-beanfactory">빈 팩토리</a>
+                <ol>
+                    <li><a href="#context-introduction-ctx-vs-beanfactory">BeanFactory 또는 ApplicationContext?</a></li>
                 </ol>
             </li>
         </ol>

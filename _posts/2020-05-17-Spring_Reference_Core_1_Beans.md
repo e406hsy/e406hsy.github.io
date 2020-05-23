@@ -164,7 +164,7 @@ tags: Spring Reference
 1. <a href="../spring-reference-core-6-aop-api/#aop-api"> 스프링 AOP API </a>
 1. <a href="../spring-reference-core-7-null-safety/#null-safety"> 안전한 Null </a>
 1. <a href="../spring-reference-core-8-databuffers/#databuffers"> 데이터 버퍼와 코덱 </a>
-1. <a href="#appendix"> 부록 </a>
+1. <a href="../spring-reference-core-9-appendix/#appendix"> 부록 </a>
 
 ---
 
@@ -292,7 +292,7 @@ ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", 
 </beans>
 ```
 
-위의 예시에서, 서비스 레이어는 `PerStoreServiceImpl` 클래스와 (JPA 객체 관계 맵핑 표준에 기반한)`JpaAccountDao`와 `JpaItemDao` 두 종류의 DB에 접근하는 객체 두개로 구성된다. `property name`요소는 자바빈 프로퍼티의 이름을 가리키고 `ref`요소는 다른 빈 정의의 이름을 가리킨다. `id`와 `ref`요소 간의 연결은 함께 동작하는 객체들간의 의존성을 표현한다.  객체의 의존성을 설정에 대한 자세한 정보는 [의존성](#beans-dependencies)을 보십시오.
+위의 예시에서, 서비스 레이어는 `PetStoreServiceImpl` 클래스와 (JPA 객체 관계 맵핑 표준에 기반한)`JpaAccountDao`와 `JpaItemDao` 두 종류의 DB에 접근하는 객체 두개로 구성된다. `property name`요소는 자바빈 프로퍼티의 이름을 가리키고 `ref`요소는 다른 빈 정의의 이름을 가리킨다. `id`와 `ref`요소 간의 연결은 함께 동작하는 객체들간의 의존성을 표현한다.  객체의 의존성을 설정에 대한 자세한 정보는 [의존성](#beans-dependencies)을 보십시오.
 
 <h5 id="beans-factory-xml-import"> XML 기반 설정 메타데이터 만들기 </h5>
 여러 XML 파일에 빈 정의를 나눠놓는 것은 유용할 수 있다. 종종 각각의 독립적인 XML 설정 파일이 논리적 레이어나 모듈을 표현한다.     
@@ -317,10 +317,70 @@ ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", 
 네임스페이스 자체로 선언적인 기능을 제공하고 불러온다. 스프링에서 제공되는 `context`나 `util`과 같은 XML 네임스페이스를 선택하여 평범한 빈 정의를 뛰어넘는 설정도 가능하다.
 
 <h5 id="groovy-bean-definition-dsl">Groovy 빈 정의 DSL</h5>
+외부 설정 메타데이터의 더 깊은 예제로서 Grails 프레임워크로부터 알려진 Groovy 빈 정의 DSL로 빈 정의를 표현할 수 있다. 일반적으로 이러한 설정은 ".groovy" 파일이며 아래 예제와 같은 구조를 가진다:
 
+```GROOVY
+beans {
+    dataSource(BasicDataSource) {
+        driverClassName = "org.hsqldb.jdbcDriver"
+        url = "jdbc:hsqldb:mem:grailsDB"
+        username = "sa"
+        password = ""
+        settings = [mynew:"setting"]
+    }
+    sessionFactory(SessionFactory) {
+        dataSource = dataSource
+    }
+    myService(MyService) {
+        nestedBean = { AnotherBean bean ->
+            dataSource = dataSource
+        }
+    }
+}
+```
+
+이 설정 방법은 XML 빈 정의 방법과 같은 방법이며 심지어 스프링 XML 설정 네임스페이스도 지원한다. XML 빈 정의 파일을 불러오는 방법 또한 `importBeans` 명령으로 지원한다.
 
 <h4 id="bean-factory-client">컨테이너 이용하기</h4>
 
+`ApplicationContext`는 다양한 빈과 의존성을 목록을 유지할 수 있는 향상된 팩토리 인터페이스이다. `T getBean(String name, Class<T> requiredType)`을 이용하여 빈 인스턴스를 가져올 수 있다.     
+`ApplicationContext`는 아래 예시에서 보여주듯 빈을 읽고 빈에 접근할 수 있게 한다:
+
+```java
+// 빈을 만들고 설정한다.
+ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", "daos.xml");
+
+// 설정된 인스턴스를 가져온다.
+PetStoreService service = context.getBean("petStore", PetStoreService.class);
+
+// 설정된 인스턴스를 사용한다.
+List<String> userList = service.getUsernameList();
+```
+
+Groovy 설정으로 진행하는 일련의 과정은 매우 흡사하다. Groovy를 알고있는( XML 빈 정의 또한 이해하는 ) 컨텍스트 클래스의 구현제를 가지고 있다. 아래의 예제가 Groovy 설정을 보여준다:
+
+```java
+ApplicationContext context = new GenericGroovyApplicationContext("services.groovy", "daos.groovy");
+```
+
+가장 유연한 형태는 읽어오기를 대신 수행하는 객체들과 조합된 `GenericApplicationContext`이다. -XML 읽어오기를 대신 수행하는 `XmlBeanDefinitionReader`를 이용한 예시:
+
+```java
+GenericApplicationContext context = new GenericApplicationContext();
+new XmlBeanDefinitionReader(context).loadBeanDefinitions("services.xml", "daos.xml");
+context.refresh();
+```
+
+`GroovyBeanDefinitionReader`를 이용하여 아래 예시처럼 Groovy 파일을 읽어올 수 있다:
+
+```java
+GenericApplicationContext context = new GenericApplicationContext();
+new GroovyBeanDefinitionReader(context).loadBeanDefinitions("services.groovy", "daos.groovy");
+context.refresh();
+```
+
+읽어오기를 대신 수행하는 객체를 짜맞춰 조합하여 한개의 `ApplicationContext`에 다양한 설정 원천으로부터 빈 정의를 읽어올 수 있다.     
+그 뒤, `getBean`을 이용하여 빈 인스턴스를 가져올 수 있다. `ApplicationContext` 인터페이스는 빈을 가져오는 메소드를 몇개 가지고 있다. 하지만 이상적으로는 어플리케이션 코드가 그 메소드들을 사용하면 안된다. 사실, 어플리케이션 소드는 `getBean()`메소드를 호출하면 안되며 스프링 API에 의존성이 없어야 한다. 예를 들어, 스프링은 웹 프레임워크를 통합시켜 컨트롤러나 JSF 빈과 같은 다양한 웹 프레임워크 구성 요소에 의존성 주입을 제공한다. 자동연결 어노테이션과 같은 메타데이터로 특정 빈에 대한 의존성을 정의할 수 있게한다.
 
 <h3 id="beans-definition">빈 개요</h3>
 

@@ -174,11 +174,11 @@ tags: Spring Reference
 이 것들중 가장 중요한 것은 스프링 프레임워크의 역 흐름 제어(IoC)이다. 스프링 프레임워크 IoC 컨테이너의 철저한 관리는 스프링의 광범위한 관점 지향 프로그래밍(AOP) 적용 범위에 기반한다. 스프링 프레임워크는 개념적으로 이해하기 쉽고 자바 엔터프라이즈 프로그래밍에 요구조건의 핵심 80%를 성공적으로 처리하는 자체 AOP 프레임워크를 가지고 있다.     
 또한 스프링은 AspectJ(현재 자바 엔터프라이즈 환경에서 가장 질 좋고 성숙한 AOP 구현)포함시켜 제공된다.
 
-<h2 id="beans"> IoC 컨테이너 </h2>
+<h2 id="beans"> 1. IoC 컨테이너 </h2>
 
 이 장은 스프링의 역 흐름 제어(IoC) 컨테이너를 담당한다.
 
-<h3 id="beans-introduction">IoC 컨테이너와 빈의 소개</h3>
+<h3 id="beans-introduction"> 1.1. IoC 컨테이너와 빈의 소개</h3>
 
 이 장은 스프링 프레임워크의 역흐름 제어 구현 원리를 담당한다. 역 흐름 제어(IoC)는 의존성 주입(DI)로도 알려져 있다. 이것은 객체가 생성자 어규먼트, 팩토리 메서드 어규먼트, 생성되거나 팩토리 메소드로부터 리턴된후 객체 인스턴트에 설정되는 프로퍼티만을 통해 자신의 의존성(함께 동작하는 다른 객체)을 정의하는 과정이다. IoC 컨테이너는 빈을 생성할 때, 이러한 의존성을 주입한다. 이 과정은 기본적으로 서비스 중개자 패턴(Service Locator pattern)과 같은 방법이나 객체의 직접생성 등의 방법으로 빈 스스로 자신의 의존성을 인스턴스화하는 것의 반대이다.     
 `org.springframework.beans`와 `org.springframework.context` 패키지는 스프링 프레임워크 IoC 컨테이너의 기반이 된다. [`BeanFactory`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/beans/factory/BeanFactory.html)인터페이스는 어떠한 타입의 객체든 관리할 수 있는 추가적인 설정 방법을 제공한다. [`ApplicationContext`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/ApplicationContext.html)는 `BeanFactory`의 서브 인터페이스이며 아래의 것들을 추가한다.
@@ -190,7 +190,7 @@ tags: Spring Reference
 요약하면, `BeanFactory`는 프레임워크와 기본적인 기능 설정을 제공하고 `ApplicationContext`는 더 기업 특화적인 기능을 추가한다. `ApplicationContext`는 `BeanFactory`의 완전한 상위 호환이며 오로지 이 장에서 스프링 IoC 컨테이너의 설명에 사용된다. `ApplicationContext`대신 `BeanFactory`를 사용하는 방법에 대한 추가적인 정보는 [`BeanFactory`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/beans/factory/BeanFactory.html)를 보십시오.      
 스프링에서 어플리케이션의 기반을 이루며 스프링 IoC 컨테이너에 의해 관리되는 객체들을 빈이라고 부른다. 빈은 스프링 IoC 컨테이너에 의하여 인스턴스화 되고 수집된다. 다른말로 하면 스프링 IoC 컨테이너에 의해 관리된다. 또 다른말로 하면, 빈은 어플리케이션에 수많은 객체중 하나이다. 빈과 그들사이의 의존성은 컨테이너에서 사용하는 설정 메타데이터에 의해 가져온다.
 
-<h3 id="beans-basics">컨테이너 개요</h3>
+<h3 id="beans-basics"> 1.2. 컨테이너 개요 </h3>
 `org.springframework.context.ApplicationContext`인터페이스는 스프링 IoC 컨테이너를 의미하며 빈을 인스턴스화하고 설정하며 수집하는 역할을 한다. 컨테이너를 설정 메타데이터를 읽음으로서 어떠한 객체를 인스턴스화하고 설정하고 수집할 지 수행할 명령을 가져온다. XML, 자바 어노테이션, 자바 코드의 형태로 설정 메타데이터를 표현한다. 이 메타데이터는 어플리케이션을 구성하는 객체와 객체간의 의존성을 표현할 수 있게 한다.     
 스프링은 몇개의 `ApplicationContext`구현체를 제공한다. 독립형 어플리케이션에서 [`ClassPathXmlApplicationCOntext`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/ClassPathXmlApplicationContext.html)나 [`FileSystemXmlApplicationContext`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/FileSystemXmlApplicationContext.html)를 생성하는 것은 흔한 일이다. XML은 전통적으로 설정 메타데이터를 정의하는 형식으로 생각되어 왔지만 아주 약간의 XML 설정만으로 자바 어노테이션이나 코드를 메타데이터 형식으로 컨테이너에 제공할 수 있다.     
 대부분의 어플리케이션 시나리오에서, 하나 혹은 그 이상의 스프링 IoC 컨테이너를 인스턴스화 하기 위해 유저의 코드는 필요없다. 예를 들어 웹 어플리케이션 시나리오에서, 어플리케이션의 `web.xml`파일의 간단한 8줄의 상용 웹 설명자 XML이면 충분하다.([웹 어플리케이션을 위한 편리한 ApplicationContext 인스턴스화 하기](#context-create)를 보십시오.) 만약 [Spring Tools for Exlipse](https://spring.io/tools)(이클립스 기반 개발 환경)을 사용한다면 몇 번의 마우스 클릭과 키보드를 누름으로서 이 상용 설정을 쉽게 만들 수 있다.     
@@ -198,7 +198,7 @@ tags: Spring Reference
 <img src="https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/images/container-magic.png"/>
 **그림 1. 스프링 IoC 컨테이너**
 
-<h4 id="beans-factory-metadata">메타데이터 설정하기</h4>
+<h4 id="beans-factory-metadata"> 1.2.1 메타데이터 설정하기</h4>
 위의 다이어그램에서 볼 수 있듯이, 스프링 IoC 컨테이너는 설정 메타데이터를 이용한다. 어플리케이션 개발자가 스프링 컨테이너에게 어플리케이션의 객체들을 인스턴스화하고 설정하고 수집하는 방법을 표현하는 것이 설정 메타데이터이다.     
 전통적으로 메타데이터는 간단하고 직관적인 XML 형식으로 제공되었고 이 XML형식은 이 장에서 스프링 IoC 컨테이너의 주요한 개념과 기능을 표현하기 위해 사용된다.
 
@@ -212,7 +212,8 @@ tags: Spring Reference
 스프링 설정은 컨테이너가 관리할 최소 한개의 빈 정의, 일반적으로는 여러개의 빈 정의로 구성된다. XML 기반 설정 메타데이터는 이러한 빈을 최상위 `<beans/>`요소 안에 `<bean/>` 요소로 설정한다. 자바 설정은 일반적으로 `@Configuration`클래스 내부에 `@Bean`어노테이션 메서드를 사용한다.     
 이러한 빈 정의는 어플리케이션을 만드는 실제 객체와 일치한다. 일반적으로 서비스 레이어 객체, DB에 접근하는 객체(DAOs), Struts `Action`과 같은 프레젠테이션 객체, Hibernate `SessionFactories`와 같은 기반장치 객체, JMS `Queues`와 같은 것들을 정의한다. 일반적으로 잘만들어진 도메인 객체는 컨테이너에 설정하지 않는다. 왜냐하면 도메인 객체를 만들고 불러오는 것은 대개 DAO와 비즈니스 로직의 역할이기 때문인다. 그러나 스프링에 통합된 AspectJ를 이용하여 IoC 컨테이너의 통제 밖에서 생성된 객체를 설정할 수 있다. [AspectJ를 이용하여 스프링에서 도메인 객체에 의존성 주입하기](https://docs.spring.io/spring-framework/docs/current/javadoc-api/org/springframework/context/annotation/DependsOn.html)를 보십시오.     
 아래의 예제는 기본적인 XML 기반 설정 메타데이터를 보여줍니다:
-```
+
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -236,9 +237,85 @@ tags: Spring Reference
 | 2 | `class` 어트리뷰트는 빈의 종류를 정의하고 완전한 클래스이름을 사용한다. |
 
 `id` 어트리뷰트의 값은 의존하는 객체를 가리킨다. 의존하는 객체를 가리키는 XML은 이 예제에는 없다. [의존성](#beans-dependencies)에 더 자세히 나와있습니다.
-<h4 id="beans-factory-instantiation">컨테이너 인스턴스 만들기</h4>
+<h4 id="beans-factory-instantiation"> 1.2.2. 컨테이너 인스턴스 만들기 </h4>
+`ApplcationContext`생성자 에 제공된 경로는 자바 `CLASSPATH`, 로컬 파일 시스템과 같은 다양한 리소스로부터 스프링 컨테이너가 설정 메타데이터를 불러올수 있는 스트링이다.
 
-<h5 id="beans-factory-xml-import">XML 기반 설정 메타데이터 만들기</h5>
+```java
+ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", "daos.xml");
+
+```
+
+| 스프링 IoC 컨테이너에 대하여 배운 이후, URI로 적힌 위치로부터 손쉽게 읽어오는 방법을 제공하는 스프링 `Resource` 추상화([리소스](../spring-reference-core-1-resources#resources)에 설명되어 있다.)에 대하여 알고 싶을 수도 있다. 특히 [어플리케이션 컨텍스트와 리소스 경로]에 설명되어 있는대로, 어플리케이션 컨텍스트를 만드는데 `Resource`경로를 사용한다. |
+
+아래의 예시는 서비스 레이어 `(services.xml)`객체 설정 파일이다:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 서비스 리스트 -->
+
+    <bean id="petStore" class="org.springframework.samples.jpetstore.services.PetStoreServiceImpl">
+        <property name="accountDao" ref="accountDao"/>
+        <property name="itemDao" ref="itemDao"/>
+        <!-- 이 빈에 사용되는 의존성과 설정이 작성되는 장소 -->
+    </bean>
+
+    <!-- 더 많은 빈 정의가 작성되는 장소 -->
+
+</beans>
+```
+
+아래의 예시는 DB에 접극하는 객체 `daos.xml`을 보여준다:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="accountDao"
+        class="org.springframework.samples.jpetstore.dao.jpa.JpaAccountDao">
+        <!-- 이 빈에 사용되는 의존성과 설정이 작성되는 장소 -->
+    </bean>
+
+    <bean id="itemDao" class="org.springframework.samples.jpetstore.dao.jpa.JpaItemDao">
+        <!-- 이 빈에 사용되는 의존성과 설정이 작성되는 장소 -->
+    </bean>
+
+    <!-- 더 많은 빈 정의가 작성되는 장소 -->
+
+</beans>
+```
+
+위의 예시에서, 서비스 레이어는 `PerStoreServiceImpl` 클래스와 (JPA 객체 관계 맵핑 표준에 기반한)`JpaAccountDao`와 `JpaItemDao` 두 종류의 DB에 접근하는 객체 두개로 구성된다. `property name`요소는 자바빈 프로퍼티의 이름을 가리키고 `ref`요소는 다른 빈 정의의 이름을 가리킨다. `id`와 `ref`요소 간의 연결은 함께 동작하는 객체들간의 의존성을 표현한다.  객체의 의존성을 설정에 대한 자세한 정보는 [의존성](#beans-dependencies)을 보십시오.
+
+<h5 id="beans-factory-xml-import"> XML 기반 설정 메타데이터 만들기 </h5>
+여러 XML 파일에 빈 정의를 나눠놓는 것은 유용할 수 있다. 종종 각각의 독립적인 XML 설정 파일이 논리적 레이어나 모듈을 표현한다.     
+어플리케이션 콘텍스트의 생성자를 사용하여 이 XML 조각들에 빈 정의를 불러올 수 있다. 이 생성자는 [이전 장](#beans-factory-instantiation)에서 보여줬듯이 여러개의 `Resource`위치를 수용한다. 그 대신 `<import/>`를 이용하여 다른 파일에서 빈 정의를 불러올 수 있다. 아래에 예시가 있다:
+
+```xml
+<beans>
+    <import resource="services.xml"/>
+    <import resource="resources/messageSource.xml"/>
+    <import resource="/resources/themeSource.xml"/>
+
+    <bean id="bean1" class="..."/>
+    <bean id="bean2" class="..."/>
+</beans>
+```
+
+위의 예시에서 `services.xml`, `messageSource.sml`, `themeSource.xml` 세 파일로부터 외부 빈 정의를 불러온다. 모든 위치 경로는 불러오는 파일로부터 상대적이다. 따라서 `services.xml`은 불러오는 파일과 같은 디렉토리에 있거나 같은 클래스패스 위치에 있어야하며 `messageSource.xml`과 `themeSource.xml`은 불러오는 파일 하위에 `resources` 위치에 있어야한다. 이로 알수 있듯이, 맨 처음 나오는 "/"는 무시된다. 그러나 상대적인 위치라는 것을 감안하여, "/"는 사용하지 않는게 좋다. 불러와지는 파일의 내용은 최 상위 `<beans/>`를 포함하여 스프링 스키마에 따라 유효한 XML 빈 정의여야한다.
+
+| 부모 디렉토리에 있는 파일을 "../"를 이용하여 나타내는 것은 가능하지만 추천하지 않는다. 이렇게 하면 현재 어플리케이션 외부에 파일에 의존하게된다. 특히 `classpath:`에 이러한 방법을 사용하는 것은 매우 추천하지 않는다.(예를 들어 `classpath:../services.xml`) 런타임에 "가장 가까운" 클래스패스 루트를 찾아 부모 디렉터리를 살펴보기 때문에 틀린 디렉토리를 선택하게 될 수도 있다.     
+상대경로 대신 완전한 리소스 위치를 얼마든지 사용할 수 있다. 예를 들면 `file:C:/config/services.xml` 또는 `classpath:/config/services.xml`. 하지만 어플리케이션의 설정을 특정 절대경로에 묶어놓는 다는 것을 확실히 알아둬야 할 것이다. 일반적으로는 이러한 절대경로를 간접적으로 유지하는 것을 선호한다. - 예를 들어 런타임에 JVM 시스템 프로퍼티에서 처리되는 "${...}" 플레이스 홀더를 이용하는 것이다. |
+
+네임스페이스 자체로 선언적인 기능을 제공하고 불러온다. 스프링에서 제공되는 `context`나 `util`과 같은 XML 네임스페이스를 선택하여 평범한 빈 정의를 뛰어넘는 설정도 가능하다.
+
 <h5 id="groovy-bean-definition-dsl">Groovy 빈 정의 DSL</h5>
 
 

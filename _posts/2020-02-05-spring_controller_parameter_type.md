@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "Spring Controller Parameter"
+title:  "스프링 컨트롤러에서 사용되는 파라메터 정리"
 createdDate:   2020-02-05T20:48:00+09:00
 date:    2020-05-24T15:47:00+09
 excerpt: "스프링 컨트롤러에서 사용되는 파라메터 정리"

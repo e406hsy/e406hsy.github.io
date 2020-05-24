@@ -50,7 +50,7 @@ tags: Spring Reference
             * <a href="#beans-compound-property-names">복합 프로퍼티 이름</a>
         1. <a href="#beans-factory-dependson">depends-on 사용하기</a>
         1. <a href="#beans-factory-lazy-init">지연 초기화 빈</a>
-        1. <a href="#beans-factory-autowire">Autowiring 협력자</a>
+        1. <a href="#beans-factory-autowire">자동연결 협력자</a>
             * <a href="#beans-autowired-exceptions">자동 연결의 한계와 단점</a>
             * <a href="#beans-factory-autowire-candidate">자동 연결에 빈 제외하기</a>
         1. <a href="#beans-factory-method-injection">메소드 주입</a>
@@ -72,7 +72,7 @@ tags: Spring Reference
     1. <a href="#beans-factory-nature">빈의 특성 설정하기</a>
         1. <a href="#beans-factory-lifecycle">콜백의 생명주기</a>
             * <a href="#beans-factory-lifecycle-initializingbean">콜백 정의하기</a>
-            * <a href="#beans-factory-lifecycle-disposablebean">파괴 콜백</a>
+            * <a href="#beans-factory-lifecycle-disposablebean">소멸자 콜백</a>
             * <a href="#beans-factory-lifecycle-default-init-destroy-methods">기본 초기화 메소드, 파괴 메소드</a>
             * <a href="#beans-factory-lifecycle-combined-effects">생명주기 작동원리 조합하기</a>
             * <a href="#beans-factory-lifecycle-processor">Startup, Shutdown 콜백</a>
@@ -383,8 +383,44 @@ context.refresh();
 그 뒤, `getBean`을 이용하여 빈 인스턴스를 가져올 수 있다. `ApplicationContext` 인터페이스는 빈을 가져오는 메소드를 몇개 가지고 있다. 하지만 이상적으로는 어플리케이션 코드가 그 메소드들을 사용하면 안된다. 사실, 어플리케이션 소드는 `getBean()`메소드를 호출하면 안되며 스프링 API에 의존성이 없어야 한다. 예를 들어, 스프링은 웹 프레임워크를 통합시켜 컨트롤러나 JSF 빈과 같은 다양한 웹 프레임워크 구성 요소에 의존성 주입을 제공한다. 자동연결 어노테이션과 같은 메타데이터로 특정 빈에 대한 의존성을 정의할 수 있게한다.
 
 <h3 id="beans-definition">빈 개요</h3>
+스프링 IoC 컨테이너는 하나 이상의 빈을 관리한다. 컨테이너에 제공한 설정 메타데이터(예를 들어 XML에서 `<bean/>` 정의)를 이용하여 이 빈들을 생성한다.     
+컨테이너 내부에서 빈 정의는 아래의 메타데이터를 가지고 있는 `BeanDefinition`객체로 표현된다:
+* 패키지가 포함된 클래스 이름: 일반적으로 정의된 빈의 실제 구현 클래스
+* 빈이 컨테이너 내부에서 동작하는 방법을 설정하는 빈의 행동에 관한 설정 요소들 (스코프, 생명주기, 콜백 등등)
+* 빈이 동작하기 위해 필요한 다른 빈에 대한 참조. 이 참조는 콜라보레이터나 의존성이라고도 불린다.
+* 새로 생성된 객체에 사용하는 다른 설정 - 예를 들면, 커넥션 풀을 관리하는 빈에서 커넥션의 수, 풀의 최대 크기
+이러한 메타데이터는 각각의 빈 정의를 만드는 프로퍼티로 옮겨진다. 아래 표는 그러한 프로퍼티를 설명한다.
+
+**표 1. 빈 정의**
+
+| 프로퍼티 | 자세한 설명 하이퍼 링크 |
+| ----- | ----- |
+| Class | [빈 초기화하기](#beans-factory-class) |
+| Name | [빈 이름 붙이기](#beans-beanname) |
+| Scope | [빈 스코프](#beans-factory-scopes) |
+| Constructor arguments | [의존성 주입](beans-factory-collaborators) |
+| Properties | [의존성 주입](beans-factory-collaborators) |
+| Autowiring mode | [자동연결 협력자](#beans-factory-autowire) |
+| Lazy initialization mode | [지연 초기화 빈](#beans-factory-lazy-init) |
+| initialization method | [초기화 콜백](#beans-factory-lifecycle-initializingbean) |
+| Destruction mehtod | [소멸자 콜백](#beans-factory-lifecycle-disposablebean) |
+
+`ApplicationContext` 구현체는 빈이 어떻게 생성되야 하는지에 대한 정보를 담은 빈정의 뿐만 아니라 컨테이너 밖에서 유저에 의해 생성된 객체의 등록 또한 허용한다. 이러한 행위는 `getBeanFactory()`메소드를 통하여 ApplicationContext의 빈 팩토리에 접근하여 이루어진다. 해당 메소드는 `DefaultListableBeanFactory`를 반환한다. 이 `DefaultListableBeanFactory`는 `registerSingleton(..)`과 `registerBeanDefinition(..)` 메소드를 이용하여 빈 등록을 할 수 있다. 하지만 일반적인 어플리케이션은 보통의 빈 정의 메타데이터에서 정의된 빈으로만 동작한다.
+
+| 빈정의와 수동으로 제공된 싱글톤 인스턴스는 가능한한 빨리 등록하어 컨테이너가 자동연결과 다른 내부 동작을 올바르게 작동할 수 있도록 해야한다. 이미 존재하는 메타데이터와 싱글톤 인스턴스를 덮어씌우는 것은 어느정도 지원하지만 새로운 빈을 런타임에 추가하는 것(팩토리에 동시접근하는 것)은 공식적으로 지원하지 않고 동시 접근 예외나 빈 컨테이너의 동시성 문제, 혹은 두 문제 모두를 발생시킬수 있다. |
 
 <h4 id="beans-beanname">빈 이름 붙이기</h4>
+
+모든 빈은 한개 이상의 식별자를 가지고 있다. 이러한 식별자는 해당 빈을 가지고 있는 컨테이너 내부에서는 고유해야한다. 빈은 보통은 한개의 식별자만 가진다. 하지만 여러개가 필요하다면 나머지는 별명으로 여겨진다.     
+XML기반 설정 메타데이터에서 `id` 어트리뷰트, `name` 어트리뷰트, 혹은 두개 모두를 빈 식별자로 사용한다. `id` 어트리뷰트는 정확히 한개의 식별자를 가지게한다. 관례적으로 이러한 이름들은 문자와 숫자로 구성되어있다. ('myBean', 'someService' 등등) 하지만, 특수문자도 사용 가능하다. 빈에 별명을 설정하고자 한다면, `name` 어트리뷰트에 `,`, `;`, 공백으로 구분하여 작성할 수 있다. 스프링 3.1 이전에는 `id` 어트리뷰트는 문자제한이 있는`xsd:ID` 형식으로 정의되었다. 3.1부터 `xsd:string`형식으로 정의되었다. `id`의 고유성은 여전히 컨테이너에 의하여 강제된다. 하지만 더이상 XML 파서를 이용하지 않는다.     
+`name`이나 `id`를 반드시 작성할 필요는 없다. `name`이나 `id`를 명시하지 않으면, 컨테이너가 고유한 이름을 만들어낸다. 하지만 `ref` 요소나 서비스 중개자 스타일을 이용하여 빈을 이름으로 참조하려면 이름을 작성해야한다. 이름을 작성하지 않는 동기는 [내부 빈](#beans-inner-beans)이나 [자동연결 협력자](#beans-factory-autowire)를 이용하기 위해서이다.
+
+| 빈 이름 컨벤션 |
+| --- |
+| 빈 이름을 지을 때에 사용하는 컨벤션은 인스턴스의 필드 이름에 사용되는 표준 자바 컨벤션을 사용하는 것이다. 즉, 빈 이름은 소문자로 시작하여 camel-case를 사용한다. 이러한 이름의 예시는 `accountManager`, `accountService`, `userDao`, `loginController` 등등이 있다.     
+일관성있게 이름을 지음으로써 설정을 읽기 쉽고 이해하기 쉽도록한다. 또한 스프링 AOP를 사용한다면 이름을 이용하여 어드바이스를 적용하는데 많은 도움이 된다. |
+
+| 클래스 패스에 컴포넌트 탐색시에 스프링은 이름이 없는 컴포넌트에 이름을 생성한다. 아래의 규칙은 먼저 소개되었다: 클래스 이름을 사용한고 첫 글자를 소문자로 한다. 하지만 첫번째와 두번째글자 모두 대문자라면 원래 모습이 유지된다. 이러한 규칙은 `java.beans.Introspector.decapitalize`에 정의된다. |
 
 <h5 id="beans-beanname-alias">빈 정의 외부에서 빈 별명 설정하기</h5>
 
@@ -423,7 +459,7 @@ context.refresh();
 
 <h4 id="beans-factory-dependson">depends-on 사용하기</h4>
 <h4 id="beans-factory-lazy-init">지연 초기화 빈</h4>
-<h4 id="beans-factory-autowire">Autowiring 협력자</h4>
+<h4 id="beans-factory-autowire">자동연결 협력자</h4>
 
 <h5 id="beans-autowired-exceptions">자동 연결의 한계와 단점</h5>
 <h5 id="beans-factory-autowire-candidate">자동 연결에 빈 제외하기</h5>
@@ -464,7 +500,7 @@ context.refresh();
 <h4 id="beans-factory-lifecycle">콜백의 생명주기</h4>
 
 <h5 id="beans-factory-lifecycle-initializingbean">콜백 정의하기</h5>
-<h5 id="beans-factory-lifecycle-disposablebean">파괴 콜백</h5>
+<h5 id="beans-factory-lifecycle-disposablebean">소멸자 콜백</h5>
 <h5 id="beans-factory-lifecycle-default-init-destroy-methods">기본 초기화 메소드, 파괴 메소드</h5>
 <h5 id="beans-factory-lifecycle-combined-effects">생명주기 작동원리 조합하기</h5>
 <h5 id="beans-factory-lifecycle-processor">Startup, Shutdown 콜백</h5>

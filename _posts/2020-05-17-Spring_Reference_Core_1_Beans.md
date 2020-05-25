@@ -439,24 +439,22 @@ XML기반 설정 메타데이터에서 `id` 어트리뷰트, `name` 어트리뷰
 
 | 자바 기반 설정 |
 | ------ |
-| 만약 자바 기반 설정을 이용한다면 `@Bean` 어노테이션을 사용하여 별명을 정의할 수 있다. [`@Bean` 어노테이션 이용하기](#beans-java-bean-annotation)에 자세한 내용을 볼 수 있다.
+| 만약 자바 기반 설정을 이용한다면 `@Bean` 어노테이션을 사용하여 별명을 정의할 수 있다. [`@Bean` 어노테이션 이용하기](#beans-java-bean-annotation)에 자세한 내용을 볼 수 있다. |
 
 <h4 id="beans-factory-class">빈 인스턴스 만들기</h4>
 
 빈 정의는 하나 혹은 여러개의 객체를 만드는데 필수적인 제작법이다. 컨테이너가 실제 객체를 만들거나 획득할 때, 빈 정으로 추상화된 설정 메타데이터를 요청하여 사용한다.     
 만약 XML기반 설정 메타데이터를 사용한다면 인스턴스화될 객체의 타입(이나 클래스)를 `<bean/>`요소에 `class`어트리뷰트에 명시할 수 있다. 이 `class`어트리뷰트 (내부적으로 `BeanDefinition` 인스턴스의 `Class` 프로퍼티)는 보통 필수이다. (예외를 알고 싶다면 [인스턴스 팩토리 메서드를 이용하여 인스턴스화 하기](#beans-factory-class-instance-factory-method)와 [빈 정의 상속](#beans-child-bean-definitions)]를 보십시오) `Class` 프로퍼티를 두 방법으로 사용할 수 있다:
+
 * 일반적으로 자바 코드의 `new`에 해당하는 생성자를 컨테이너에서 직접 호출해 생성하는 경우에 사용한다.
 * 객체를 생성하기 위해 실행해야하는 `static` 팩토리 메소드를 포함하는 클래스를 명시하는 경우에 사용한다. 비교적 드믄 경우에 컨테이너는 `static` 팩토리 메소드를 호출해 빈을 생성한다. `static` 팩토리 메소드를 호출해 반환되는 객체의 타입은 같은 클래스일 수도 있고 다를 수도 있다.
 
 | 내부 클래스 이름 |
-| ----- |
-| 만약 `static` 중첩 클래스를 위한 빈 정의를 설정하고자 한다면, 반드시 중첩클래스의 이진이름을 사용해야한다.     
-예를 들어, `SomeThing`이라는 클래스가 `com.example`패키지에 있다고 하자. 이 `SomeThing` 클래스가 `static` 중첩 클래스 `OtherThing`을 가지고 있다면 `Class` 어트리뷰트의 값은 `com.example.SomeThing$OtherThing`이 될 것이다.     
-이름안에 `$`가 중첩 클래스와 외부 클래스를 구분해주는 문자라는 것을 주의해라 |
+| --- |
+| 만약 `static` 중첩 클래스를 위한 빈 정의를 설정하고자 한다면, 반드시 중첩클래스의 이진이름을 사용해야한다. 예를 들어, `SomeThing`이라는 클래스가 `com.example`패키지에 있다고 하자. 이 `SomeThing` 클래스가 `static` 중첩 클래스 `OtherThing`을 가지고 있다면 `Class` 어트리뷰트의 값은 `com.example.SomeThing$OtherThing`이 될 것이다. 이름안에 `$`가 중첩 클래스와 외부 클래스를 구분해주는 문자라는 것을 주의해라. |
+
 
 <h5 id="beans-factory-class-ctor">컨테이너로 인스턴스 만들기</h5>
-
-
 
 <h5 id="beans-factory-class-static-factory-method">스태틱 팩토리 메소드로 만들기</h5>
 <h5 id="beans-factory-class-instance-factory-method">인스턴스 팩토리 메소드로 만들기</h5>

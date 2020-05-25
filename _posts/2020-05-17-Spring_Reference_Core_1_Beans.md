@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-05-23T20:00:00+09:00
+date:   2020-05-25T22:49:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -424,10 +424,40 @@ XML기반 설정 메타데이터에서 `id` 어트리뷰트, `name` 어트리뷰
 
 <h5 id="beans-beanname-alias">빈 정의 외부에서 빈 별명 설정하기</h5>
 
+한개의 이름을 붙일 수 있는 `id` 어트리뷰트와 여러개의 이름을 붙일 수 있는 `name` 어트리뷰트를 이용하여 빈 정의에서 여러개의 이름을 붙여줄 수 있다. 이러한 이름들은 빈에 동등한 별명이다. 특정 컨포넌트에서 고유한 이름을 사용하여도 공통의 의존성을 주입하여 줄 수 있어 유용하다.     
+빈이 정의될 시기에 모든 별명을 정하는 것은 충분하지 않다. 어딘가에서 정의된 빈에 별명을 부여한는 것이 더 바람직하다. 하위 시스템이 각각의 설정을 가지고 독자적인 빈 정의를 가지고 있는 대형 시스템에 경우에 이 방법을 흔하게 사용한다. XML 기반 설정 메타데이터에서, `<alias/>` 요소를 사용하면 된다. 아래예시를 보자:
+```xml
+<alias name="fromName" alias="toName"/>
+```
+이 경우, 한 컨테이너 내부의 `fromName`이라는 빈이 이 별명 정의를 이용한 뒤부터 `toName`으로 참조될 수 있다.     
+예를 들면, 하위 시스템 A에서 사용하는 설정 메타데이터는 DataSource를 `subsystemA-dataSource`라는 이름으로 참조한다. 하위 시스템 B에서 사용하는 설정 메타데이터는 DataSource를 `subsystemB-DataSource`라는 이름으로 참조한다. 주 어플리케이션에서 이 두개의 하위 시스템을 조합하여 구성할 때, 주 어플리케이서는 DataSource를 `myApp-dataSource`라는 이름으로 참조한다. 아래의 별명 정의를 설정 메타데이터에 추가하여 이 세가지 이름이 같은 객체를 참조하도록 할 수 있다:
+```xml
+<alias name="myApp-dataSource" alias="subsystemA-dataSource"/>
+<alias name="myApp-dataSource" alias="subsystemB-dataSource"/>
+```
+이제 각각의 컴포넌트와 주 어플리케이션은 dataSource를 고유하면서 다른 정의에 의하여 충돌하지 않는 이름으로 참조할 수 있으며 동시에 같은 빈을 참조한다.
+
+| 자바 기반 설정 |
+| ------ |
+| 만약 자바 기반 설정을 이용한다면 `@Bean` 어노테이션을 사용하여 별명을 정의할 수 있다. [`@Bean` 어노테이션 이용하기](#beans-java-bean-annotation)에 자세한 내용을 볼 수 있다.
 
 <h4 id="beans-factory-class">빈 인스턴스 만들기</h4>
 
+빈 정의는 하나 혹은 여러개의 객체를 만드는데 필수적인 제작법이다. 컨테이너가 실제 객체를 만들거나 획득할 때, 빈 정으로 추상화된 설정 메타데이터를 요청하여 사용한다.     
+만약 XML기반 설정 메타데이터를 사용한다면 인스턴스화될 객체의 타입(이나 클래스)를 `<bean/>`요소에 `class`어트리뷰트에 명시할 수 있다. 이 `class`어트리뷰트 (내부적으로 `BeanDefinition` 인스턴스의 `Class` 프로퍼티)는 보통 필수이다. (예외를 알고 싶다면 [인스턴스 팩토리 메서드를 이용하여 인스턴스화 하기](#beans-factory-class-instance-factory-method)와 [빈 정의 상속](#beans-child-bean-definitions)]를 보십시오) `Class` 프로퍼티를 두 방법으로 사용할 수 있다:
+* 일반적으로 자바 코드의 `new`에 해당하는 생성자를 컨테이너에서 직접 호출해 생성하는 경우에 사용한다.
+* 객체를 생성하기 위해 실행해야하는 `static` 팩토리 메소드를 포함하는 클래스를 명시하는 경우에 사용한다. 비교적 드믄 경우에 컨테이너는 `static` 팩토리 메소드를 호출해 빈을 생성한다. `static` 팩토리 메소드를 호출해 반환되는 객체의 타입은 같은 클래스일 수도 있고 다를 수도 있다.
+
+| 내부 클래스 이름 |
+| ----- |
+| 만약 `static` 중첩 클래스를 위한 빈 정의를 설정하고자 한다면, 반드시 중첩클래스의 이진이름을 사용해야한다.     
+예를 들어, `SomeThing`이라는 클래스가 `com.example`패키지에 있다고 하자. 이 `SomeThing` 클래스가 `static` 중첩 클래스 `OtherThing`을 가지고 있다면 `Class` 어트리뷰트의 값은 `com.example.SomeThing$OtherThing`이 될 것이다.     
+이름안에 `$`가 중첩 클래스와 외부 클래스를 구분해주는 문자라는 것을 주의해라 |
+
 <h5 id="beans-factory-class-ctor">컨테이너로 인스턴스 만들기</h5>
+
+
+
 <h5 id="beans-factory-class-static-factory-method">스태틱 팩토리 메소드로 만들기</h5>
 <h5 id="beans-factory-class-instance-factory-method">인스턴스 팩토리 메소드로 만들기</h5>
 <h5 id="beans-factory-type-determination">빈의 런타임 타입 결정하기</h5>

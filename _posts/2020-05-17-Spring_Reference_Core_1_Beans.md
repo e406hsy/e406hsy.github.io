@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-05-25T22:49:00+09:00
+date:   2020-05-26T22:14:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -29,7 +29,7 @@ tags: Spring Reference
         1. <a href="#beans-beanname">빈 이름 붙이기</a>
             * <a href="#beans-beanname-alias">빈 정의 외부에서 빈 별명 설정하기</a>
         1. <a href="#beans-factory-class">빈 인스턴스 만들기</a>
-            * <a href="#beans-factory-class-ctor">컨테이너로 인스턴스 만들기</a>
+            * <a href="#beans-factory-class-ctor">생성자로 인스턴스 만들기</a>
             * <a href="#beans-factory-class-static-factory-method">스태틱 팩토리 메소드로 만들기</a>
             * <a href="#beans-factory-class-instance-factory-method">인스턴스 팩토리 메소드로 만들기</a>
             * <a href="#beans-factory-type-determination">빈의 런타임 타입 결정하기</a>
@@ -453,15 +453,102 @@ XML기반 설정 메타데이터에서 `id` 어트리뷰트, `name` 어트리뷰
 | --- |
 | 만약 `static` 중첩 클래스를 위한 빈 정의를 설정하고자 한다면, 반드시 중첩클래스의 이진이름을 사용해야한다. 예를 들어, `SomeThing`이라는 클래스가 `com.example`패키지에 있다고 하자. 이 `SomeThing` 클래스가 `static` 중첩 클래스 `OtherThing`을 가지고 있다면 `Class` 어트리뷰트의 값은 `com.example.SomeThing$OtherThing`이 될 것이다. 이름안에 `$`가 중첩 클래스와 외부 클래스를 구분해주는 문자라는 것을 주의해라. |
 
+<h5 id="beans-factory-class-ctor">생성자로 인스턴스 만들기</h5>
+생성자로 빈을 만들경우, 모든 보통의 클래스들은 스프링에서 사용가능하며 스프링과 호환된다. 이 말은 특정한 인터페이스를 구현하거나 특정한 방법으로 코드를 작성할 필요가 없다는 말이다. 단순히 빈의 클래스를 명시하는 것이면 충분하다. 하지만 어떠한 유형의 IoC 컨테이너를 사용하느냐에 따라 기본 생성자(어규먼트가 없는 생성자)가 필요할 수도 있다.     
+스프링 IoC 컨테이너는 사실상 어떠한 클래스도 관리 가능하다. 진짜 자바빈만 관리할 수 있는 것이 아니다. 대부분의 스프링 사용자들은 기본 생성자만 있고 적합한 세터와 게터를 가지고 있는 진짜 자바빈을 선호한다. 자바빈 스타일 이외의 이색적인 스타일의 클래스도 사용가능하다. 예를들어 만약에 자바빈 스펙과 전혀 관련없는 레가시 커넥션풀을 사용할 필요가 있다면 스프링이 관리해 줄 수 있다.     
+XML기반 설정 메타데이터에서 빈의 클래스를 아래와 같이 명시할 수 있다:
+```xml
+<bean id="exampleBean" class="examples.ExampleBean"/>
 
-<h5 id="beans-factory-class-ctor">컨테이너로 인스턴스 만들기</h5>
+<bean name="anotherExample" class="examples.ExampleBeanTwo"/>
+```
+생성자에 어규먼트를 제공하는 방법이나 오브젝트가 생성된뒤 객체 인스턴스 프로퍼티를 설정하는 방법에 대한 자세한 정보는 [의존성 주입](#beans-factory-collaborators)에서 볼 수 있다.
 
 <h5 id="beans-factory-class-static-factory-method">스태틱 팩토리 메소드로 만들기</h5>
+
+스태틱 팩토리 메소드로 빈을 만들 경우, `class`어트리뷰트를 이용해 `static`팩토리 메소드를 가진 클래스를 명시할수 있고 `factory-method`어트리뷰트를 이용해 팩토리 메소드 이름을 명시할 수 있다. 이 메소드를 (나중에 설명할 선택적인 어규먼트와 함께) 호출해서 생성자로 호춯한 것처럼 다뤄질 살아있는 객체를 획득할 수 있어야한다. 이러한 빈 정의를 사용하는 한가지 방법은 레가시 코드의 `static`팩토리를 호출하는 것이다.     
+아래의 빈 정의는 팩토리 메소드를 호출하여 빈이 생성된다고 명시한다. 이 빈 정의는 반환되는 객체의 종류를 명시하지 않고 팩토리 메서드를 가지고 있는 클래스만 명시한다. 이 예제에서 `createInstance()` 메소드는 반드시 스태틱 메소드여야한다. 아래의 예시는 팩토리 메소드를 명시하는 법을 보여준다:
+```xml
+<bean id="clientService"
+    class="examples.ClientService"
+    factory-method="createInstance"/>
+```
+아래의 예시는 위의 빈정의에 나오는 클래스를 보여준다:
+```java
+public class ClientService {
+    private static ClientService clientService = new ClientService();
+    private ClientService() {}
+
+    public static ClientService createInstance() {
+        return clientService;
+    }
+}
+```
+팩토리 메서드에 (선택적인)어규먼트를 제공하는 방법이나 팩토리에서 반환된 객체에 객체 인스턴스 프로퍼티를 설정하는 방법은 [의존성과 자세한 설정](#beans-factory-properties-detailed)에서 볼 수 있다.
 <h5 id="beans-factory-class-instance-factory-method">인스턴스 팩토리 메소드로 만들기</h5>
+
+[스태틱 팩토리 메소드](#beans-factory-class-static-factory-method)와 비슷하게 인스턴스 팩토리로 인스턴스화 하는 방법은 컨테이너에 이미 존재하는 빈의 스태틱이 아닌 메소드를 호출하여 새 빈을 만드는 것이다. 이 방법을 사용하기 위해, `class`어트리뷰트를 비워두고 `factory-bean`어트리뷰트에 현재(혹은 부모나 조상) 컨테이너에 있으며 객체를 만드는 인스턴스 메소드를 가지고 있는 빈의 이름을 명시하면 된다. 팩토리 메소드의 이름은 `factory-method`어트리뷰트에 설정하면 된다. 아래의 예시는 이러한 빈을 설정하는 것을 보여준다:
+```xml
+<!-- createClientServiceInstance()라는 메소드를 가지고 있는 팩토리 빈 -->
+<bean id="serviceLocator" class="examples.DefaultServiceLocator">
+    <!-- 이 빈에 필요한 의존성을 주입 -->
+</bean>
+
+<!-- 팩토리 빈에 의해 생성되는 빈 -->
+<bean id="clientService"
+    factory-bean="serviceLocator"
+    factory-method="createClientServiceInstance"/>
+```
+아래의 예시는 상응하는 클래스를 보여준다:
+```java
+public class DefaultServiceLocator {
+
+    private static ClientService clientService = new ClientServiceImpl();
+
+    public ClientService createClientServiceInstance() {
+        return clientService;
+    }
+}
+```
+하나의 팩토리 클래스는 여러개의 팩토리 메소드를 가지고 있을 수 있다. 아래에 예시이다:
+```xml
+<bean id="serviceLocator" class="examples.DefaultServiceLocator">
+    <!-- 이 빈에 필요한 의존성 주입 -->
+</bean>
+
+<bean id="clientService"
+    factory-bean="serviceLocator"
+    factory-method="createClientServiceInstance"/>
+
+<bean id="accountService"
+    factory-bean="serviceLocator"
+    factory-method="createAccountServiceInstance"/>
+```
+아래의 예시는 상응하는 클래스를 보여준다:
+```java
+public class DefaultServiceLocator {
+
+    private static ClientService clientService = new ClientServiceImpl();
+
+    private static AccountService accountService = new AccountServiceImpl();
+
+    public ClientService createClientServiceInstance() {
+        return clientService;
+    }
+
+    public AccountService createAccountServiceInstance() {
+        return accountService;
+    }
+}
+```
+이 접근법은 팩토리 빈 자체도 의존성 주입(DI)에 의하여 설정되고 관리된다는 것을 보여준다.[의존성과 자세한 설정](#beans-factory-properties-detailed)을 보십시오.
+
+| 스프링 문서에서 "팩토리 빈(factory bean)"은 스프링 컨테이너에 의하여 설정되며 [인스턴스](#beans-factory-class-instance-factory-method) 혹은 [스태틱](#beans-factory-class-static-factory-method) 팩토리 메소드로 객체를 생성하는 빈을 말한다. 반면에 `FactoryBean`(대문자임을 주목하십시오) `스프링 고유의 `FactoryBean` 구현체 클래스를 의미한다. |
+
 <h5 id="beans-factory-type-determination">빈의 런타임 타입 결정하기</h5>
 
-
-
+빈의 런타임 타입을 결정하는 것은 중요하다. 빈 메타데이터 정의에서 명시된 클래스는 그저 초기의 클래스 참조일 뿐이며 잠재적으로 팩토리 메서드와 결합하거나 `FactoryBean` 클래스가 되어 다른 런타임타입의 빈이 되거나 인스턴스 팩토리 메소드의 경우 클래스가 설정되지 않을 수도 있다. 게다가, AOP 프록시는 빈 인스턴스를 인터페이스 기반 프록시(인터페이스의 구현체)로 감싸 빈의 실제 타입을 외부에 노출시키지 않을 수도 있다.     
+빈의 실제 런타임 타입을 확인하는 방법은 `BeanFactory.getType`을 호출하는 것을 추천한다. 이 메소드는 위에 모든 경우를 계산해 두었으며 `BeanFactory.getBean`을 호출하면 반환하는 객체의 타입을 반환해 준다.
 
 <h3 id="beans-dependencies">의존성</h3>
 

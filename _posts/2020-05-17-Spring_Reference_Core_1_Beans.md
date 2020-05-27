@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-05-27T09:28:00+09:00
+date:   2020-05-27T20:01:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -560,7 +560,137 @@ DI 원리를 이용하면 코드가 더 깨끗해진다. 객체가 의존성을 
 DI는 두 종류가 있다: [생성자 기반 의존성 주입](#beans-constructor-injection)과 [세터 기반 의존성 주입](#beans-setter-injection)
 
 <h5 id="beans-constructor-injection">생성자 기반 의존성 주입</h5>
+
+컨테이너가 의존성을 표현하는 생성자의 어규먼트들을 실행히켜 생성자 기반 의존성 주입이 이뤄진다. 특정된 어규먼트를 이용해 `static` 팩토리 메소드를 호출하는 것과 거의 동일하다. 이 논의에서 생성자의 어규먼트와 `static`팩토리 메서드의 어규먼트를 비슷하게 본다. 아래의 예시는 생성자 주입으로 의존성 주입이 되는 예시이다:
+```java
+public class SimpleMovieLister {
+
+    // SimpleMovieLister는 MovieFinder에 의존한다.
+    private MovieFinder movieFinder;
+
+    // 스프링 컨테이너가 MovieFinder를 주입할 수 있는 생성자
+    public SimpleMovieLister(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // 주입된 MovieFinder를 이용하는 비즈니스 로직은 생략되었다.
+}
+```
+이 클래스에 특별한 것은 없다는 것을 알아차려야한다. 특정한 어노테이션, 클래스, 인터페이스에 의존하지 않는 POJO(Plain Old Java Object)이다.
+
+###### 생성자 어규먼트 분석하기
+생성자 어규먼트는 어규먼트의 타입을 사용해서 매칭한다. 빈 정의에 잠재적인 모호함이 전혀 없다면 빈 정의에서 생성자 어규먼트들의 순서가 빈의 생성될 때 생성자에 주어지는 어규먼트의 순서이다. 아래 클래스의 경우를 생각해보자:
+```java
+package x.y;
+
+public class ThingOne {
+
+    public ThingOne(ThingTwo thingTwo, ThingThree thingThree) {
+        // ...
+    }
+}
+```
+`ThingTwo`와 `ThingThree` 클래스가 상속관계가 아니라 가정하면, 잠재적인 모호함이 없다. 따라서 아래의 설정은 잘 동작하며 `<constructor-arg/>`에 인덱스나 타입을 명시적으로 표시할 필요가 없다.
+```xml
+<beans>
+    <bean id="beanOne" class="x.y.ThingOne">
+        <constructor-arg ref="beanTwo"/>
+        <constructor-arg ref="beanThree"/>
+    </bean>
+
+    <bean id="beanTwo" class="x.y.ThingTwo"/>
+
+    <bean id="beanThree" class="x.y.ThingThree"/>
+</beans>
+```
+빈이 참조될 때, 타입이 이미 알려져 있다면 매칭이 일어날 수 있다(위의 예시가 그러한 경우다). `<value>true</value>`와 같은 단순한 타입이 사용될때, 스프링이 값의 타입을 결정할 수 없다. 따라서 도움없이 타입을 매칭할 수 없다. 아래의 예시를 생각해보자:
+```java
+package examples;
+
+public class ExampleBean {
+
+    // 궁극적 해답을 계산하기 위해 필요한 년수
+    private int years;
+
+    // 삶, 대학, 모든 것들에 대한 해답
+    private String ultimateAnswer;
+
+    public ExampleBean(int years, String ultimateAnswer) {
+        this.years = years;
+        this.ultimateAnswer = ultimateAnswer;
+    }
+}
+```
+
+###### 생성자 어규먼트 타입 매칭하기
+이전의 시나리오에서, `type`어트리뷰트를 사용해서 생성사 어규먼트의 타입을 명시한다면 컨테이너는 간단한 타입에서도 타입 매칭을 사용 가능하다. 아래의 예시를 보자:
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+    <constructor-arg type="int" value="7500000"/>
+    <constructor-arg type="java.lang.String" value="42"/>
+</bean>
+```
+
+###### 생성자 어규먼트 인덱스
+아래의 예시가 보여주듯이, `index`어트리뷰트를 사용해서 생성자 어규먼트의 인덱스를 명시적으로 설정해줄 수 있다:
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+    <constructor-arg index="0" value="7500000"/>
+    <constructor-arg index="1" value="42"/>
+</bean>
+```
+```
+인덱스는 0부터 시작한다.
+```
+
+###### 생성자 어규먼트 이름
+아래의 예시가 보여주듯이 모호함을 없애기 위해 생성자 파라메터의 이름을 사용할 수 있다:
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+    <constructor-arg name="years" value="7500000"/>
+    <constructor-arg name="ultimateAnswer" value="42"/>
+</bean>
+```
+스프링에서 생서자로부터 파라메터 이름을 볼 수 있도록 디버그 플래그가 허용된 상태로 컴파일되어야 한다는 것을 명심해라. 만약 디버그 플래그를 허용하고 싶지 않다면 [@ConstructorProperties](https://download.oracle.com/javase/8/docs/api/java/beans/ConstructorProperties.html) JDK 어노테이션을 이용하여 명시적으로 생성자 어규먼트에 이름을 지어줄 수 있다. 예시 클래슨느 아래와 같이 생겻다:
+```java
+package examples;
+
+public class ExampleBean {
+
+    // 필드 생략
+
+    @ConstructorProperties({"years", "ultimateAnswer"})
+    public ExampleBean(int years, String ultimateAnswer) {
+        this.years = years;
+        this.ultimateAnswer = ultimateAnswer;
+    }
+}
+```
+
 <h5 id="beans-setter-injection">세터 기반 의존성 주입</h5>
+
+세터 기반 의존성 주입은 어규먼트가 없는 생성자나 어규먼트가 없는 `static` 팩토리 메서드를 호출한 뒤, 세터 메서드를 호출하여 이루어진다.     
+아래의 예시가 세터 기반 의존성 주입이 되는 예시이다. 이 클래스는 전통적인 자바 클래스이다. 특정 인터페이스, 클래스, 어노테이션에 의존하지 않는 POJO이다.
+```java
+public class SimpleMovieLister {
+
+    // SimpleMovieLister는 MovieFinder에 의존한다.
+    private MovieFinder movieFinder;
+
+    // 스프링 컨테이너가 MovieFinder를 주입할 수 있는 세더
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // 주입된 MovieFinder를 이용하는 비즈니스 로직은 생략되었다.
+}
+```
+`ApplicationContext`는 자신이 관리하는 빈에 생성자 기반 의존성 주입과 세터 기반 의존성 주입 모두 지원한다. 생성자 기반 의존성 주입으로 일부 의존성이 해결된 후 세터로 의존성 주입하는 것도 지원한다. `BeanDefiniton`의 형태로 의존성을 설정하고 이 `BeanDefinition`은 `PropertyEditor`인스턴스를 이용하여 프로퍼티의 형식을 변환한다. 하지만 대부분의 스프링 사용자들은 이 클래스들을 직접적으로(프로그래밍적으로) 사용하지 않고 XML `bean` 정의나 어노테이션이 설정된 컴포넌트(`@Component`,`@Controller` 등등의 어노테이션이 달린 클래스)나 자바 기반 `@Configuration`클래스의 `@Bean` 메소드를 사용한다. 이러한 것들은 내부적으로 `BeanDefiniton`인스턴스로 변환되고 스프링 IoC 컨테이너 인스턴스 전체를 로드하는데 사용된다.
+
+| 생성자 기반? 혹은 세터 기반? |
+| ----- |
+| |
+
 <h5 id="beans-dependency-resolution">의존성 결정 과정</h5>
 <h5 id="beans-some-examples">의존성 주입 예제</h5>
 

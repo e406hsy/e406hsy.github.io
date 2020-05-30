@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-05-29T09:06:00+09:00
+date:   2020-05-30T10:54:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -40,7 +40,7 @@ tags: Spring Reference
             * <a href="#beans-dependency-resolution">의존성 결정 과정</a>
             * <a href="#beans-some-examples">의존성 주입 예제</a>
         1. <a href="#beans-factory-properties-detailed">의존성과 설정 상세</a>
-            * <a href="#beans-value-element">변경없는 값(Primitives, String 등등)</a>
+            * <a href="#beans-value-element">직관적인 값(Primitives, String 등등)</a>
             * <a href="#beans-ref-element">다른 빈 참조(협업)</a>
             * <a href="#beans-inner-beans">내부 빈</a>
             * <a href="#beans-collection-elements">컬렉션</a>
@@ -714,11 +714,217 @@ public class SimpleMovieLister {
 
 <h5 id="beans-some-examples">의존성 주입 예제</h5>
 
+아래는 세터기반 의존성주입에 XML 기반 설정 메타데이터를 사용하는 예제이다. XML 설정 파일은 빈 정의를 아래와 같이 명시한다:
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+    <!-- ref 요소를 이용한 세터 기반 주입 -->
+    <property name="beanOne">
+        <ref bean="anotherExampleBean"/>
+    </property>
+
+    <!-- ref 어트리뷰트를 이용한 세터 기반 주입 -->
+    <property name="beanTwo" ref="yetAnotherBean"/>
+    <property name="integerProperty" value="1"/>
+</bean>
+
+<bean id="anotherExampleBean" class="examples.AnotherBean"/>
+<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+```
+아래의 예시는 위에 나온 `ExampleBean`이다:
+```java
+public class ExampleBean {
+
+    private AnotherBean beanOne;
+
+    private YetAnotherBean beanTwo;
+
+    private int i;
+
+    public void setBeanOne(AnotherBean beanOne) {
+        this.beanOne = beanOne;
+    }
+
+    public void setBeanTwo(YetAnotherBean beanTwo) {
+        this.beanTwo = beanTwo;
+    }
+
+    public void setIntegerProperty(int i) {
+        this.i = i;
+    }
+}
+```
+위의 예시에서 세터가 사용되어 프로퍼티를 명시하였다. 아래는 생성자 기반 의존성 주입의 예시이다:
+```xml
+<bean id="exampleBean" class="examples.ExampleBean">
+    <!-- ref 요소를 이용한 생성자 기반 주입 -->
+    <constructor-arg>
+        <ref bean="anotherExampleBean"/>
+    </constructor-arg>
+
+    <!-- ref 어트리뷰트를 이용한 생성자 기반 주입 -->
+    <constructor-arg ref="yetAnotherBean"/>
+
+    <constructor-arg type="int" value="1"/>
+</bean>
+
+<bean id="anotherExampleBean" class="examples.AnotherBean"/>
+<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+```
+아래의 예시는 위에 나온 `ExampleBean`이다:
+```java
+public class ExampleBean {
+
+    private AnotherBean beanOne;
+
+    private YetAnotherBean beanTwo;
+
+    private int i;
+
+    public ExampleBean(
+        AnotherBean anotherBean, YetAnotherBean yetAnotherBean, int i) {
+        this.beanOne = anotherBean;
+        this.beanTwo = yetAnotherBean;
+        this.i = i;
+    }
+}
+```
+`ExampleBean`의 생성자에 사용되는 어규먼트들은 빈 정의에 명시되있는 어규먼트이다.    
+이 예제의 변형을 보자. 생성자 대신 `static` 팩토리 메소드를 사용하는 예시이다:
+```xml
+<bean id="exampleBean" class="examples.ExampleBean" factory-method="createInstance">
+    <constructor-arg ref="anotherExampleBean"/>
+    <constructor-arg ref="yetAnotherBean"/>
+    <constructor-arg value="1"/>
+</bean>
+
+<bean id="anotherExampleBean" class="examples.AnotherBean"/>
+<bean id="yetAnotherBean" class="examples.YetAnotherBean"/>
+```
+아래의 예시는 위에 나온 `ExampleBean`이다:
+```java
+public class ExampleBean {
+
+    // 프라이빗 생성자
+    private ExampleBean(...) {
+        ...
+    }
+
+    // 정적 팩토리 메소드; 이 메서드의 어규먼트들은 해당 빈의
+    // 의존성으로 여겨진다. 실제 어규먼트들이 어떻게 사용되는지와는
+    // 무관하게 의존성으로 여겨진다.
+    public static ExampleBean createInstance (
+        AnotherBean anotherBean, YetAnotherBean yetAnotherBean, int i) {
+
+        ExampleBean eb = new ExampleBean (...);
+        // 추가적인 동작
+        return eb;
+    }
+}
+```
+`<constructor-arg/>` 요소들은 `static` 팩토리 메서드에 어규먼트로 제공되며 생성자가 실제로 사용하는 것과 같은 요소이다. `static` 팩토리 메서드를 가지고 있는 클래스와 팩토리 메서드에 의해 반환되는 클래스는 반드시 같은 타입일 필요는 없다(이 예제에서는 같지만). 인스턴스 (정적이 아닌) 팩토리 메서드를 근본적으로는 같은 방식(`class` 어트리뷰트 대신 `factory-bean` 어트리뷰트를 사용한다)으로 사용할 수 있다. 이곳에서는 다루지 않겠다.
 
 <h4 id="beans-factory-properties-detailed">의존성과 설정 상세</h4>
 
-<h5 id="beans-value-element">변경없는 값(Primitives, String 등등)</h5>
+[이전 장](#beans-factory-collaborators)에서 빈 설정과 생성자 어규먼트를 다른 빈이나 값으로 정의하는 법을 배웠다. 스프링 XML 기반 설정 메타데이터는 `<property/>`요소나 `<constructor-arg/>` 요소에 방금 말한 목적으로 하위 요소를 제공한다.
+
+<h5 id="beans-value-element">직관적인 값(Primitives, String 등등)</h5>
+
+`<property/>`요소의 `value`어트리뷰트는 프로퍼티나 생성자 어규먼트로써 사람이 읽을 수 있는 문장표현을 명시한다. 스프링의 [변환 서비스](../spring-reference-core-3-validation/#core-convert-ConversionService-API)를 이용하여 이 값을 `String`에서 실제 프로퍼티나 어규먼트의 타입으로 변환하여준다. 아래는 다양한 값을 설정하는 예시이다:
+```xml
+<bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+    <!-- setDriverClassName(String) 이 호출되는 결과-->
+    <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+    <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
+    <property name="username" value="root"/>
+    <property name="password" value="masterkaoli"/>
+</bean>
+```
+아래의 예시는 더 간결한 [P 네임스페이스](#beans-p-namespace)를 사용해 더 간결한 xml 설정을 보여준다:
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+    https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource"
+        destroy-method="close"
+        p:driverClassName="com.mysql.jdbc.Driver"
+        p:url="jdbc:mysql://localhost:3306/mydb"
+        p:username="root"
+        p:password="masterkaoli"/>
+
+</beans>
+```
+위의 예제가 더 간결하다. 하지만 빈 정의를 만들때 자동 프로퍼티 완정을 지원하는 IDE([Intellij IDEA](https://www.jetbrains.com/idea/)나 [Spring Tools for Eclipse](https://spring.io/tools))를 사용하지 않는다면 런타임에 오자를 발견하게 될것이다. 이런 IDE를 사용하기를 추천한다.     
+`java.util.Properties`인스턴스를 아래 예시처럼 설정할 수 있다:
+```xml
+<bean id="mappings"
+    class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+
+    <!-- java.util.Properties로 작성되었다. -->
+    <property name="properties">
+        <value>
+            jdbc.driver.className=com.mysql.jdbc.Driver
+            jdbc.url=jdbc:mysql://localhost:3306/mydb
+        </value>
+    </property>
+</bean>
+```
+스프링 컨테이너는 JavaBeans `PropertyEditor` 방식을 사용해서 `<value/>`요소 안의 문자를 `java.util.Properties` 인스턴스로 변환한다. 위 방법은 좋은 지름길이며 스프링 팀이 `value`어트리뷰트보다 `<value/>`요소를 선호하는 몇 안되는 사용법이기도 하다.
+
+###### `idref` 요소
+`idref`요소는 `<constructor-arg/>`나 `<property/>`에 컨테이너가 가지고 있는 다른 빈의 `id`를 넘기는 간단하고 오류로부터 안전한 방법이다. 아래 사용법 예시이다:
+```xml
+<bean id="theTargetBean" class="..."/>
+
+<bean id="theClientBean" class="...">
+    <property name="targetName">
+        <idref bean="theTargetBean"/>
+    </property>
+</bean>
+```
+위의 빈정의는 아래와 (런타임시에) 같다:
+```xml
+<bean id="theTargetBean" class="..." />
+
+<bean id="client" class="...">
+    <property name="targetName" value="theTargetBean"/>
+</bean>
+```
+첫 번째 형식이 두번 째 형식보다 선호된다. 왜냐하면 `idref` 태그는 컨테이너가 배포시에 참조된 빈이 실제 존재하는 지 검증할 수 있도록 해주기 때문이다. 두 번째 형식에서는 `client` 빈에 `targetName`태그에 전달된 값에 검증이 실행되지 않는다. `client`빈이 실제 인스턴스화 될 때, (대부분 매우 안좋은 결과와 함께) 오자가 확인된다. 만약 `client`빈이 [프로토타입](#beans-factory-scopes)빈이라면 오자와 그로인한 오류가 컨테이너가 배포된지 매우 오랜 시간이 지나서 발견될 것이다.
+
+| `idref`요소의 `local` 어트리뷰트는 4.0 beans XSD부터 지원되지 않는다. 왜냐하며 `local`어트리뷰트는 더 이상 일반적인 `bean` 참조보다 추가적인 값을 제공하지 않기 때문이다. 4.0 스키마로 업그레이드 할 시, `ifref local`참조를 `idref bean`참조로 변경하십시오. |
+
+`<idref/>`요소는 (스프링 2.0보다 이전 버전에서) `ProxyFactoryBean` 빈 정의의 [AOP 인터셉터](../spring-reference-core-6-aop-api/#aop-pfb-1) 설정에서 많이 사용된다. 인터셉터 이름을 명시하는데 `<idref/>`요소를 사용하면 인터셉터 ID를 잘못 적는 실수를 방지할 수 있다.  
+
 <h5 id="beans-ref-element">다른 빈 참조(협업)</h5>
+
+`<constructor-arg/>`와 `<property/>` 정의 요소 내부의 마지막 요소는 `ref`요소이다. 컨테이너에 의해 관리되는 빈을 다른 빈의 프로퍼티로 참조되도록 설정할 수 있다. 참조된 빈은 프로퍼티로 설정된 빈의 의존성이며 프로퍼티가 설정되기 전에 먼저 초기화 될 것이다. (만약 참조된 빈이 싱글톤이라면 이미 컨테이너에 의하여 초기화 되어 있을 것이다.) 모든 참조는 궁극적으로 다른 객체에 대한 참조이다. `bean`이나 `parent`어트리뷰트르 다른 객체의 이름이나 ID를 명시함으로써 스코프 설정과 검증이 가능해진다.     
+`<ref/>` 태그에 `bean`어트리뷰트를 이용하여 빈을 명시하는 것이 가장 일반적인 형태이며 같은 컨테이너나 부모 컨테이너에 있는 빈(같은 XML파일에 있는 지 여부는 무관하다.)에 대한 참조를 만들어준다. `bean`어트리뷰트의 값은 참조되는 빈의 `id`어트리뷰트나 `name`어트리뷰트의 값중 하나와 같을 것이다. 아래 `ref`요소의 사용 예시이다:
+```xml
+<ref bean="someBean"/>
+```
+`parent`어트리뷰트로 참조하는 빈을 명시하는 것은 현재 컨테이너의 부모 컨테이너에 있는 빈을 참조한다. `parent` 어트리뷰트에 값은 참조되는 빈의 `id`어트리뷰트나 `name`어트리뷰트의 값중 하나와 같을 것이다. 참조되는 빈은 반드시 현재 컨테이너의 부모 컨테이너에 있어야 한다. 이 빈 참조를 컨테이너 계층에서 부모 컨테이너에 있는 빈을 감싸 같은 이름의 프록시 빈을 만들고자 할 때 주로 사용할 것이다. 아래 두개의 예시는 `parent`어트리뷰트의 사용 예시이다:
+```xml
+<!-- 부모 컨텍스트에서 -->
+<bean id="accountService" class="com.something.SimpleAccountService">
+    <!-- 필요한 의존성을 여기에 넣는다. -->
+</bean>
+```
+```xml
+<!-- 자식(자손) 컨텍스트에서 -->
+<bean id="accountService" <!-- bean name is the same as the parent bean -->
+    class="org.springframework.aop.framework.ProxyFactoryBean">
+    <property name="target">
+        <ref parent="accountService"/> <!-- 어떤 식으로 부모 빈을 참조했는지 주목하십시오 -->
+    </property>
+    <!-- 다른 설정과 의존성을 여기에 넣는다. -->
+</bean>
+```
+
+| `idref`요소의 `local` 어트리뷰트는 4.0 beans XSD부터 지원되지 않는다. 왜냐하며 `local`어트리뷰트는 더 이상 일반적인 `bean` 참조보다 추가적인 값을 제공하지 않기 때문이다. 4.0 스키마로 업그레이드 할 시, `ifref local`참조를 `idref bean`참조로 변경하십시오. |
+
 <h5 id="beans-inner-beans">내부 빈</h5>
 <h5 id="beans-collection-elements">컬렉션</h5>
 <h5 id="beans-null-element">Null과 비어있는 스트링</h5>

@@ -8,7 +8,8 @@ pagination: enabled
 author: SoonYong Hong
 categories: Spring_Reference
 tags: Spring 
-sitemap.changefreq: daily
+sitemap:
+    changefreq: daily
 ---
 
 이 내용은 [스프링 문서 5.2.6.RELEASE](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#spring-core)를 번역한 내용으로 오역이 있을 수 있습니다.

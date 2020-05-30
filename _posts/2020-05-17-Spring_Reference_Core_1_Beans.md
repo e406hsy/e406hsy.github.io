@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-05-30T10:54:00+09:00
+date:   2020-05-30T16:20:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -834,7 +834,7 @@ public class ExampleBean {
 `<property/>`요소의 `value`어트리뷰트는 프로퍼티나 생성자 어규먼트로써 사람이 읽을 수 있는 문장표현을 명시한다. 스프링의 [변환 서비스](../spring-reference-core-3-validation/#core-convert-ConversionService-API)를 이용하여 이 값을 `String`에서 실제 프로퍼티나 어규먼트의 타입으로 변환하여준다. 아래는 다양한 값을 설정하는 예시이다:
 ```xml
 <bean id="myDataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
-    <!-- setDriverClassName(String) 이 호출되는 결과-->
+    <!-- setDriverClassName(String) 이 호출한 것과 같은 결과-->
     <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
     <property name="url" value="jdbc:mysql://localhost:3306/mydb"/>
     <property name="username" value="root"/>
@@ -928,7 +928,130 @@ public class ExampleBean {
 | `idref`요소의 `local` 어트리뷰트는 4.0 beans XSD부터 지원되지 않는다. 왜냐하며 `local`어트리뷰트는 더 이상 일반적인 `bean` 참조보다 추가적인 값을 제공하지 않기 때문이다. 4.0 스키마로 업그레이드 할 시, `ifref local`참조를 `idref bean`참조로 변경하십시오. |
 
 <h5 id="beans-inner-beans">내부 빈</h5>
+
+`<property/>`와 `<constructor-arg/>`요소 내부에 `<bean/>`요소는 내부 빈을 아래 예시처럼 정의한다:
+```xml
+<bean id="outer" class="...">
+    <!-- 빈을 참조하는 대신에 빈은 정의한다. -->
+    <property name="target">
+        <bean class="com.example.Person"> <!-- 내부 빈 -->
+            <property name="name" value="Fiona Apple"/>
+            <property name="age" value="25"/>
+        </bean>
+    </property>
+</bean>
+```
+내부 빈 정의는 ID나 이름이 필요하지 않다. 작성하더라도 컨테이너는 그 값을 식별자로 사용하지 않는다. 컨테이너는 `scope` 플래그도 무시한다. 왜냐하면 내부빈은 언제나 익명이고 외부 빈과 함께 생성되기 때문이다. 내부 빈을 감싸는 외부 빈의 도움없이 내부 빈에 접근하거나 의존성 주입을 할 수 없다.     
+커스텀 스코프 파괴 콜백을 가지는 것은 가능하다. 예를 들면, 싱글톤 빈 내부에 request 스코프 내부 빈을 가질 수 있다. 내부 빈의 생성은 외부 빈에 묶여 있지만 파괴 콜백을 통해 내부 빈을 request 스코프 생명주기에 포함시킬 수 있다. 흔한 경우는 아니다. 내부 빈은 일반적으로 외부 빈과 같은 생명주기를 가진다.
+
 <h5 id="beans-collection-elements">컬렉션</h5>
+
+`<list/>`,`<set/>`,`<map/>`,`<props/>` 요소는 프로퍼티와 어규먼트를 자바 `Collection`타입인 `List`,`Set`,`Map`,`Properties`에 각각 매칭시킨다. 아래는 사용 예시이다:
+```xml
+<bean id="moreComplexObject" class="example.ComplexObject">
+    <!-- setAdminEmails(java.util.Properties) 호출한 것과 같은 결과 -->
+    <property name="adminEmails">
+        <props>
+            <prop key="administrator">administrator@example.org</prop>
+            <prop key="support">support@example.org</prop>
+            <prop key="development">development@example.org</prop>
+        </props>
+    </property>
+    <!-- setSomeList(java.util.List) 호출한 것과 같은 결과 -->
+    <property name="someList">
+        <list>
+            <value>a list element followed by a reference</value>
+            <ref bean="myDataSource" />
+        </list>
+    </property>
+    <!-- setSomeMap(java.util.Map) 호출한 것과 같은 결과 -->
+    <property name="someMap">
+        <map>
+            <entry key="an entry" value="just some string"/>
+            <entry key ="a ref" value-ref="myDataSource"/>
+        </map>
+    </property>
+    <!-- setSomeSet(java.util.Set) 호출한 것과 같은 결과 -->
+    <property name="someSet">
+        <set>
+            <value>just some string</value>
+            <ref bean="myDataSource" />
+        </set>
+    </property>
+</bean>
+```
+map의 키, map의 값, set의 값은 아래의 요소가 될수 있다:
+```
+bean | ref | idref | list | set | map | props | value | null
+```
+
+###### 컬렉션 결합
+
+스프링 컨테이너는 컬렉션 결합을 지원한다. 어플리케이션 개발자는 부모 `<list/>`,`<map/>`,`<set/>`,`<props/>` 요소를 정의하고 자식 `<list/>`,`<map/>`,`<set/>`,`<props/>`가 그 값을 상속하거나 덮어 쓰도록 정의할 수 있다. 이 말은 자식 컬렉션의 값은 부모의 요소와 자식의 요소를 결합한 결과라는 것이다. 부모 컬렉션의 값은 자식 컬렉션 요소에서 덮어쓰는 방법으로 결합한 결과이다.     
+이 장에서 부모 자식 빈 동작과정을 설명한다. 부모 자식 빈 정의에 익숙하지 않다면 [관련 장](#beans-child-bean-definitions)을 읽어볼 수 있다.     
+아래 예시는 컬렉션 결합의 예시이다:
+```xml
+<beans>
+    <bean id="parent" abstract="true" class="example.ComplexObject">
+        <property name="adminEmails">
+            <props>
+                <prop key="administrator">administrator@example.com</prop>
+                <prop key="support">support@example.com</prop>
+            </props>
+        </property>
+    </bean>
+    <bean id="child" parent="parent">
+        <property name="adminEmails">
+            <!-- 결합은 자식 컬렉션에서 명시된다. -->
+            <props merge="true">
+                <prop key="sales">sales@example.com</prop>
+                <prop key="support">support@example.co.uk</prop>
+            </props>
+        </property>
+    </bean>
+<beans>
+```
+`child` 빈 정의의 `adminEmails`프로퍼티 내부 `<props/>`요소에 `merge=true`어트리뷰트가 있다는 것을 주목하십시오. `child` 빈이 인스턴스화 될 때, 만들어진 인스턴스는 자식`adminEmails`컬렉션과 부모 `adminEmails`컬렉션을 합친 `adminEmails``Properties` 컬렉션을 가지고 있다. 아래 결합된 결과를 보여준다:
+```
+administrator=administrator@example.com
+sales=sales@example.com
+support=support@example.co.uk
+```
+자식 `Properties`컬렉션의 값은 부모 `<props/>`에 모든 프로퍼티값을 상속받고 `support`의 자식 컬렉션의 값이 부모 컬렉션의 값을 덮어쓴다.     
+결합하는 과정은 `<list/>`,`<map/>`,`<set/>`에도 비슷하게 동작한다. `<list/>`요소의 케이스에서 `List` 컬렉션의 순서(`ordered` 컬렉션 값의 개념)는 유지된다. 부모의 값은 자식의 값 앞에 나온다. `Map`,`Set`,`Properties`컬렉션에서 순서는 없다. 게다가, 순서가 없는 컬렉션 타입 개념은 컨테이너가 내부적으로 사용하는 `Map`,`Set`,`Properties` 구현과 일치한다.
+
+###### 컬렉션 결합의 한계
+
+`Map`과 `List`처럼 다른 타입의 컬렉션을 결합할 수는 없다. 이런 것을 시도한다면 상황에 알맞은 `Exception`이 던져질 것이다. `merge` 어트리뷰트는 상속받는 자식 정의에 작성되어야한다. `merge`어트리뷰트를 부모 컬렉션에 작성하는 것은 중복이고 원하는 결합을 얻지 못할 것이다.
+
+###### 제네릭이 아닌 컬렉션
+
+자바 5에서 제네릭 타입이 소개된 후로 제네릭이 아닌 컬렉션을 사용할 수 있다. `Collection`을 (예를들어) `String`만 가지도록 정의할 수 있다. 만약 스프링 의존성 주입에서 제네릭이 아닌 컬렉션을 빈에 주입한다면, 스프링 타입 변환의 도움을 받아 제네릭이 아닌 `Collection`의 요소들을 `Collection`에 추가되기 전에 올바른 타입으로 변환할 수 있다. 아래 자바 클래스와 빈 정의가 어떻게 사용하는 지 보여준다:
+```java
+public class SomeClass {
+
+    private Map<String, Float> accounts;
+
+    public void setAccounts(Map<String, Float> accounts) {
+        this.accounts = accounts;
+    }
+}
+```
+```xml
+<beans>
+    <bean id="something" class="x.y.SomeClass">
+        <property name="accounts">
+            <map>
+                <entry key="one" value="9.99"/>
+                <entry key="two" value="2.75"/>
+                <entry key="six" value="3.99"/>
+            </map>
+        </property>
+    </bean>
+</beans>
+```
+`something`빈의 `accounts`프로퍼티가 주입되려 준비될 때, 리플렉션을 이용하여 `Map<String, Float>`라는 정보를 알게된다. 따라서 스프링의 타입 변환 장치는 여러 값이 `Float`가 되야된다는 것을 인식하고 String 값(`9.99, 2.27, 3.44)를 `Float`타입으려 변환한다.
+
 <h5 id="beans-null-element">Null과 비어있는 스트링</h5>
 <h5 id="beans-p-namespace">P 네임스페이스를 이용한 XML 단축</h5>
 <h5 id="beans-c-namespace">c 네임스페이스를 이용한 XML 단축</h5>

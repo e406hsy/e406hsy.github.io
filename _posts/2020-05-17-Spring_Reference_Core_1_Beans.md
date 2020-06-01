@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-05-30T16:20:00+09:00
+date:   2020-06-01T23:09:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1050,10 +1050,81 @@ public class SomeClass {
     </bean>
 </beans>
 ```
-`something`빈의 `accounts`프로퍼티가 주입되려 준비될 때, 리플렉션을 이용하여 `Map<String, Float>`라는 정보를 알게된다. 따라서 스프링의 타입 변환 장치는 여러 값이 `Float`가 되야된다는 것을 인식하고 String 값(`9.99, 2.27, 3.44)를 `Float`타입으려 변환한다.
+`something`빈의 `accounts`프로퍼티가 주입되려 준비될 때, 리플렉션을 이용하여 `Map<String, Float>`라는 정보를 알게된다. 따라서 스프링의 타입 변환 장치는 여러 값이 `Float`가 되야된다는 것을 인식하고 String 값(`9.99, 2.27, 3.44`)를 `Float`타입으로 변환한다.
 
 <h5 id="beans-null-element">Null과 비어있는 스트링</h5>
+
+스프링은 프로퍼티에 사용된 빈 어규머트를 비어있는 `Strings`로 취급한다. 아래의 XML 기반 설정 메타데이터는 `email`프로퍼티를 비어있는 `String` ("")로 설정한다.
+```xml
+<bean class="ExampleBean">
+    <property name="email" value=""/>
+</bean>
+```
+아래는 동일한 기능의 자바 코드이다:
+```java
+exampleBean.setEmail("");
+```
+`<null/>`요소는 `null`값을 다룬다. 아래 예시이다:
+```xml
+<bean class="ExampleBean">
+    <property name="email">
+        <null/>
+    </property>
+</bean>
+```
+아래는 동일한 자바 코드이다:
+```java
+exampleBean.setEmail(null);
+```
+
 <h5 id="beans-p-namespace">P 네임스페이스를 이용한 XML 단축</h5>
+
+p 네임스페이스를 이용하면 (중첩 `property/>`요소 대신에) `bean` 요소의 어트리뷰트를 사용하여 빈의 프로퍼티 값을 설정할 수 있다.      
+스프링은 XML 스키마 정의에 기반한 [네임스페이스](../spring-reference-core-9-appendix/#xsd-schemas)를 사용하여 확장 설정이 가능하다. 이 장에서 다루는 `bean` 설정 형식은 XML 스키마 문서에 정의되어 있다. 하지만 p 네임스페이스는 XSD 파일로 정의되 있지 않고 스프링 코어에만 존재한다.     
+아래 예시는 같은 결과의 두 XML 예시이다.(표준 XML 형식, p-네임스페이스 형식):
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean name="classic" class="com.example.ExampleBean">
+        <property name="email" value="someone@somewhere.com"/>
+    </bean>
+
+    <bean name="p-namespace" class="com.example.ExampleBean"
+        p:email="someone@somewhere.com"/>
+</beans>
+```
+예제 빈 정의에서 p-네임스페이스에서 `email`이라는 어트리뷰트를 보여준다. 이 방법으로 스프링에게 프로퍼티 정의를 포함시킨다. 이전에 이미 언급했듯이, p-네임스페이스는 스키마 정의가 없다. 따라서 프로퍼티 이름에 맞게 어트리뷰트 이름을 정할 수 있다.     
+아래 예시는 다른 빈을 참조하는 두 빈 정의의 예시이다:
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean name="john-classic" class="com.example.Person">
+        <property name="name" value="John Doe"/>
+        <property name="spouse" ref="jane"/>
+    </bean>
+
+    <bean name="john-modern"
+        class="com.example.Person"
+        p:name="John Doe"
+        p:spouse-ref="jane"/>
+
+    <bean name="jane" class="com.example.Person">
+        <property name="name" value="Jane Doe"/>
+    </bean>
+</beans>
+```
+이 예시에서 p-네임스페이스를 이용하여 프로퍼티 값을 설정하는 방법뿐만 아니라 프로퍼티 참조를 하는 특별한 형식도 보여준다. 첫번째 빈정의에서 빈 `john`에 빈 `jane`을 참조시키기 위해 `<property name="spouse" ref="jane"/>`를 설정했다. 두번 째 빈 정의에서 `p:spouse-ref="jane"`을 사용하여 같은 동작을 하였다. 이 경우, `spouse`는 프로퍼티 이름이고 `-ref` 부분은 이 값이 참조라는 것을 표시한다.
+
+| p-네임스페이스는 표준 XML 형식보다 유연하지 못한다. 예를 들어 `Ref`로 끝나는 프로퍼티에 참조를 시킬 수 없다. XML 문서를 만드는 데에 있어 세 접근 방법을 모두 사용하지 않도록 팀원들과 충분히 상의하고 조심스럽게 진행하기를 추천한다. |
+
 <h5 id="beans-c-namespace">c 네임스페이스를 이용한 XML 단축</h5>
 <h5 id="beans-compound-property-names">복합 프로퍼티 이름</h5>
 

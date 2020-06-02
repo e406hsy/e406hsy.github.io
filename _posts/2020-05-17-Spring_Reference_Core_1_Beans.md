@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-01T23:09:00+09:00
+date:   2020-06-02T23:01:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1126,10 +1126,71 @@ p 네임스페이스를 이용하면 (중첩 `property/>`요소 대신에) `bean
 | p-네임스페이스는 표준 XML 형식보다 유연하지 못한다. 예를 들어 `Ref`로 끝나는 프로퍼티에 참조를 시킬 수 없다. XML 문서를 만드는 데에 있어 세 접근 방법을 모두 사용하지 않도록 팀원들과 충분히 상의하고 조심스럽게 진행하기를 추천한다. |
 
 <h5 id="beans-c-namespace">c 네임스페이스를 이용한 XML 단축</h5>
+
+[p-네임스페이스를 사용한 XML 단축](#beans-p-namespace)과 비슷하게 스프링 3.1부터 사용가능한 c-네임스페이스는 중첩 `<constructor-arg/>`대신 어트리뷰트를 사용할 수 있도록 해준다.     
+아래는 `c:`네임스페이스를 사용하여 [생성자 기반 의존성 주입](#beans-constructor-injection)과 같은 동작을 하는 예시이다:
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:c="http://www.springframework.org/schema/c"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <bean id="beanTwo" class="x.y.ThingTwo"/>
+    <bean id="beanThree" class="x.y.ThingThree"/>
+
+    <!-- 선택적인 어규먼트를 사용하는 일반적인 정의 -->
+    <bean id="beanOne" class="x.y.ThingOne">
+        <constructor-arg name="thingTwo" ref="beanTwo"/>
+        <constructor-arg name="thingThree" ref="beanThree"/>
+        <constructor-arg name="email" value="something@somewhere.com"/>
+    </bean>
+
+    <!-- 어규먼트 이름을 사용하는 c-네임스페이스 정의 -->
+    <bean id="beanOne" class="x.y.ThingOne" c:thingTwo-ref="beanTwo"
+        c:thingThree-ref="beanThree" c:email="something@somewhere.com"/>
+
+</beans>
+```
+`c:`네임스페이스는 생성자 어규먼트를 설정하는데에 `p:`네임스페이스와 같은 컨벤션(빈 참조 마지막에 `-ref`)을 사용한다. p-네임스페이스처럼 XSD 스키마에 정의되지 않아도 사용가능하다 (스프링 코어에 포함되어 있다).     
+생성자 어규먼트 이름을 사용할 수 없는 드문 경우(대게 바이트코드가 디버그 정보 없이 컴파일 되는 경우)에는, 인덱스를 아래와 같이 사용가능하다:
+```xml
+<!-- c-네임스페이스 인덱스 정의 -->
+<bean id="beanOne" class="x.y.ThingOne" c:_0-ref="beanTwo" c:_1-ref="beanThree" c:_2="something@somewhere.com"/>
+```
+
+| XML 문법 때문에 인덱스 표현은 앞에 `_`가 필요하다. 왜냐하면 XML 어트리뷰트 이름은 숫자로 시작할 수 없기 때문이다(일부 IDE는 허용하지만). 인덱스 표현은 `constructor-arg>`에서도 사용가능하지만 단순히 순서만으로 충분하기에 잘 사용되지는 않는다. |
+
+실제로는 생성자 분석 [과정](#beans-factory-ctor-arguments-resolution)에서 어규먼트 매칭을 효율적으로 수행한다. 따라서 정말 필요한 경우가 아니면, 이름 표현을 사용할 것을 추천한다.
+
 <h5 id="beans-compound-property-names">복합 프로퍼티 이름</h5>
 
+빈 프로퍼티를 설정할 때, 프로퍼티 패쓰의 마지막 요소를 제외한 모든 요소가 `null`이 아니라면 복합 프로퍼티나 중첩 프로퍼티를 사용할 수 있다. 아래 빈 정의롤 보자:
+```xml
+<bean id="something" class="things.ThingOne">
+    <property name="fred.bob.sammy" value="123" />
+</bean>
+```
+`something`빈은 `fred`프로퍼티를 가진다. `fred`프로퍼티는 `bob`프로퍼티를 가진다. `bob`프로퍼티는 `sammy`프로퍼티를 가진다. `sammy`프로퍼티의 값은 123으로 설정된다. 이것이 동작하기 위해서는 빈이 생성된 뒤, `fred`프로퍼티와 `bob`프로퍼티가 `null`이면 안된다. 그렇지 않다면 `NullPointerException`이 발생한다.
 
 <h4 id="beans-factory-dependson">depends-on 사용하기</h4>
+
+빈이 다른 빈에 의존한다는 것은, 대부분 다른 빈이 나머지 빈의 프로퍼티로 설정된 다는 것을 의미한다. 일반적으로 XML 기반 설정 메타데이터의 [`<ref/>` 요소](#beans-ref-element)로 설정된다. 하지만 종종 빈과 빈 간의 의존성을 간접적이다. 예를 들면, 데이터 베이스 드라이버 등록과 같은 정적 초기화가 실행되어야 하는 경우이다. `depends-on`어트리뷰트는 명시적으로 다른 빈이 먼저 생성되도록 강제한다. 아래의 예시는 `depends-on`어트리뷰트를 사용하는 예시이다:
+```xml
+<bean id="beanOne" class="ExampleBean" depends-on="manager"/>
+<bean id="manager" class="ManagerBean" />
+```
+여러 빈들 사이의 의존성을 표시하기 위하여 빈 리스트를 `depends-on` 어트리뷰트의 값으로 제공할 수 있다(반점, 공백, 세미 콜론은 적합한 구분자이다):
+```xml
+<bean id="beanOne" class="ExampleBean" depends-on="manager,accountDao">
+    <property name="manager" ref="manager" />
+</bean>
+
+<bean id="manager" class="ManagerBean" />
+<bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" />
+```
+| `depends-on`어트리뷰트는 초기화 시 의존성을 표현할 수 있다. [싱글톤](#beans-factory-scopes-singleton)빈의 경우, 파괴 시 의존성 또한 표현 가능하다. `depends-on`으로 다른 빈에 의존하고 있는 빈이 먼저 파괴된다. 따라서 `depends-on`은 파괴 순서도 정할 수 있다. |
+
 <h4 id="beans-factory-lazy-init">지연 초기화 빈</h4>
 <h4 id="beans-factory-autowire">자동연결 협력자</h4>
 

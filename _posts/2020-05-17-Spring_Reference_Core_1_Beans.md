@@ -1153,7 +1153,7 @@ p 네임스페이스를 이용하면 (중첩 `property/>`요소 대신에) `bean
 </beans>
 ```
 `c:`네임스페이스는 생성자 어규먼트를 설정하는데에 `p:`네임스페이스와 같은 컨벤션(빈 참조 마지막에 `-ref`)을 사용한다. p-네임스페이스처럼 XSD 스키마에 정의되지 않아도 사용가능하다 (스프링 코어에 포함되어 있다).     
-생성자 어규먼트 이름을 사용할 수 없는 드문 경우(대게 바이트코드가 디버그 정보 없이 컴파일 되는 경우)에는, 인덱스를 아래와 같이 사용가능하다:
+생성자 어규먼트 이름을 사용할 수 없는 드문 경우(대개 바이트코드가 디버그 정보 없이 컴파일 되는 경우)에는, 인덱스를 아래와 같이 사용가능하다:
 ```xml
 <!-- c-네임스페이스 인덱스 정의 -->
 <bean id="beanOne" class="x.y.ThingOne" c:_0-ref="beanTwo" c:_1-ref="beanThree" c:_2="something@somewhere.com"/>
@@ -1189,6 +1189,7 @@ p 네임스페이스를 이용하면 (중첩 `property/>`요소 대신에) `bean
 <bean id="manager" class="ManagerBean" />
 <bean id="accountDao" class="x.y.jdbc.JdbcAccountDao" />
 ```
+
 | `depends-on`어트리뷰트는 초기화 시 의존성을 표현할 수 있다. [싱글톤](#beans-factory-scopes-singleton)빈의 경우, 파괴 시 의존성 또한 표현 가능하다. `depends-on`으로 다른 빈에 의존하고 있는 빈이 먼저 파괴된다. 따라서 `depends-on`은 파괴 순서도 정할 수 있다. |
 
 <h4 id="beans-factory-lazy-init">지연 초기화 빈</h4>

@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-02T23:01:00+09:00
+date:   2020-06-03T09:12:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1193,6 +1193,22 @@ p 네임스페이스를 이용하면 (중첩 `property/>`요소 대신에) `bean
 | `depends-on`어트리뷰트는 초기화 시 의존성을 표현할 수 있다. [싱글톤](#beans-factory-scopes-singleton)빈의 경우, 파괴 시 의존성 또한 표현 가능하다. `depends-on`으로 다른 빈에 의존하고 있는 빈이 먼저 파괴된다. 따라서 `depends-on`은 파괴 순서도 정할 수 있다. |
 
 <h4 id="beans-factory-lazy-init">지연 초기화 빈</h4>
+
+기본 설정으로 `ApplicationContext` 구현체는 [싱글톤](#beans-factory-scopes-singleton)빈을 초기화 과정에서 생성하고 설정한다. 일반적으로 설정과 환경에 오류가 바로 발견되기에 선-인스턴스화는 바람직하다. 선-인스턴스화가 바람직하지 않은 경우, 빈 정의에 지연 초기화를 설정함으로 선-인스턴스화를 막을 수 있다. IoC 컨테이너는 지연 초기화 빈을 처음 시작할 때가 아닌 빈이 처음으로 필요해 질 때 빈을 생성한다.     
+XML에서 이 설정은 `<bean/>`요소의 `lazy-init`어트리뷰트로 설정할 수 있다:
+```xml
+<bean id="lazy" class="com.something.ExpensiveToCreateBean" lazy-init="true"/>
+<bean name="not.lazy" class="com.something.AnotherBean"/>
+```
+위에 설정에 의하여 `ApplicationContext`은 `not.lazy`빈을 `ApplicationContext`가 시작할 때 생성하고 `lazy`빈은 그렇지 않다.     
+하지만 싱글톤 빈이 지연 초기화 빈을 의존하는 경우, `ApplicationContext`는 지연 초기화 빈을 시작할 때 생성한다. 왜냐하면 싱글톤 빈의 의존성을 만족시켜야 하기 때문이다. 지연 초기화 빈이 지연 초기화가 아닌 싱글톤 빈에 주입되야하기 때문이다.     
+`<beans/>`요소의 `default-lazy-init`어트리뷰트를 이용해 컨테이너 레벨에서 지연 초기화 설정이 가능하다:
+```xml
+<beans default-lazy-init="true">
+    <!-- 빈들은 선 인스턴스화 되지 않을 것이다. -->
+</beans>
+```
+
 <h4 id="beans-factory-autowire">자동연결 협력자</h4>
 
 <h5 id="beans-autowired-exceptions">자동 연결의 한계와 단점</h5>

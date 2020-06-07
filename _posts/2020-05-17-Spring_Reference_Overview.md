@@ -60,4 +60,4 @@ tags: Spring Reference
 
 ---
 
-다음 : [Spring Reference Core](/spring_reference/spring-reference-core)
+다음 : [Spring Reference Core](../spring-reference-core-1-beans)

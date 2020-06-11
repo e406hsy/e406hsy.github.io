@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-07T14:05:00+09:00
+date:   2020-06-11T22:51:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1255,11 +1255,172 @@ XML 기반 설정 메타데이터([의존성 주입](#beans-factory-collaborator
 
 <h4 id="beans-factory-method-injection">메소드 주입</h4>
 
+대부분의 어플리케이션에서 컨테이너에 있는 빈의 대다수는 [싱글톤](#beans-factory-scopes-singleton)이다. 싱글톤 빈이 다른 싱글톤 빈을 필요로 할 때, 혹은 싱글톤이 아닌 빈이 다른 싱글톤이 아닌 빈을 필요로 할 때, 일반적으로 하나의 빈을 다른 빈의 프로퍼티로 설정한다. 하지만 빈의 생존 주기가 다를 때는 문제가 된다. 싱글톤 빈 A가 싱글톤이 아닌(프로토타입) 빈 B를 A의 모든 메소드에서 사용한다고 하자. 컨테이너는 싱글톤 빈 A를 한번만 생성하고 프로퍼티 설정도 한번만 실행한다. 따라서 컨테이너는 빈 A에게 빈 B의 새로운 인스턴스를 매번 제공해줄 수 없다.     
+해결책은 역흐름제어보다 선행된다. `ApplicationContextAware`인터페이스를 구현하여 [빈 A가 컨테이너를 인지하도록](#beans-factory-aware) 설정하고 [`getBean("b")`를 컨테이너로부터 호출하여](#beans-factory-client) 빈 A가 필요할 때마다 새로운 빈 B를 요청할 수 있다. 아래 이러한 접근 방법의 예시이다:
+```java
+// 상태를 가지는 커맨드를 사용하여 작업하는 클래스
+package fiona.apple;
+
+// 스프링 API를 임포트한다.
+import org.springframework.beans.BeansException;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
+
+public class CommandManager implements ApplicationContextAware {
+
+    private ApplicationContext applicationContext;
+
+    public Object process(Map commandState) {
+        // 적합한 Command의 새 인스턴스를 가져온다.
+        Command command = createCommand();
+        // 새 Command 인스턴스에 상태를 설정한다.
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    protected Command createCommand() {
+        // 스프링 API에 의존성을 가진다.
+        return this.applicationContext.getBean("command", Command.class);
+    }
+
+    public void setApplicationContext(
+            ApplicationContext applicationContext) throws BeansException {
+        this.applicationContext = applicationContext;
+    }
+}
+```
+위의 예시는 바람직하지 않다. 왜냐하면 비즈니스 코드가 스프링 프레임워크와 강하게 결합되어 있기 때문이다. 스프링 IoC 컨테이너의 발전된 기술인 메소드 주입은 이러한 경우를 깨끗하게 해결해준다.
+
+| [스프링 블로그](https://spring.io/blog/2004/08/06/method-injection/)에서 메소드 주입을 만든 동기를 볼 수 있다. |
+
 <h5 id="beans-factory-lookup-method-injection">Lookup 메소드 주입</h5>
+
+Lookup 메소드 주입은 컨테이너가 관리하는 빈의 메소드를 덮어 써서 컨테이너의 다른 빈에서 결과를 반환하도록 해준다. Lookup은 일반적으로 [이전 장](#beans-factory-method-injection)에서 언급된 것 처럼 프로토타입 빈과 관련되있다. 스프링 프레임워크는 CGLIB 라이브러리의 바이트코드 생성을 사용하여 자식클래스를 동적으로 만들어내어 메소드를 덮어쓴다.
+
+* 이 동적 자식클래스 생성이 동작하기 위해서는 클래스가 `final`이면 안되며 덮어쓰는 메소드가 `final`이면 안된다.
+* `abstract`메소드를 가진 클래스를 단위테스트 하려면 `abstract`메소드를 구현한 자식클래스를 직접 만들어야한다.
+* 컴포넌트 스캔이 되기 위해서는 구상 메소드가 있어야한다.
+* 특히 중요한 한계점은 lookup 메소드는 팩토리 메소드와 함께 작동하지 않는 다는 것이다. 특히 설정 클래스의 `@Bean`메소드에서는 컨테이너가 인스턴스를 만드는 책임을 지지 않기 때문에 런타임 자식클래스 생성을 사용할 수 없다.
+
+위 코드의 `CommandManager`클래스의 경우, 스프링 컨테이너가 동적으로 `createCommand()` 구현을 덮어쓴다. `CommandManager`클래스가 스프링 의존성을 가지지않도록 아래와 같이 바뀔 수 있다:
+```java
+package fiona.apple;
+
+// 더 이상 스프링 임포트는 없다.
+
+public abstract class CommandManager {
+
+    public Object process(Object commandState) {
+        // 적합한 Command의 새 인스턴스를 가져온다.
+        Command command = createCommand();
+        // 새 Command 인스턴스에 상태를 부여한다.
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    // 이 메서드의 구현은 어디에 있을까?
+    protected abstract Command createCommand();
+}
+```
+주입되어야할 메소드를 가지고 있는 클라이언트 클래스(이경우 `CommandManager`클래스)에서 주입되어야하는 메소드는 아래의 형태여야 한다:
+```xml
+<public|protected> [abstract] <return-type> theMethodName(no-arguments);
+```
+만약에 메소드가 `abstract`라면 동적 생성된 자식 클래스가 해당 메소드를 구현할 것이다. 아니라면, 동적 생성된 자식 클래스가 구상 메소드를 덮어쓸 것이다. 아래의 예시를 보자:
+```xml
+<!-- 상태를 가지는 빈이 프로토타입으로 정의되었다. (싱글톤이 아니다) -->
+<bean id="myCommand" class="fiona.apple.AsyncCommand" scope="prototype">
+    <!-- 의존성 주입을 한다. -->
+</bean>
+
+<!-- commandProcessor uses statefulCommandHelper -->
+<bean id="commandManager" class="fiona.apple.CommandManager">
+    <lookup-method name="createCommand" bean="myCommand"/>
+</bean>
+```
+`commandManager`빈은 `createCommand()`메소드를 새로운 `myCommand`빈이 필요할 때마다 호출한다. `myCommand`빈을 프로토타입 빈으로 정의한다. 만약
+[싱글톤](#beans-factory-scopes-singleton)으로 설정하면 매번 같은 `myCommand`인스턴스가 반환될 것이다.     
+어노테이션 기반 컴포넌트 모델에서는 `@Lookup`을 대신 사용하여 lookup메소드를 정할 수 있다. 아래는 예시이다:
+```java
+public abstract class CommandManager {
+
+    public Object process(Object commandState) {
+        Command command = createCommand();
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    @Lookup("myCommand")
+    protected abstract Command createCommand();
+}
+```
+혹은 더 자연스럽게 lookup메소드의 리턴 타입에 따라 빈이 정해지도록 할 수 있다:
+```java
+public abstract class CommandManager {
+
+    public Object process(Object commandState) {
+        Command command = createCommand();
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    @Lookup
+    protected abstract Command createCommand();
+}
+```
+일반적으로 어노테이션 기반 lookup메소드를 구상 메소드로 만든다. 왜냐하면 스프링의 컴포넌트 스캔은 추상 클래스를 기본적으로는 무시하기 때문이다. 이 한계를 명시적으로 등록되는 빈에는 적용되지 않는다.
+
+| 스코프가 다른 빈에 접근하는 또다른 방법은 `ObjectFactory`/`Provider`를 사용하는 방법이다. 자세한 내용은 [스코프 빈 의존성](#beans-factory-scopes-other-injection)을 보자.     
+`org.springframework.beans.factory.config`에 있는 `ServiceLocatorFactoryBean`이 유용할 수도 있다. |
+
 <h5 id="beans-factory-arbitrary-method-replacement">임의의 메소드 대체</h5>
 
+메소드 주입의 덜 유용한 방법은 임의의 메소드를 다른 메소드로 변경하는 것이다. 이 장을 무시하고 넘어간 뒤, 이 장의 기능이 필요할 때 다시 읽어도 무방할 것이다.      
+XML 기반 설정 메타데이터에서 `replaced-method`요소를 이용하여 메소드를 다른 것으로 교체할 수 있다. 아래의 클래스를 보자. `computeValue`를 덮어쓰고자 한다:
+```java
+public class MyValueCalculator {
 
+    public String computeValue(String input) {
+        // 실제 코드
+    }
 
+    // 다른 메소드
+}
+```
+`org.springframework.beans.factory.support.MethodReplacer`인터페이스 구현체가 아래 예시처럼 새로운 메소드를 제공한다:
+```java
+/**
+ * MyValueCalculator에 이미 존재하는 computeValue(String) 구현을 
+ * 덮어쓰기 위해 사용된다.
+ */
+public class ReplacementComputeValue implements MethodReplacer {
+
+    public Object reimplement(Object o, Method m, Object[] args) throws Throwable {
+        // 인풋 값을 사용해 동작한 뒤, 결과를 반환한다.
+        String input = (String) args[0];
+        ...
+        return ...;
+    }
+}
+```
+원본 클래스와 덮어쓸 메소드를 명시하는 빈 정의는 아래 예시처럼 생겼다:
+```xml
+<bean id="myValueCalculator" class="x.y.z.MyValueCalculator">
+    <!-- 임의의 메소드 대체 -->
+    <replaced-method name="computeValue" replacer="replacementComputeValue">
+        <arg-type>String</arg-type>
+    </replaced-method>
+</bean>
+
+<bean id="replacementComputeValue" class="a.b.c.ReplacementComputeValue"/>
+```
+`<replaced-mehtod/>`요소안에 한개 이상의 `<arg-type/>`요소를 사용하여 덮어쓸 메소드의 어규먼트를 명시할 수 있다. 클래스내에 해당 메소드가 오버로드되어 있다면 필수로 해야한다. 편의를 위하여 전체 타입 이름의 일부만 사용해도 가능하다. 예를 들어 `java.lang.String`에는 아래와 매칭된다:
+```java
+java.lang.String
+String
+str
+```
+많은 경우에서 어규먼트의 개수만으로 구분하기 충분하기 때문에 이러한 단축은 매칭되는 문장중 가장 짧은 문장을 적음으로써 글자수를 줄여줄 수 있다.
 
 <h3 id="beans-factory-scopes">빈 스코프</h3>
 

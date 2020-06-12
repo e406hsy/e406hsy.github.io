@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-11T22:51:00+09:00
+date:   2020-06-12T21:34:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1423,6 +1423,21 @@ str
 많은 경우에서 어규먼트의 개수만으로 구분하기 충분하기 때문에 이러한 단축은 매칭되는 문장중 가장 짧은 문장을 적음으로써 글자수를 줄여줄 수 있다.
 
 <h3 id="beans-factory-scopes">빈 스코프</h3>
+
+빈 정의를 설정하는 것은 빈을 만드는데 사용되는 레시피를 만드는 것이다. 빈 정의가 레시피라는 생각은 매우 중요하다 왜냐하면 이 말은 인스턴스를 하나의 레시피로 만들 수 있다는 말이기 때문이다.     
+빈 정의로 의존성과 설정 값을 통제할 수 있을 뿐만아니라 오브젝트의 스코프도 통제할 수 있다. 이러한 접근법은 매우 매우 강력하고 유연하다. 자바 클래스 수준에서 오브젝트의 스코프를 통제하는 대신 설정으로 오브젝트 스코프를 선택할 수 있기 때문이다. 빈은 여러 스코프중 하나를 선택하여 배포된다. 스프링 프레임워크는 6개의 스코프를 지원한다. 그 중 4개는 web-aware `ApplicationContext`를 이용하여 사용가능하다. 또한 [커스텀 스코프](#beans-factory-scopes-custom)도 만들 수 있다.     
+아래의 표는 스프링 프레임워크가 지원하는 스코프이다:
+###### 표 3. 빈 스코프
+| 스코프 | 설명 |
+| --- | --- |
+| [싱글톤](#beans-factory-scopes-singleton) | (기본 값) 각 스프링 IoC 컨테이너에 단 한개 존재한다. |
+| [prototype](#beans-factory-scopes-prototype) | 몇 개의 인스턴스 간에 가능한 스코프 |
+| [request](#beans-factory-scopes-request) | HTTP 요청과 같은 생명 주기를 가지는 스코프. 이 말은 각각의 HTTP 요청은 해당 요청 고유의 인스턴스를 가지게 된다. web-aware `ApplicationContext`에서만 가능하다 |
+| [session](#beans-factory-scopes-session) | HTTP `Session`과 같은 생명 주기를 가지는 스코프. web-aware `ApplicationContext`에서만 가능하다 |
+| [application](#beans-factory-scopes-application) | `ServletCOntext`와 같은 생명 주기를 가지는 스코프. web-aware `ApplicationContext`에서만 가능하다 |
+| [websocket](#websocket-stomp-websocket-scope) | `WebSocket`과 같은 생명 주기를 가지는 스코프. web-aware `ApplicationContext`에서만 가능하다 |
+
+| 스프링 3.0부터 쓰레드 스코프가 가능하다. 하지만 기본적으로 등록되지는 않는다. 더 자세한 정보는 [`SimpleThreadScope`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/SimpleThreadScope.html).문서를 보자. 다른 커스텀 스코프를 등록하는 방법은 [커스텀 스코프 사용하기](#beans-factory-scopes-custom-using)를 보자 |
 
 <h4 id="beans-factory-scopes-singleton">싱글톤 스코프</h4>
 <h4 id="beans-factory-scopes-prototype">프로토타입 스코프</h4>

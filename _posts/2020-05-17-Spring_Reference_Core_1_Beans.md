@@ -197,7 +197,7 @@ sitemap:
 스프링은 몇개의 `ApplicationContext`구현체를 제공한다. 독립형 어플리케이션에서 [`ClassPathXmlApplicationCOntext`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/ClassPathXmlApplicationContext.html)나 [`FileSystemXmlApplicationContext`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/FileSystemXmlApplicationContext.html)를 생성하는 것은 흔한 일이다. XML은 전통적으로 설정 메타데이터를 정의하는 형식으로 생각되어 왔지만 아주 약간의 XML 설정만으로 자바 어노테이션이나 코드를 메타데이터 형식으로 컨테이너에 제공할 수 있다.     
 대부분의 어플리케이션 시나리오에서, 하나 혹은 그 이상의 스프링 IoC 컨테이너를 인스턴스화 하기 위해 유저의 코드는 필요없다. 예를 들어 웹 어플리케이션 시나리오에서, 어플리케이션의 `web.xml`파일의 간단한 8줄의 상용 웹 설명자 XML이면 충분하다.([웹 어플리케이션을 위한 편리한 ApplicationContext 인스턴스화 하기](#context-create)를 보십시오.) 만약 [Spring Tools for Exlipse](https://spring.io/tools)(이클립스 기반 개발 환경)을 사용한다면 몇 번의 마우스 클릭과 키보드를 누름으로서 이 상용 설정을 쉽게 만들 수 있다.     
 아래의 그림은 스프링의 작동하는 방법을 추상화하여 보여준다. `ApplicationContext`가 생성되고 초기화된 뒤, 당신의 어플리케이션의 클래스들은 설정 메타데이터와 결합하여 완전히 구성되고 실행가능한 시스템이나 어플리케이션이 생겨난다.
-<img src="https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/images/container-magic.png"/>
+<img src="/assets/spring-framework-reference/container-magic.png"/>
 **그림 1. 스프링 IoC 컨테이너**
 
 <h4 id="beans-factory-metadata"> 1.2.1 메타데이터 설정하기</h4>
@@ -1438,11 +1438,39 @@ str
 | [application](#beans-factory-scopes-application) | `ServletCOntext`와 같은 생명 주기를 가지는 스코프. web-aware `ApplicationContext`에서만 가능하다 |
 | [websocket](#websocket-stomp-websocket-scope) | `WebSocket`과 같은 생명 주기를 가지는 스코프. web-aware `ApplicationContext`에서만 가능하다 |
 
-| 스프링 3.0부터 쓰레드 스코프가 가능하다. 하지만 기본적으로 등록되지는 않는다. 더 자세한 정보는 [`SimpleThreadScope`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/SimpleThreadScope.html).문서를 보자. 다른 커스텀 스코프를 등록하는 방법은 [커스텀 스코프 사용하기](#beans-factory-scopes-custom-using)를 보자 |
+| 스프링 3.0부터 쓰레드 스코프가 가능하다. 하지만 기본적으로 등록되지는 않는다. 더 자세한 정보는 [`SimpleThreadScope`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/SimpleThreadScope.html)문서를 보자. 다른 커스텀 스코프를 등록하는 방법은 [커스텀 스코프 사용하기](#beans-factory-scopes-custom-using)를 보자 |
 
 <h4 id="beans-factory-scopes-singleton">싱글톤 스코프</h4>
+
+스프링 컨테이너는 싱글톤 빈의 인스턴스 한개만 관리한다. 컨테이너에 해당 빈을 요청하면 그 특정 빈 인스턴스만 반환한다.     
+다른 말로하면, 빈을 싱글톤 스코프로 정의했을 때, 스프링 IoC 컨테이너는 해당 빈 정의의 인스턴스를 단 하나만 생성한다. 이 싱글톤 빈은 다른 싱글톤 빈들과 함께 캐시에 저장되고 그 빈의 이름으로 요청이나 참조는 캐시된 객체를 반환받는다. 아래의 이미지가 싱글톤 스코프가 작동하는 그림이다:
+<img src="/assets/spring-framework-reference/singleton.png"/>
+스프링의 싱글톤 빈에 대한 개념은 Gang of Four (GoF) 패턴 책에 나온 싱글톤 패턴과는 다른다. 클래스로더가 특정 한 클래스의 인스턴스를 하나만 가질 수 있도록 하드코딩하는 방법이 GoF 싱글톤 패턴이다. 스프링의 싱글톤 스코프는 컨테이너마다, 빈 마다로 설명된다. 이말은 한 스프링 컨테이너에 특정 클래스의 빈 한개를 정의하면 스프링 컨테이너가 해당 빈 정의에 따라 단 한개의 빈 인스턴스를 만든다는 이야기이다. 스프링에서 싱글톤 스코프틑 기본 스코프이다. XML로 싱글톤 빈을 정의하려면 아래와 같이 할 수 있다:
+```xml
+<bean id="accountService" class="com.something.DefaultAccountService"/>
+
+<!-- 아래는 같은 정의이다. 따라서 중복되는 내용이다. (싱글톤 스코프는 기본 스코프이다.) -->
+<bean id="accountService" class="com.something.DefaultAccountService" scope="singleton"/>
+```
+
 <h4 id="beans-factory-scopes-prototype">프로토타입 스코프</h4>
+
+빈을 프로토타입으로 정의하면 해당 빈을 요청할 때마다 새로운 인스턴스가 생성된다. 즉, 빈이 다른 빈에 주입되거나 `getBean()`메소드를 호출할 때마다 새로운 인스턴스가 생성된다. 규칙으로서 상태를 가지는 빈을 프로토타입으로 상태가 없는 빈을 싱글톤으로 만들어야한다.     
+아래의 그림이 프로토타입 스코프를 설명한다:
+<img src="/assets/spring-framework-reference/prototype.png"/>
+(데이터 접근 객체(DAO)는 일반적으로 프로토타입으로 설정되지 않는다. 왜냐하면 일반적인 DAO는 상태를 가지지 않기 때문이다. 싱글톤 그림을 재사용하는 것이 간편해서 위의 그림이 나왔다.)     
+XML에서 프로토타입 빈을 아래와 같이 정의한다:
+```xml
+<bean id="accountService" class="com.something.DefaultAccountService" scope="prototype"/>
+```
+다른 스코프와는 다르게 프로토타입 빈의 생명주기의 일부는 스프링에 의해 통제되지 않는다. 컨테이너는 프로토타입 객체를 인스턴스화하고 설정하고 모아서 클라이언트에 전달한 뒤, 더 이상 해당 객체를 통제하지 않는다. 따라서 초기화 생명 주기 콜백 메소드는 빈의 스코프와 상관없이 호출되지만 프로토타입 빈의 경우, 파괴 생명 주기 콜백은 호출되지 않는다. 클라이언트 코드가 반드시 프로토타입 스코프 객체를 정리하고 프로토타입 빈이 가지고 있던 고비용의 자원을 풀어주어야한다. 스프링 컨테이너가 프토토타입 빈이 가지고 있던 자원을 풀어주도록 하려면 커스텀 [빈 포스트 프로세서](#beans-factory-extension-bpp)를 사용하여 정리되야 하는 빈의 참조를 가지고 있도록 할 수 있다.    
+특정 관점에서 보면 프로토타입 빈과 관련된 스프링 컨테이너의 역할은 자바의 `new` 연산자를 대체한다. 해당 지점 이후의 모든 생명주기 관리는 클라이언트에 의하여 수행되야 한다. (스프링 컨테이너 내부의 빈 생명주기 관련 자세한 내용은 [생명주기 콜백](#beans-factory-lifecycle)을 보자.)
+
 <h4 id="beans-factory-scopes-sing-prot-interaction">프로토타입 빈 의존성을 가지는 싱글톤 빈</h4>
+
+프로토타입 빈에 의존하는 싱글톤 빈을 사용한다면, 인스턴스화 할때 의존성이 해결된다는 것을 알아야한다. 프로토타입 빈을 싱글톤 빈에 주입한다면 새로운 프로토타입 빈이 생성되 싱글톤 빈에 주입된다. 그 프로토타입 빈은 싱글톤 빈 하나에서 독점적으로 사용하는 인스턴스이다.      
+하지만 싱글톤 빈이 런타임에 반복적으로 새로운 프로토타입 빈 인스턴스를 획득하길 원한다고 생각해보자. 스프링 컨테이너가 인스턴스화하여 싱글톤 빈을 만들고 의존성을 주입할 때 단 한번 의존성 주입이 일어나기 때문에 이러한 의존성 주입을 할 수 없다. 런타임에 새로운 프로토타입 빈 인스턴스가 필요하다면 [메소드 주입](#beans-factory-method-injection)을 읽어보자.
+
 <h4 id="beans-factory-scopes-other">Request, Session, Application, WebSocket 스코프</h4>
 
 <h5 id="beans-factory-scopes-other-web-configuration">초기 웹 설정</h5>

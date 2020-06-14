@@ -1591,8 +1591,10 @@ JSR-330의 `Provider`는 `Provider<MyTargetBean>`으로 사용되며 `get()`을 
     </bean>
 </beans>
 ```
-* ※1※ 이 줄이 프록시를 정의한다.     
+* ※1※ 이 줄이 프록시를 정의한다.  
+
 이러한 프록시를 만들기 위해서 스코프 빈 정의 아래에 자식 `<aop:scoped-proxy/>`요소를 추가해야한다([생성할 프록시 타입 정하기](#beans-factory-scopes-other-injection-proxies)와 [XML 스키마 기반 설정](../spring-reference-core-9-appendix/#xsd-schemas)을 보자). `request`스코프, `session`스코프, 커스텀 스코프 빈 정의가 `<aop:scoped-proxy/>`요소가 필요한 이유는 무엇일까? 아래의 싱글톤 빈 정의를 무엇이 더 필요한지 생각하면서 대비해서보자.(아래의 `userPreferences`설정은 완전하지 않다는 것의 주의해라):
+
 ```xml
 <bean id="userPreferences" class="com.something.UserPreferences" scope="session"/>
 
@@ -1600,9 +1602,11 @@ JSR-330의 `Provider`는 `Provider<MyTargetBean>`으로 사용되며 `get()`을 
     <property name="userPreferences" ref="userPreferences"/>
 </bean>
 ``` 
+
 위의 에시에서 싱글톤 빈(`userManager`)는 HTTP `Session` 스코프 빈(`userPreferences`)를 주입받는다. 여기서 주목할 부분은 `userManager`는 싱글톤 빈이라는 것이다: 컨테이너에서 단 한번 인스턴스화 되고 의존성 주입(이 경우 `userPreferences`빈)도 단 한번 일어난다. 이 말은 `userManager`빈이 한 개의 동일한 `userPreferences` 객체(처음 주입된 한개의 객체)와만 동작한다는 것이다.     
 이 것은 우리가 생명주기가 짧은 빈과 긴 빈 사이에 일어나기를 원하는 것이 아니다(예를 들면, HTTP `Session`스코프 빈은 싱글톤 빈에 주입하는 경우). 우리가 원하는 것은 하나의 `userManager` 객체와 특정 HTTP `Session`에 종속적인 HTTP `Session`의 생명주기를 가지는 `userPreferences`객체이다. 따라서 컨테이너는 `UserPreferences`클래스와 완전히 같은 인터페이스를 가지는 객체(이상적으로는 `UserPreferences` 인스턴스)를 만든다. 이 객체는 실제 `UserPreferences`객체를 스코프 동작원리(HTTP request, `Session`, 등등)하에 가져온다. 컨테이너는 이 프록시 객체를 `userManager`빈에 주입하고 `userManager`빈은 이 객체가 프록시 객체인지 알 필요 없다. 이 예제에서 `UserManager`인스턴스가 `UserPrefernces`객체의 메소드를 호출할 때, 실제로는 프록시 객체의 메소드를 호출하는 것이다. 이 프록시는 실제 `UserPrefernces`객체를 (이 경우에는) HTTP `Session`에서 가져와 해당 메소드를 실제 `UserPrefernces` 객체에서 호출한다.     
 따라서 `request-`, `session-scoped`빈을 주입할 때는 아래설정이 (정확하게 그리고 완전하게)필요하다. 아래는 예시이다:
+
 ```xml
 <bean id="userPreferences" class="com.something.UserPreferences" scope="session">
     <aop:scoped-proxy/>

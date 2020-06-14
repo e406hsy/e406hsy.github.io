@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-12T21:34:00+09:00
+date:   2020-06-14T11:09:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1445,7 +1445,7 @@ str
 스프링 컨테이너는 싱글톤 빈의 인스턴스 한개만 관리한다. 컨테이너에 해당 빈을 요청하면 그 특정 빈 인스턴스만 반환한다.     
 다른 말로하면, 빈을 싱글톤 스코프로 정의했을 때, 스프링 IoC 컨테이너는 해당 빈 정의의 인스턴스를 단 하나만 생성한다. 이 싱글톤 빈은 다른 싱글톤 빈들과 함께 캐시에 저장되고 그 빈의 이름으로 요청이나 참조는 캐시된 객체를 반환받는다. 아래의 이미지가 싱글톤 스코프가 작동하는 그림이다:
 <img src="/assets/spring-framework-reference/singleton.png"/>
-스프링의 싱글톤 빈에 대한 개념은 Gang of Four (GoF) 패턴 책에 나온 싱글톤 패턴과는 다른다. 클래스로더가 특정 한 클래스의 인스턴스를 하나만 가질 수 있도록 하드코딩하는 방법이 GoF 싱글톤 패턴이다. 스프링의 싱글톤 스코프는 컨테이너마다, 빈 마다로 설명된다. 이말은 한 스프링 컨테이너에 특정 클래스의 빈 한개를 정의하면 스프링 컨테이너가 해당 빈 정의에 따라 단 한개의 빈 인스턴스를 만든다는 이야기이다. 스프링에서 싱글톤 스코프틑 기본 스코프이다. XML로 싱글톤 빈을 정의하려면 아래와 같이 할 수 있다:
+스프링의 싱글톤 빈에 대한 개념은 Gang of Four (GoF) 패턴 책에 나온 싱글톤 패턴과는 다른다. 클래스로더가 특정 한 클래스의 인스턴스를 하나만 가질 수 있도록 하드코딩하는 방법이 GoF 싱글톤 패턴이다. 스프링의 싱글톤 스코프는 컨테이너마다, 빈 마다로 설명된다. 이말은 한 스프링 컨테이너에 특정 클래스의 빈 한개를 정의하면 스프링 컨테이너가 해당 빈 정의에 따라 단 한개의 빈 인스턴스를 만든다는 이야기이다. 스프링에서 싱글톤 스코프가 기본 스코프이다. XML로 싱글톤 빈을 정의하려면 아래와 같이 할 수 있다:
 ```xml
 <bean id="accountService" class="com.something.DefaultAccountService"/>
 
@@ -1473,12 +1473,165 @@ XML에서 프로토타입 빈을 아래와 같이 정의한다:
 
 <h4 id="beans-factory-scopes-other">Request, Session, Application, WebSocket 스코프</h4>
 
+`request`,`session`,`application`,`websocket`스코프는 (`XmlWebApplicationContext`와 같은) web-aware `ApplicationContext`를 사용해야만 이용가능하다. `ClassPathXmlApplicationContext`와 같은 일반적인 스프링 IoC 컨텍스트를 사용하면 `IllegalStateException`이 발생할 것이다.
+
 <h5 id="beans-factory-scopes-other-web-configuration">초기 웹 설정</h5>
+
+`request`,`session`,`application`,`websocket` 스코프의 빈을 지원하기 위해서 소소한 설정이 필요하다. (이 설정 단계는 `singleton`과 `prototype`과 같은 기본 스코프에는 필요하지 않다.)     
+이러한 설정은 서블릿 환경에 따라 다르다.     
+스프링 `DispatcherServlet`을 이용하는 스프링 웹 MVC를 이용하여 빈에 접근하면 특별한 설정이 필요하지 않다. `DispatcherServlet`이 이미 관련된 설정을 해준다.     
+스프링 `DispatcherServlet` 외부에서 요청이 처리되는 서블릿 2.5 웹 컨테이너(예를 들면, JSF 혹은 Struts)를 사용한다면 `org.springframework.web.context.request.RequestContextListener``ServletRequestListener`를 등록해야한다. 서블릿 3.0이상에서는 `WebApplicationInitializer`인터페이스를 이용하여 프로그래밍 적으로 수행할 수 있다. 더 구버전의 컨테이너에서는 `web.xml` 파일에 아래의 정의를 추가하여야한다:
+```xml
+<web-app>
+    ...
+    <listener>
+        <listener-class>
+            org.springframework.web.context.request.RequestContextListener
+        </listener-class>
+    </listener>
+    ...
+</web-app>
+```
+리스너 설정에 문제가 있다면 스프링의 `RequestContextFilter`를 사용해 보아라. 필터 매핑은 웹 어플리케이션 환경에 달려있기에 적합하게 변경해줘야한다. 아래는 웹어플리케이션의 필터부분이다:
+```xml
+<web-app>
+    ...
+    <filter>
+        <filter-name>requestContextFilter</filter-name>
+        <filter-class>org.springframework.web.filter.RequestContextFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>requestContextFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
+    ...
+</web-app>
+```
+`DispatcherServlet`,`RequestContextListener`,`RequestContextFilter`는 전부 같은 역할을 수행한다. 셋 모두 웹 요청을 수행하는 `Thread`에 객체를 제공해주는 역할을 한다. 이 방법으로 request, session 스코프 빈이 사용가능해진다.
+
 <h5 id="beans-factory-scopes-request">Request 스코프</h5>
+
+아래의 빈 정의 XML 설정을 생각해보자:
+```xml
+<bean id="loginAction" class="com.something.LoginAction" scope="request"/>
+```
+스프링 컨테이너는 `loginAction`빈 정의를 이용하여 매 HTTP 요청마다 `LoginAction`빈의 새로운 인스턴스를 생성한다. 이 말은, `loginAction`빈은 HTTP request 수준의 스코프를 가진다. 해당 인스턴스의 내부 상태를 얼마든지 변경할 수 있다. 왜냐하면 `loginAction`빈의 다른 인스턴스들은 이 변경의 영향을 받지 않기 때문이다. 이 인스턴스들은 각각의 웹 요청에 고유한 인스턴스이다. 웹 요청 수행이 완료되었을 때, request 스코브 빈은 버려진다.     
+자바 설정이나 어노테이션 기반 컴포넌트를 사용할 때, `@RequestScope`어노테이션을 사용하여 컴포넌트를 `request` 스코프에 할당할 수 있다. 아래 예시이다:
+```java
+@RequestScope
+@Component
+public class LoginAction {
+    // ...
+}
+```
+
 <h5 id="beans-factory-scopes-session">Session 스코프</h5>
+
+아래의 빈 정의 XML 설정을 생각해보자:
+```xml
+<bean id="userPreferences" class="com.something.UserPreferences" scope="session"/>
+```
+스프링 컨테이너는 `userPreferences`빈 정의를 이용하여 매 HTTP 요청마다 `UserPreferences`빈의 새로운 인스턴스를 생성한다. 이 말은, `userPreferences`빈은 HTTP `Session` 수준의 스코프를 가진다. request 스코프 빈처럼 해당 인스턴스의 내부 상태를 얼마든지 변경할 수 있다. 왜냐하면 `userPreferences`빈의 다른 인스턴스들은 이 변경의 영향을 받지 않기 때문이다. 이 인스턴스들은 각각의 HTTP `Session`에 고유한 인스턴스이다. HTTP `Session`이 버려질 때, 해당 HTTP `Session`에 스코프된 빈도 버려진다.     
+자바 설정이나 어노테이션 기반 컴포넌트를 사용할 때, `@SessionScope`어노테이션을 사용하여 컴포넌트를 `Session` 스코프에 할당할 수 있다. 아래 예시이다:
+```java
+@SessionScope
+@Component
+public class UserPreferences {
+    // ...
+}
+```
+
 <h5 id="beans-factory-scopes-application">Application 스코프</h5>
+
+아래의 빈 정의 XML 설정을 생각해보자:
+```xml
+<bean id="appPreferences" class="com.something.AppPreferences" scope="application"/>
+```
+스프링 컨테이너는 `appPreferences`빈 정의를 이용하여 전체 웹 어플리케이션에 `AppPreferences`빈의 새로운 인스턴스를 단 한개 생성한다. 이 말은, `appPreferences`빈은 `ServletContext` 수준의 스코프를 가지고 `ServletContext`의 어트리뷰트로 저장된다. 스프링 싱글톤 빈과 흡사하다 하지만 두가지 중요한 부분에서 다르다: 첫째로 Application 스코프 빈은 스프링 'ApplicationContext'마다가 아니라 `ServletContext`마다 싱글톤이다. 'ApplicationContext'는 여러개의 웹 어플리케이션을 가질 수 있다. 둘째로 Application 스코프 빈은 노출되어 있고 `Servletcontext`의 어트리뷰트로 접근 가능하다.     
+자바 설정이나 어노테이션 기반 컴포넌트를 사용할 때, `@ApplicationScope`어노테이션을 사용하여 컴포넌트를 `Application` 스코프에 할당할 수 있다. 아래 예시이다:
+```java
+@ApplicationScope
+@Component
+public class AppPreferences {
+    // ...
+}
+```
+
 <h5 id="beans-factory-scopes-other-injection">스코프 빈 의존성</h5>
 
+스프링 IoC 컨테이너는 객체(빈)를 인스턴스화하고 의존성을 주입한다. HTTP 요청 스코프 빈을 더 긴 스코프를 가지는 빈에 주입하고자 한다면 AOP 프록시를 주입하여야 할 것이다. 이 말은, 스코프를 가진 객체와 같은 인터페이스를 사용하면서 (HTTP 요청과 같은) 실제 스코프의 실제 인스턴스를 가져와 호출받은 메소드를 그 인스턴스에서 호출해주는 프록시 객체를 주입하여야 한다.
+
+| `singleton` 빈들 간에 `<aop:scoped-proxy/>`를 사용할 수 있다. 직렬화 가능한 중간 프록시를 이용하면 역직렬화 후 타겟 싱글톤 빈을 다시 획득가능해진다.     
+`prototype` 빈들에 `<aop:scoped-proxy/>`를 정의하면 프록시의 메소드를 호출할 때마다 새로운 인스턴스가 생성되어 해당 인스턴스에서 해당 메소드를 수행한다.     
+생명주기에 안전한 방법으로 더 짧은 생명주기를 가진 빈에 접근하는 방법으로는 스코프 프록시가 유일하지 않다. 인스턴스 참조를 가지고 있는 방법 대신에 `Objectfactory<MyTargetBean>`의 `getObject()`를 필요시에 호출하여 주입 순간을 정의할 수 있다.     
+`ObjectProvier<MyTargetBean>`을 이용할 수도 있다. 이는 `getIfAvailable`이나 `getIfUnique`등의 다른 접근 메소드를 제공한다.     
+JSR-330의 `Provider`는 `Provider<MyTargetBean>`으로 사용되며 `get()`을 호출하여 인스턴스에 접근한다. 자세한 내용은 [여기](#beans-standard-annotations)를 보자 |
+
+아래 설정에서 중요한 것은 단 한 줄이다. 하지만 해당 설정이 "왜", "어떻게" 적용되는지 이해하여야한다:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <!-- 프록시를 통하여 노출되는 HTTP 세션 스코프 빈 -->
+    <bean id="userPreferences" class="com.something.UserPreferences" scope="session">
+        <!-- 이 빈을 감싸는 프록시를 만들도록 컨테이너에 지시한다. -->
+        <aop:scoped-proxy/>  ※1※
+    </bean>
+
+    <!-- 위의 빈의 프록시를 주입받는 싱글톤 스코프 빈 -->
+    <bean id="userService" class="com.something.SimpleUserService">
+        <!-- userPreferences 프록시 빈의 참조 -->
+        <property name="userPreferences" ref="userPreferences"/>
+    </bean>
+</beans>
+```
+* ※1※ 이 줄이 프록시를 정의한다.     
+이러한 프록시를 만들기 위해서 스코프 빈 정의 아래에 자식 `<aop:scoped-proxy/>`요소를 추가해야한다([생성할 프록시 타입 정하기](#beans-factory-scopes-other-injection-proxies)와 [XML 스키마 기반 설정](../spring-reference-core-9-appendix/#xsd-schemas)을 보자). `request`스코프, `session`스코프, 커스텀 스코프 빈 정의가 `<aop:scoped-proxy/>`요소가 필요한 이유는 무엇일까? 아래의 싱글톤 빈 정의를 무엇이 더 필요한지 생각하면서 대비해서보자.(아래의 `userPreferences`설정은 완전하지 않다는 것의 주의해라):
+```xml
+<bean id="userPreferences" class="com.something.UserPreferences" scope="session"/>
+
+<bean id="userManager" class="com.something.UserManager">
+    <property name="userPreferences" ref="userPreferences"/>
+</bean>
+``` 
+위의 에시에서 싱글톤 빈(`userManager`)는 HTTP `Session` 스코프 빈(`userPreferences`)를 주입받는다. 여기서 주목할 부분은 `userManager`는 싱글톤 빈이라는 것이다: 컨테이너에서 단 한번 인스턴스화 되고 의존성 주입(이 경우 `userPreferences`빈)도 단 한번 일어난다. 이 말은 `userManager`빈이 한 개의 동일한 `userPreferences` 객체(처음 주입된 한개의 객체)와만 동작한다는 것이다.     
+이 것은 우리가 생명주기가 짧은 빈과 긴 빈 사이에 일어나기를 원하는 것이 아니다(예를 들면, HTTP `Session`스코프 빈은 싱글톤 빈에 주입하는 경우). 우리가 원하는 것은 하나의 `userManager` 객체와 특정 HTTP `Session`에 종속적인 HTTP `Session`의 생명주기를 가지는 `userPreferences`객체이다. 따라서 컨테이너는 `UserPreferences`클래스와 완전히 같은 인터페이스를 가지는 객체(이상적으로는 `UserPreferences` 인스턴스)를 만든다. 이 객체는 실제 `UserPreferences`객체를 스코프 동작원리(HTTP request, `Session`, 등등)하에 가져온다. 컨테이너는 이 프록시 객체를 `userManager`빈에 주입하고 `userManager`빈은 이 객체가 프록시 객체인지 알 필요 없다. 이 예제에서 `UserManager`인스턴스가 `UserPrefernces`객체의 메소드를 호출할 때, 실제로는 프록시 객체의 메소드를 호출하는 것이다. 이 프록시는 실제 `UserPrefernces`객체를 (이 경우에는) HTTP `Session`에서 가져와 해당 메소드를 실제 `UserPrefernces` 객체에서 호출한다.     
+따라서 `request-`, `session-scoped`빈을 주입할 때는 아래설정이 (정확하게 그리고 완전하게)필요하다. 아래는 예시이다:
+```xml
+<bean id="userPreferences" class="com.something.UserPreferences" scope="session">
+    <aop:scoped-proxy/>
+</bean>
+
+<bean id="userManager" class="com.something.UserManager">
+    <property name="userPreferences" ref="userPreferences"/>
+</bean>
+```
+
+<h6 id="beans-factory-scopes-other-injection-proxies">생성할 프록시 타입 정하기</h6>
+
+기본적으로 스프링 컨테이너는 `<aop:scoped-proxy/>`요소가 표기된 빈의 프록시를 만들 때, CGLIB 기반 프록시를 만든다.     
+
+```
+CBLIB 프록시는 오직 퍼블릭 메소드 호출만 처리할 수 있다. 퍼블릭이 아닌 메소드를 호출하지 않아야 한다. 이 호출은 실제 객체의 메소드를 호출하지 않을 것이다.
+```
+`<aop:scoped-proxy/>`요소에 `proxy-target-class`를 `false`로 설정함으로써 이러한 스코프빈 프록시에 표준 JDK 인터페이스 기반 프록시를 생성하도록 설정할 수 있다. JDK 인터페이스 기반 프록시를 사용하면 추가적인 라이브러리를 요구하지 않는다. 하지만 이 말은 스코프 빈의 클래스는 반드시 하나 이상의 인터페이스를 구현해야 하며 이 빈을 참조하는 다른 빈들은 인터페이스를 통하여 해당 빈을 참조해야한다. 아래에 예시이다:
+```xml
+<!-- DefaultUserPreferences 는 UserPreferences 인터페이스 구현체이다. -->
+<bean id="userPreferences" class="com.stuff.DefaultUserPreferences" scope="session">
+    <aop:scoped-proxy proxy-target-class="false"/>
+</bean>
+
+<bean id="userManager" class="com.stuff.UserManager">
+    <property name="userPreferences" ref="userPreferences"/>
+</bean>
+```
+클래스 기반 프록시와 인터페이스 기반 프록시에 대한 자세한 정보는 [프록시 작동원리](../spring-refernce-core-5-aop#aop-proxying)를 보자
 
 <h4 id="beans-factory-scopes-custom">커스텀 스코프</h4>
 

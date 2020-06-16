@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-14T11:09:00+09:00
+date:   2020-06-15T22:22:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1622,8 +1622,11 @@ JSR-330의 `Provider`는 `Provider<MyTargetBean>`으로 사용되며 `get()`을 
 기본적으로 스프링 컨테이너는 `<aop:scoped-proxy/>`요소가 표기된 빈의 프록시를 만들 때, CGLIB 기반 프록시를 만든다.     
 
 ```
-CBLIB 프록시는 오직 퍼블릭 메소드 호출만 처리할 수 있다. 퍼블릭이 아닌 메소드를 호출하지 않아야 한다. 이 호출은 실제 객체의 메소드를 호출하지 않을 것이다.
+CGLIB 프록시는 오직 퍼블릭 메소드 호출만 처리할 수 있다.
+퍼블릭이 아닌 메소드를 호출하지 않아야 한다.
+이 호출은 실제 객체의 메소드를 호출하지 않을 것이다.
 ```
+
 `<aop:scoped-proxy/>`요소에 `proxy-target-class`를 `false`로 설정함으로써 이러한 스코프빈 프록시에 표준 JDK 인터페이스 기반 프록시를 생성하도록 설정할 수 있다. JDK 인터페이스 기반 프록시를 사용하면 추가적인 라이브러리를 요구하지 않는다. 하지만 이 말은 스코프 빈의 클래스는 반드시 하나 이상의 인터페이스를 구현해야 하며 이 빈을 참조하는 다른 빈들은 인터페이스를 통하여 해당 빈을 참조해야한다. 아래에 예시이다:
 ```xml
 <!-- DefaultUserPreferences 는 UserPreferences 인터페이스 구현체이다. -->
@@ -1639,11 +1642,85 @@ CBLIB 프록시는 오직 퍼블릭 메소드 호출만 처리할 수 있다. �
 
 <h4 id="beans-factory-scopes-custom">커스텀 스코프</h4>
 
+빈 스코프는 확장가능하다. 새로운 스코프를 정의할 수도 있다. 또한 원래 있는 스코프를 재 정의할 수도 있다. 하지만 재정의의 경우, 별로 좋다고 여겨지지는 않고 `singleton`과 `prototype` 스코프는 재정의 불가능하다.
+
 <h5 id="beans-factory-scopes-custom-creating">커스텀 스코프 만들기</h5>
+
+커스텀 스코프를 스프링 컨테이너에 포함시키기 위해서는 이 장에서 소개될 `org.springframework.beans.factory.config.Scope`인터페이스를 구현해야한다. 스코프를 어떻게 구현하는지 알려면 스프링에서 제공하는 `Scope` 구현체와 [`Scope`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/beans/factory/config/Scope.html)자바독를 보아라. 이것들이 구현해야하는 것을 자세히 설명해줄 것이다.     
+`Scope`인터페이스는 스코프에서 객체를 가져오거나 제거하거나 파괴하는 4개의 메소드가 있다.     
+예를 들어 세션 스코프 구현체는 세션 스코프 빈을 반환한다(빈이 없다면 빈의 새로운 인스턴스를 만들어 나중에 참조하기 위해 세션에 묶은 뒤 해당 인스턴스를 반환한다). 아래의 메소드는 스코프에서 객체를 반환한다:
+```java
+Object get(String name, ObjectFactory<?> objectFactory)
+```
+예를들면 세션 스코프 구현체는 세션에서 세션 스코프 빈을 제거한다. 객체는 반드시 반환되야한다. 단 해당 이름을 가진 객체가 없으면 null을 반환할 수 있다. 아래의 메소드는 스코프에서 객체를 제거한다:
+```java
+Object remove(String name)
+```
+아래의 메소드는 스코프가 제거되거나 해당 객체가 제거될 때, 호출되어야 하는 콜백을 등록하는 메소드이다:
+```java
+void registerDestructionCallback(String name, Runnable destructionCallback)
+```
+파괴 콜백에 대한 더 자세한 내용은 [자바독](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/beans/factory/config/Scope.html#registerDestructionCallback)이나 스프링 스코프 구현체를 보아라.     
+아래의 메소드는 스코프에서 회화적 식별자를 획득하는 메소드이다:
+```java
+String getConversationId()
+```
+이 식별자는 각각의 스코프마다 다르다. 세션 스코프 구현체에서의 경우, 이 식별자는 세션 식별자가 될 수 있다.
+
 <h5 id="beans-factory-scopes-custom-using">커스텀 스코프 이용하기</h5>
 
+커스텀 `Scope` 구현체를 작성한 이후, 스프링 컨테이너가 해당 스코프를 알 수 있도록 하여야한다. 아래의 메소드는 스프링 컨테이너에 새로운 `Scope`를 등록하는 중심 메소드이다:
+```java
+void registerScope(String scopeName, Scope scope);
+```
+이 메소드는 `ConfigurableBeanFactory`인터페이스에 정의되어 있고 이 인터페이스는 스프링에서 제공하는 `ApplicationContext`구현체의 대부분에서 `BeanFactory`프로퍼티를 통하여 사용가능하다.     
+`registerScope(..)`메소드의 첫번째 어규먼트는 스코프에 고유한 이름이다. 스프링 컨테이너에서 사용되는 이러한 이름의 예시로는 `singleton`과 `prototype`이다. `reigisterScope(..)`메소드의 두번째 어규먼트는 등록하여 사용하고자 하는 `Scope`의 구현체 인스턴스이다.     
+아래 예시처럼 커스텀 `Scope`구현체를 작성하고 등록했다고 가정하자.
 
+| 아래 예시는 스프링에 포함되있으나 기본적으로 등록되지는 않은 `SimpleThreadScope`를 사용한다. 커스텀 `Scope`구현체에서도 같은 방법으로 등록한다. |
 
+```java
+Scope threadScope = new SimpleThreadScope();
+beanFactory.registerScope("thread", threadScope);
+```
+커스텀 스코프 규칙을 따르는 빈 정의를 아래와 같이 만들 수 있다:
+```xml
+<bean id="..." class="..." scope="thread">
+```
+커스텀 `Scope`구현체를 프로그래밍적 등록만 할 수 있는 것은 아니다. `CustomScopeConfigurer`를 이용하여 아래 예시처럼 `Scope`등록을 선언적으로도 가능하다:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <bean class="org.springframework.beans.factory.config.CustomScopeConfigurer">
+        <property name="scopes">
+            <map>
+                <entry key="thread">
+                    <bean class="org.springframework.context.support.SimpleThreadScope"/>
+                </entry>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="thing2" class="x.y.Thing2" scope="thread">
+        <property name="name" value="Rick"/>
+        <aop:scoped-proxy/>
+    </bean>
+
+    <bean id="thing1" class="x.y.Thing1">
+        <property name="thing2" ref="thing2"/>
+    </bean>
+
+</beans>
+```
+
+| `FactoryBean`구현체에 `<aop:scoped-proxy/>`를 사용하면 팩토리빈 자체가 스코프를 가진다. `getObject()`로 반환되는 객체가 가지는 것이 아니다. |
 
 <h3 id="beans-factory-nature">빈의 특성 설정하기</h3>
 

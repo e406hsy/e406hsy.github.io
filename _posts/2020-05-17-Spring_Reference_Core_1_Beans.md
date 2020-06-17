@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-15T22:22:00+09:00
+date:   2020-06-17T21:26:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -72,7 +72,7 @@ sitemap:
             * <a href="#beans-factory-scopes-custom-creating">커스텀 스코프 만들기</a>
             * <a href="#beans-factory-scopes-custom-using">커스텀 스코프 이용하기</a>
     1. <a href="#beans-factory-nature">빈의 특성 설정하기</a>
-        1. <a href="#beans-factory-lifecycle">콜백의 생명주기</a>
+        1. <a href="#beans-factory-lifecycle">생명주기 콜백</a>
             * <a href="#beans-factory-lifecycle-initializingbean">콜백 정의하기</a>
             * <a href="#beans-factory-lifecycle-disposablebean">소멸자 콜백</a>
             * <a href="#beans-factory-lifecycle-default-init-destroy-methods">기본 초기화 메소드, 파괴 메소드</a>
@@ -1724,9 +1724,56 @@ beanFactory.registerScope("thread", threadScope);
 
 <h3 id="beans-factory-nature">빈의 특성 설정하기</h3>
 
-<h4 id="beans-factory-lifecycle">콜백의 생명주기</h4>
+스프링 프레임워크는 빈의 특성을 변경하는데 사용할 수 있는 많은 인터페이스를 제공한다. 이 장은 해당 인터페이스를 아래와 같이 나눈다:
+* [생명주기 콜백](#beans-factory-lifecycle)
+* [`ApplicationContextAware`와 `BeanNameAware`](#beans-factory-aware)
+* [다른 `Aware` 인터페이스](#aware-list)
+
+<h4 id="beans-factory-lifecycle">생명주기 콜백</h4>
+
+컨테이너가 관리하는 빈의 생명주기와 상호작용하기 위해서는 스프링의 `InitializingBean`과 `DisposableBean` 인터페이스를 구현해야한다. 컨테이너는 전자에서는 `afterPropertiesSet()`, 후자에서는 `destory()`를 호출하여 빈이 초기화, 파괴시에 특정 행동을 하도록 한다.
+
+| 최신 스프링 어플리케이션에서 JSR-250 `@PostConstruct`와 `@PreDestory` 어노테이션이 생명주기 콜백을 가져오는 가장 좋은 방법으로 여겨진다. 이러한 빈을 사용하면 스프링 고유의 인터페이스에 묶이지 않는다. 자세한 내용은 [`@PostConstruct`와 `@PreDestory`사용하기]를 보자.     
+JSR-250 어노테이션을 사용하지 않더라도 스프링 고유의 인터페이스에 묶이고 싶지 않다면 빈 정의 메타데이터의 `init-method`와 `destory-method`를 사용해보아라. |
+
+내부적으로 스프링 프레임워크는 `BeanPostProcessor`구현체를 사용하여 적합한 콜백 메소드를 찾아 호출하도록 한다. 스프링이 기본적으로 제공하지 않는 생명주기 행동이나 커스텀 특성이 필요하다면 `BeanPostProcessor`를 스스로 구현할 수 있다. 자세한 내용은 [컨테이너 확장 포인트](#beans-factory-extension)를 보아라.     
+
+초기화 콜백, 파괴 콜백에 추가적으로 스프링에서 관리되는 빈은 `Lifecycle`인터페이스를 구현하여 이 객체들이 컨테이너의 생명주기에 따라 관리되는 생성과정, 파괴과정에 관여할 수 있다.     
+생명 주기 콜백은 이 장에서 설명될 것이다.
 
 <h5 id="beans-factory-lifecycle-initializingbean">콜백 정의하기</h5>
+
+`org.springframework.beans.factory.InitializingBean`인터페이스는 컨테이너가 빈에 필요한 프로퍼티를 설정한 뒤, 빈이 초기화를 진행하도록 한다. `InitializingBean`인터페이스는 한 개의 메소드를 명시한다:
+```java
+void afterPropertiesSet() throws Exception;
+```
+`InitializingBean`인터페이스를 사용하는 것은 추천하지 않는다. 왜냐하면 불필요하게 스프링 프레임워크와 코드가 결합하기 때문이다. 대신 [`@PostCOnstruct`](#beans-postconstruct-and-predestroy-annotations)를 사용하거나 POJO 초기화 메소드를 명시하는 것을 추천한다. XML 기반 설정 메타데이타에서는 `init-method`어트리뷰트에 void, 어규먼트가 없는 메소드의 이름을 명시하여 사용할 수 있다. 자바 설정에서는 `@Bean`의 `initMethod`어트리뷰트를 사용할 수 있다. [생명주기 콜백 받기](#beans-java-lifecycle-callbacks)를 보자. 아래는 예시이다:
+```xml
+<bean id="exampleInitBean" class="examples.ExampleBean" init-method="init"/>
+```
+```java
+public class ExampleBean {
+
+    public void init() {
+        // 초기화 작업을 수행한다.
+    }
+}
+```
+위의 예시는 아래의 예시와 거의 같은 동작을 수행한다:
+```xml
+<bean id="exampleInitBean" class="examples.AnotherExampleBean"/>
+```
+```java
+public class AnotherExampleBean implements InitializingBean {
+
+    @Override
+    public void afterPropertiesSet() {
+        // 초기화 작업을 수행한다.
+    }
+}
+```
+하지만 두 예시 중 위의 예시는 스프링 프레임워크와 코드가 결합하지 않았다.
+
 <h5 id="beans-factory-lifecycle-disposablebean">소멸자 콜백</h5>
 <h5 id="beans-factory-lifecycle-default-init-destroy-methods">기본 초기화 메소드, 파괴 메소드</h5>
 <h5 id="beans-factory-lifecycle-combined-effects">생명주기 작동원리 조합하기</h5>

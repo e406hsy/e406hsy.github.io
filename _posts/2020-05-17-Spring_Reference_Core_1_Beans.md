@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-17T21:26:00+09:00
+date:   2020-06-20T08:13:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1775,9 +1775,99 @@ public class AnotherExampleBean implements InitializingBean {
 하지만 두 예시 중 위의 예시는 스프링 프레임워크와 코드가 결합하지 않았다.
 
 <h5 id="beans-factory-lifecycle-disposablebean">소멸자 콜백</h5>
+
+`org.springframework.beans.factory.DisposableBean`인터페이스를 구현하여 해당 빈을 가지고 있는 컨테이너가 파괴될 때 호출될 콜백을 가지도록 할 수 있다. `DisposableBean`인터페이스는 한개의 메소드를 명시한다:
+```java
+void destroy() throws Exception;
+```
+`DisposableBean`을 사용하는 것은 추천하지 않는다. 왜냐하면 불필요하게 스프링 프레임워크와 코드가 결합하기 때문이다. 대신 [`@PreDestory`](#beans-postconstruct-and-predestroy-annotations)를 사용하거나 POJO 초기화 메소드를 명시하는 것을 추천한다. XML 기반 설정 메타데이타에서는 `<bean/>`요소의  `destory-method`어트리뷰트에 void, 어규먼트가 없는 메소드의 이름을 명시하여 사용할 수 있다. 자바 설정에서는 `@Bean`의 `destoryMethod`어트리뷰트를 사용할 수 있다. [생명주기 콜백 받기](#beans-java-lifecycle-callbacks)를 보자. 아래는 예시이다:
+```xml
+<bean id="exampleInitBean" class="examples.ExampleBean" destroy-method="cleanup"/>
+```
+```java
+public class ExampleBean {
+
+    public void cleanup() {
+        // 커넥션 풀 정리 등 파괴할 작업을 수행한다.
+    }
+}
+```
+위의 예시는 아래의 예시와 거의 같은 동작을 수행한다:
+```xml
+<bean id="exampleInitBean" class="examples.AnotherExampleBean"/>
+```
+```java
+public class AnotherExampleBean implements DisposableBean {
+
+    @Override
+    public void destroy() {
+        // 커넥션 풀 정리 등 파괴할 작업을 수행한다.
+    }
+}
+```
+하지만 두 예시 중 위의 예시는 스프링 프레임워크와 코드가 결합하지 않았다.
+
+| `<bean>`요소의 `destory-method`에 스프링이 자동으로 퍼블릭 `close`나 `shutdown`메소드를 찾아 암시적으로 값을 설정하도록 수 있다. (`java.lang.AutoClosable`이나 `java.io.Closeable`을 구현하면 해당한다.) 또한 `<beans>`요소의 `default-destroy-method`어트리뷰트에 `(inferred)`값을 설정하여 전체 빈에 암시적 설정을 할 수 있다([기본 초기화 메소드, 파괴 메소드](#beans-factory-lifecycle-default-init-destroy-methods)를 보자). 자바 기반 설정에서 위 설정이 기본 설정이다. |
+
 <h5 id="beans-factory-lifecycle-default-init-destroy-methods">기본 초기화 메소드, 파괴 메소드</h5>
+
+스프링 고유의 `InitializingBean`과 `DisposableBean`콜백 인터페이스를 이용하지 않고 초기화 메소드, 파괴 메소드를 작성한다면 보통은 `init()`, `initialize()`, `dispose()` 등의 이름으로 작성할 것이다. 이상적으로는 그러한 이름은 프로젝트 전체에서 표준이 있을 것이고 모든 개발자들의 같은 이름을 사용하여 일관성이 유지될 것이다.     
+스프링 컨테이너가 모든 빈에서 그러한 이름을 가진 메소드를 찾아보도록 설정할 수 있다. 어플리케이션 개발자가 모든 빈에 `init-metho"init"`을 작성하지 않아도 `init()`이라는 초기화 콜백을 사용하도록 작성할 수 있다. 스프링 IoC 컨테이너는 빈이 생성될 때 ([이전에 설명된](#beans-factory-lifecycle) 표준 생명주기 콜백에 따라) 해당 메소드를 호출한다. 또한 이 설정은 초기화 콜백, 파괴 콜백에 같은 이름짓기 규약을 따르도록 강요한다.     
+초기화 콜백이름이 `init()`이고 파괴 콜백이름이 `destory()`라고 가정하자. 그렇다면 클래스들의 형태는 아래와 닮아 있을 것이다:
+```java
+public class DefaultBlogService implements BlogService {
+
+    private BlogDao blogDao;
+
+    public void setBlogDao(BlogDao blogDao) {
+        this.blogDao = blogDao;
+    }
+
+    // (당연하게도) 초기화 콜백
+    public void init() {
+        if (this.blogDao == null) {
+            throw new IllegalStateException("The [blogDao] property must be set.");
+        }
+    }
+}
+```
+이 클래스를 아래와 같이 사용할 수 있다:
+```xml
+<beans default-init-method="init">
+
+    <bean id="blogService" class="com.something.DefaultBlogService">
+        <property name="blogDao" ref="blogDao" />
+    </bean>
+
+</beans>
+```
+최상위 `<beans/>`요소에 `default-init-method`를 설정하면 스프링 IoC 컨테이너가 `init`이라는 이름의 메소드를 인식하여 초기화 콜백으로 사용한다. 빈이 생성되어 수집될 때, 빈이 해당 이름의 메소드를 가지고 있다면 적절한 때에 호출해 줄 것이다.     
+(XML의 경우) 최상위 `<beans/>`요소에 `default-destory-method`를 이용하여 파괴 콜백도 비슷하게 설정할 수 있다.      
+이름짓기 규약과 다른 이름의 콜백 메소드를 가진 빈이 있을 경우, `<bean/>`에 `init-method`와 `destory-method`를 설정하여 기본 설정을 덮어쓸수 있다.     
+스프링 컨테이너는 초기화 콜백이 의존성을 주입받은 직후 호출되는 것을 보장한다. 따라서 초기화 콜백은 빈 자체에 호출된다. 즉 AOP 인터셉터 등등이 적용되지 않은 빈에서 호출된다는 말이다. 빈이 생성되고나서 (예를 들면) AOP 프록시 인터셉터가 적용된다. 목표 빈과 프록시가 따로 정의된다면 빈 자체와도 상호작용가능하다. 게다가 인터셉터에 `init` 메소드를 적용하는 것을 일관적이지 못하다. 왜냐하면 목표 빈의 생명주기와 프록시나 인터셉터가 강하게 결합되며 목표 빈 자체와 상호작용할 때, 올바르지 못한 설정이 남기 때문이다.
+
 <h5 id="beans-factory-lifecycle-combined-effects">생명주기 작동원리 조합하기</h5>
+
+스프링 2.5부터 빈 생명주기를 통제하는 3가지 방법이 있다:
+* `InitializingBean`과 `DisposableBean` 콜백 인터페이스
+* 커스텀 `init()`, `destroy()`메소드
+* [`@PostConstruct`와 `@PreDestory` 어노테이션](#beans-postconstruct-and-predestroy-annotations). 이 방법들을 섞어서 사용할 수 있다.
+
+| 여러개의 생명주기 설정이 서로 다른 메소드이름으로 설정된다면 각각의 메소드들이 아래의 순서로 모두 동작할 것이다. 하지만 같은 이름으로 설정되면 한번만 동작할 것이다. 자세한 설명은 [앞 장](#beans-factory-lifecycle-default-init-destroy-methods)에 설명되어 있다. |
+
+하나의 빈에 여러 생명주기 설정이 다른 메소드 이름으로 존재한다면 아래 순서로 호출될 것이다:
+1. `@PostConstruct` 어노테이션으로 설정된 메소드
+2. `InitializingBean`콜백 인터페이스의 `afterPropertiesSet()`
+3. 커스텀 설정된 `init()` 메소드
+파괴 메소드도 같은 순서로 호출된다:
+1. `@PreDestory` 어노테이션으로 설정된 메소드
+2. `DisposableBean`콜백 인터페이스의 `destroy()`
+3. 커스텀 설정된 `destroy()` 메소드
+
 <h5 id="beans-factory-lifecycle-processor">Startup, Shutdown 콜백</h5>
+
+
+
 <h5 id="beans-factory-shutdown">웹 어플리케이션이 아닌 환경에서 스프링 IoC 컨테이너 아름답게 종료하기</h5>
 
 

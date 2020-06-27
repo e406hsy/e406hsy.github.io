@@ -2,14 +2,14 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-20T08:13:00+09:00
+date:   2020-06-27T10:07:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
 categories: Spring_Reference
 tags: Spring 
 sitemap:
-    changefreq: daily
+    changefreq: weekly
 ---
 
 이 내용은 [스프링 문서 5.2.6.RELEASE](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#spring-core)를 번역한 내용으로 오역이 있을 수 있습니다.
@@ -1909,7 +1909,67 @@ public class DefaultBlogService implements BlogService {
 
 <h5 id="beans-factory-lifecycle-processor">Startup, Shutdown 콜백</h5>
 
+`Lifecycle`인터페이스는 생명주기에 필요한 메소드를 정의한다 (예를 들면 시작 시, 종료시):
 
+```java
+public interface Lifecycle {
+
+    void start();
+
+    void stop();
+
+    boolean isRunning();
+}
+```
+
+스프링에서 관리되는 객체는 `Lifecycle`인터페이스를 구현할 수 있다. 그렇게 하면 `ApplicationContext`가 시작 신호나 종료 신호를 받을 때, 컨텍스트 내에 정의된 모든 `Lifecycle`구현체의 메소드를 호출한다. 아래에 나온 `LifecycleProcessor`에 위임하여 동작이 이뤄진다:
+
+```java
+public interface LifecycleProcessor extends Lifecycle {
+
+    void onRefresh();
+
+    void onClose();
+}
+```
+
+`LifecycleProcessor` 자체도 `Lifecycle`인터페이스를 확장한 것이라는 것에 주의하십시오. 컨텍스트가 새로 고침될 때, 종료될 때, 동작하는 두개의 메소드를 추가로 가진다.
+
+| |
+| ----- |
+| **!** 일반 `org.springframework.context.Lifecycle`인터페이스는 시작 종료시에만 동작하며 자동 시작하는 새로고침시에는 동작하지 않는다. 특정 빈의 자동 시작시에도 통제를 하고 싶다면 `org.springframework.context.SmartLifecycle`을 구현하는 것을 고려해보십시오. |
+
+시작, 종료 메소드 호출 순서가 중요할 수 있다. 두 객체 간에 의존관계가 있다면 의존하는 객체가 늦게 시작하고 먼저 종료한다. 하지만 직접적인 의존관계가 알려지지 않은 경우가 있다. 특정 타입의 객체가 다릍 타입의 객체보다 빨리 시작해야한다는 것만 알고 있다고 하자. 이런 경우에 `SmartLifecycle` 인터페이스를 정의하는 것이 방법이 될 수 있다. `SmartLifecycle`의 부모 인터페이스인 `Phased`인터페이스의 `getPhase()`를 정의하면 된다. 아래는 `Phased`인터페이스의 정의이다:
+
+```java
+public interface Phased {
+
+    int getPhase();
+}
+```
+
+아래는 `SmartLifecycle`의 정의이다:
+
+```java
+public interface SmartLifecycle extends Lifecycle, Phased {
+
+    boolean isAutoStartup();
+
+    void stop(Runnable callback);
+}
+```
+
+시작시에 가장 낮은 페이즈의 객체가 먼저 시작한다. 종료시에는 반대로이다. 따라서 `SmartLifecycle`을 구현한 객체의 `getPhase()`메소드에서 `Integer.MIN_VALUE`를 반환한다면 가장 먼저 시작해서 가장 늦게 종료될 것이다. 반대로 `Integer.MAX_VALUE`를 반환하는 객체는 가장 늦게 시작하여 가장 먼저 종료될 것이다. 페이즈 값을 정할 때, `SmartLifecycle`을 구현하지 않은 "일반적인" `Lifecycle`객체의 페이즈는 `0`이다. 따라서 음수 페이즈는 일반적인 컴포넌트보다 먼저 시작하고 늦게 종료되야 한다는 뜻이다. 양수일 때는 반대이다.     
+`SmartLifecycle`에 정의된 종료 메소드는 콜백을 파라메터로 수용한다. 어떠한 구현체라도 콜백의 `run()`메소드를 종료과정이 끝난뒤 호출해야한다. 이렇게 함으로써 비동기 종료를 가능하게 한다. 왜냐하면 `LifecycleProcessor`인터페이스의 기본 구현체인 `DefaultLifecycleProcessor`는 각각 페이즈의 객체들의 콜백 수행시 정해진 시간만 기다린다. 페이즈별 기다리는 시간의 기본값은 30초이다. `lifecycleProcessor`라는 이름의 빈을 정의하여 기본 생명주기 프로세서 인스턴스를 대신할 수 있다. 기다리는 시간만 바꾸고 싶다면 아래의 설정으로 충분하다:
+
+```xml
+<bean id="lifecycleProcessor" class="org.springframework.context.support.DefaultLifecycleProcessor">
+    <!-- 밀리초 단위 기다리는 시간 -->
+    <property name="timeoutPerShutdownPhase" value="10000"/>
+</bean>
+```
+
+위에서 언급했듯이, `LifecycleProcessor`인터페이스는 컨텍스트의 새로고침시, 종료시에 콜백 메소드 또한 정의한다. 컨텍스트 종료시 콜백은 `stop()`메소드 호출과 같은 종료 과정을 작동시킨다. 하지만 '새로고침시' 콜백은 `SmartLifecycle`빈의 다른 특성을 가능하게 한다. 콘텍스트가 새로고침시에 콜백이 호출된다. 그 시점에 기본 생명주기 프로세서는 각 `SmartLifecycle` 객체의 `isAutoStartup()`메소드에서 반환하는 불리언 값을 확인한다. 만약 `true`라면 객체는 `start()`메소드의 호출을 기다리는 것이 아니라 그 시점에서 동작한다 (컨텍스트 새로고침과 다르게 컨텍스트 시작은 자동적으로 동작하지 않는다). 위에서 설명했듯이 `phase` 값과 다른 의존관계가 시작 순서를 결정한다.
 
 <h5 id="beans-factory-shutdown">웹 어플리케이션이 아닌 환경에서 스프링 IoC 컨테이너 아름답게 종료하기</h5>
 

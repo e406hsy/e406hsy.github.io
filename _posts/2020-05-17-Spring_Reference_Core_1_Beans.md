@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-06-27T10:07:00+09:00
+date:   2020-07-04T21:34:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -1973,8 +1973,51 @@ public interface SmartLifecycle extends Lifecycle, Phased {
 
 <h5 id="beans-factory-shutdown">웹 어플리케이션이 아닌 환경에서 스프링 IoC 컨테이너 아름답게 종료하기</h5>
 
+| |
+| ----- |
+| **!** 이 장은 웹 어플리케이션이 아닌 환경에만 적용되는 내용을 담고 있다. 스프링의 웹 기반 `ApplcationCOntext` 구현체는 웹 어플리케이션이 종료할 때, 아름답게 종료되는 코드를 이미 가지고 있다. |
+
+웹 환경이 아닌 환경에서 스프링 IoC 컨테이너를 사용한다면 JVM에 종료 훅을 등록하여야한다. 아름다운 종료를 보장하며 자원을 해제하도록 싱글톤 빈에 파괴 메소드를 호출하여 줄것이다. 물론 파괴 콜백들을 구현하고 올바르게 설정 하여야한다.     
+종료 훅을 등록하려면 `ConfigurableApplicationContext`인터페이스에 정의되어 있는 `registerShutdownHook()`을 호출하여야 한다:
+```java
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+public final class Boot {
+
+    public static void main(final String[] args) throws Exception {
+        ConfigurableApplicationContext ctx = new ClassPathXmlApplicationContext("beans.xml");
+
+        // 위의 컨텍스트에 셧다운 훅을 추가한다.
+        ctx.registerShutdownHook();
+
+        // 어플리케이션이 여기서 동작한다.
+
+        // 메인 메소드가 종료된다. 훅은 어플리케이션이 종료되기전에 호출된다.
+    }
+}
+```
 
 <h4 id="beans-factory-aware">ApplicationContextAware, BeanNameAware</h4>
+
+`ApplicationCOntext`가 `org.springframework.contet.ApplicationContextAware`인터페이스를 구현한 객체 인스턴스를 생성할 때, 인스턴스는 `ApplicationContext`의 참조를 제공받는다. 아래 `ApplicationContextAware`의 정의이다:
+```java
+public interface ApplicationContextAware {
+
+    void setApplicationContext(ApplicationContext applicationContext) throws BeansException;
+}
+```
+따라서 빈은 자신을 만든 `ApplicationContext`를 `ApplicationContext`인터페이스를 이용하거나 (추가적인 기능이 있는 `ConfigurableApplicationContext`와 같은) 하위 클래스로 캐스팅하여 조작할 수 있다. 한가지 사용법은 프로그래밍적으로 다른 빈을 검색하는 것이다. 종종 이 기능은 유용하다. 하지만 일반적으로는 하지 않아야한다. 왜냐하면 코드와 스프링이 결합하고 역흐름 제어 방법을 따르지 않기 때문이다. 다른 `ApplicationCOntext`의 사용법은 파일 자원에 접근하거나 어플리케이션 이벤트를 발행하거나 `MessageSource`에 접근하는 사용법이다. 이러한 추가적인 기능은 [`ApplicationContext`의 추가적인 사용법](#context-introduction)에서 설명되어 있다.     
+자동연결은 `ApplicationContext`의 참조를 획득하는 또 다른 방법이다. ([자동연결 협력자](#beans-factory-autowire)에서 설명된) `constructor`와 `byType`자동연결 모드에서 `ApplicationContext`타입의 의존성을 생성자 어규먼트나 세터 메소드 파라메터로 제공할 수 있다. 필드와 여러 파라메터를 가진 메소드에 자동 연결하는 기능을 포함한 더 유연한 기능을 위해 어노테이션기반 자동연결 기능을 사용하여라. 이렇게 하면 `@Autowired`가 있는 메소드, 생성자, 필드에 `ApplicationContext`가 제공될 것이다. 더 자세한 정보는 [`@Autowired`사용하기](#beans-autowired-annotation)를 보십시오.     
+`ApplicationContext`가 `org.springframework.beans.factory.BeanNameAware`인터페이스를 구현한 클래스를 생성할 때, 빈 이름이 제공될 것이다. 아래 BeanNameAware 인터페이스의 정의이다:
+```java
+public interface BeanNameAware {
+
+    void setBeanName(String name) throws BeansException;
+}
+```
+빈 프로퍼티가 설정된 후, `InitializingBean`이나 `afterPropertiesSet`이나 커스텀 초기화 콜백이 호출되기 전에 이 콜백이 호출된다.
+
 <h4 id="awar-list">다른 Aware 인터페이스</h4>
 
 

@@ -2023,8 +2023,9 @@ public interface BeanNameAware {
 [이전](#beans-factory-aware)에 이야기된 `ApplicationContextAware`와 `BeanNameAware`이외에 스프링은 빈이 컨테이너를 알수 있는 `Aware`콜백 인터페이스를 제공한다. 
 
 ##### 표 4. Aware 인터페이스
+
 | 이름 | 주입되는 의존성 | 설명 링크 |
-| --- | --- | --- |
+| ---- | ---- | ---- |
 | `ApplicationContextAware` | `ApplicationContext` | [`ApplicationContext`와 `BeanNameAware`](#beans-factory-aware) |
 | `ApplicationEventPublisherAware` | `ApplicationContext`를 감싸는 이벤트 발행자 | [`ApplicationContext`의 추가적인 기능](#context-introduction) |
 | `BeanClassLoaderAware` | 빈 클래스를 로드하는 클래스 로더 | [빈 초기화 하기](#beans-factory-class) |
@@ -2060,7 +2061,7 @@ public interface BeanNameAware {
     <!-- age 프로퍼티의 값은 부모로 부터 상속되어 1이다. -->
 </bean>
 ```
-#### `parent` 요소를 주의깂게 보십시오.
+#### `parent` 요소를 주의깊게 보십시오.
 
 자식 빈 정의는 부모 빈 정의에 표시된 빈의 클래스를 사용한다. 하지만 재정의할 수 있다. 재정의할 경우, 자식 빈의 클래스는 부모 빈의 클래스와 호환되어야 한다.(부모의 프로퍼티 값을 허용해야 한다)
 

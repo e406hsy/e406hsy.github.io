@@ -2020,23 +2020,23 @@ public interface BeanNameAware {
 
 <h4 id="awar-list">다른 Aware 인터페이스</h4>
 
-(이전)[#beans-factory-aware]에 이야기된 `ApplicationContextAware`와 `BeanNameAware`이외에 스프링은 빈이 컨테이너를 알수 있는 `Aware`콜백 인터페이스를 제공한다. 
+[이전](#beans-factory-aware)에 이야기된 `ApplicationContextAware`와 `BeanNameAware`이외에 스프링은 빈이 컨테이너를 알수 있는 `Aware`콜백 인터페이스를 제공한다. 
 
 ##### 표 4. Aware 인터페이스
 | 이름 | 주입되는 의존성 | 설명 링크 |
 | --- | --- | --- |
-| `ApplicationContextAware` | `ApplicationContext` | (`ApplicationContext`와 `BeanNameAware`)[#beans-factory-aware] |
-| `ApplicationEventPublisherAware` | `ApplicationContext`를 감싸는 이벤트 발행자 | (`ApplicationContext`의 추가적인 기능)[#context-introduction] |
-| `BeanClassLoaderAware` | 빈 클래스를 로드하는 클래스 로더 | (빈 초기화 하기)[#beans-factory-class] |
-| `BeanFactoryAware` | `BeanFactory` | (`ApplicationContext`와 `BeanNameAware`)[#beans-factory-aware] |
-| `BeanNameAware` | 빈 이름 | (`ApplicationContext`와 `BeanNameAware`)[#beans-factory-aware] |
-| `BootstrapContextAware` | `BootstrapContext`. 일반적으로 JCA-aware `ApplicationContext`에서만 사용 가능하다 | (JCA CCI)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#cci]
-| `LoadTimeWeaverAware` | 로드 타임에 클래스 정의를 수행하는 위버 | (스프링 프레임워크에서 AspectJ를 이용한 로드타임 위버)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#aop-aj-ltw] |
-| `MessageSourceAware` | 메세지를 처리하는 전략 설정 | (`ApplicationContext`의 추가적인 기능)[#context-introduction] |
-| `NotificationPublisherAware` | 스플이 JMX 알림 발행자 | (알림)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#jmx-notifications] |
-| `ResourceLoaderAware` | 저수준 자원에 접근하는 로더 | (리소스)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources] | 
-| `ServletConfigAware` | 현재 `ServletConfig`. 웹-aware `ApplicationContext`에서만 사용 가능하다 | (스프링 MVC)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/web.html#mvc] |
-| `ServletContextAware` | 현재 `ServletContext`. 웹-aware `ApplicationContext`에서만 사용 가능하다 | (스프링 MVC)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/web.html#mvc] |
+| `ApplicationContextAware` | `ApplicationContext` | [`ApplicationContext`와 `BeanNameAware`](#beans-factory-aware) |
+| `ApplicationEventPublisherAware` | `ApplicationContext`를 감싸는 이벤트 발행자 | [`ApplicationContext`의 추가적인 기능](#context-introduction) |
+| `BeanClassLoaderAware` | 빈 클래스를 로드하는 클래스 로더 | [빈 초기화 하기](#beans-factory-class) |
+| `BeanFactoryAware` | `BeanFactory` | [`ApplicationContext`와 `BeanNameAware`](#beans-factory-aware) |
+| `BeanNameAware` | 빈 이름 | [`ApplicationContext`와 `BeanNameAware`](#beans-factory-aware) |
+| `BootstrapContextAware` | `BootstrapContext`. 일반적으로 JCA-aware `ApplicationContext`에서만 사용 가능하다 | [JCA CCI](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#cci)
+| `LoadTimeWeaverAware` | 로드 타임에 클래스 정의를 수행하는 위버 | [스프링 프레임워크에서 AspectJ를 이용한 로드타임 위버](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#aop-aj-ltw) |
+| `MessageSourceAware` | 메세지를 처리하는 전략 설정 | [`ApplicationContext`의 추가적인 기능](#context-introduction) |
+| `NotificationPublisherAware` | 스프링 JMX 알림 발행자 | [알림](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#jmx-notifications) |
+| `ResourceLoaderAware` | 저수준 자원에 접근하는 로더 | [리소스](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources) | 
+| `ServletConfigAware` | 현재 `ServletConfig`. 웹-aware `ApplicationContext`에서만 사용 가능하다 | [스프링 MVC](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/web.html#mvc) |
+| `ServletContextAware` | 현재 `ServletContext`. 웹-aware `ApplicationContext`에서만 사용 가능하다 | [스프링 MVC](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/web.html#mvc) |
 
 이러한 인터페이스를 사용하는 것은 스프링 API와 코드를 강하게 결합시키며 역제어흐름 스타일을 따르지 않는 다는 것에 주의하여야 한다. 결과적으로, 컨테이너에 프로그래밍적으로 접근할 필요가 있는 인프라빈에 사용하기를 추천한다.
 
@@ -2097,7 +2097,7 @@ public interface BeanNameAware {
 
 `BeanPostProcessor` 인터페이스는 콜백 메서드를 정의한다. 이 콜백 메서드에 당신만의 (컨테이너의 기본 로직을 재정의하는) 초기화 로직, 의존성 해소 로직 등 등을 정의할 수 있다. 만약 스프링 컨테이너가 인스턴스화, 설정, 빈 초기화를 마친 이후 커스텀 로직을 추가하고 싶다면 `BeanPostProcessor` 구현체를 하나 혹은 여러개 연결할 수 있다.
 
-여러개의 `BeanPostProcessor`인스턴스를 설정할 수 있다. `BeanPostProcessor`인스턴스의 실행 순서를 `order` 프로퍼티를 이용하여 정할 수 있다. `BeanPostProcessor`구현체가 `Ordered` 인터페이스를 구현할 경우에만 설정 가능하다. 자신만의 `BeanPostProcessor`를 만든다면 `Ordered`인터페이스 또한 구현하는 것이 좋을 것이다. 추가적인 자세한 내용은, (`BeanPostProcessor`)[https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/config/BeanPostProcessor.html]와 (`Ordered`)[https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/core/Ordered.html]인터페이스의 자바독을 보십시오. (`BeanPostProcessor` 인스턴스의 프로그래밍적 등록)[#Programmatically_registering_BeanPostProcessor] 또한 보십시오.
+여러개의 `BeanPostProcessor`인스턴스를 설정할 수 있다. `BeanPostProcessor`인스턴스의 실행 순서를 `order` 프로퍼티를 이용하여 정할 수 있다. `BeanPostProcessor`구현체가 `Ordered` 인터페이스를 구현할 경우에만 설정 가능하다. 자신만의 `BeanPostProcessor`를 만든다면 `Ordered`인터페이스 또한 구현하는 것이 좋을 것이다. 추가적인 자세한 내용은, [`BeanPostProcessor`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/config/BeanPostProcessor.html)와 [`Ordered`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/core/Ordered.html)인터페이스의 자바독을 보십시오. [`BeanPostProcessor` 인스턴스의 프로그래밍적 등록](#Programmatically_registering_BeanPostProcessor) 또한 보십시오.
 
 <!-- 여기서부터 이어서 작성하기-->
 

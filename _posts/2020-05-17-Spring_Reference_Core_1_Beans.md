@@ -2020,11 +2020,98 @@ public interface BeanNameAware {
 
 <h4 id="awar-list">다른 Aware 인터페이스</h4>
 
+(이전)[#beans-factory-aware]에 이야기된 `ApplicationContextAware`와 `BeanNameAware`이외에 스프링은 빈이 컨테이너를 알수 있는 `Aware`콜백 인터페이스를 제공한다. 
+
+##### 표 4. Aware 인터페이스
+| 이름 | 주입되는 의존성 | 설명 링크 |
+| --- | --- | --- |
+| `ApplicationContextAware` | `ApplicationContext` | (`ApplicationContext`와 `BeanNameAware`)[#beans-factory-aware] |
+| `ApplicationEventPublisherAware` | `ApplicationContext`를 감싸는 이벤트 발행자 | (`ApplicationContext`의 추가적인 기능)[#context-introduction] |
+| `BeanClassLoaderAware` | 빈 클래스를 로드하는 클래스 로더 | (빈 초기화 하기)[#beans-factory-class] |
+| `BeanFactoryAware` | `BeanFactory` | (`ApplicationContext`와 `BeanNameAware`)[#beans-factory-aware] |
+| `BeanNameAware` | 빈 이름 | (`ApplicationContext`와 `BeanNameAware`)[#beans-factory-aware] |
+| `BootstrapContextAware` | `BootstrapContext`. 일반적으로 JCA-aware `ApplicationContext`에서만 사용 가능하다 | (JCA CCI)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#cci]
+| `LoadTimeWeaverAware` | 로드 타임에 클래스 정의를 수행하는 위버 | (스프링 프레임워크에서 AspectJ를 이용한 로드타임 위버)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#aop-aj-ltw] |
+| `MessageSourceAware` | 메세지를 처리하는 전략 설정 | (`ApplicationContext`의 추가적인 기능)[#context-introduction] |
+| `NotificationPublisherAware` | 스플이 JMX 알림 발행자 | (알림)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#jmx-notifications] |
+| `ResourceLoaderAware` | 저수준 자원에 접근하는 로더 | (리소스)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources] | 
+| `ServletConfigAware` | 현재 `ServletConfig`. 웹-aware `ApplicationContext`에서만 사용 가능하다 | (스프링 MVC)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/web.html#mvc] |
+| `ServletContextAware` | 현재 `ServletContext`. 웹-aware `ApplicationContext`에서만 사용 가능하다 | (스프링 MVC)[https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/web.html#mvc] |
+
+이러한 인터페이스를 사용하는 것은 스프링 API와 코드를 강하게 결합시키며 역제어흐름 스타일을 따르지 않는 다는 것에 주의하여야 한다. 결과적으로, 컨테이너에 프로그래밍적으로 접근할 필요가 있는 인프라빈에 사용하기를 추천한다.
 
 <h3 id="beans-child-bean-definitions">빈의 정의 상속</h3>
+
+빈 정의는 생성자 어규먼트, 프로퍼티 값, 초기화 메서드나 정적 팩토리 메서드와 같은 컨테이너 종속 정보 등 등 많은 설정정보를 가지고 있다. 자식 빈 정의는 부모 빈 정의를 상속한다. 자식 정의는 값을 재정의 하거나 추가할 수 있다. 부모, 자식 빈 정의를 사용하면 글자 수를 줄일 수 있다. 효율적으로 템플릿화 하는 방법이다.
+
+`AppicationContext` 인터페이스를 프로그래밍적으로 다루고 있다면, `ChildBeanDefinition` 클래스는 자식 빈 정의를 나타낸다. 대부분의 유저는 이 정도 레벨에서 프로그래밍하지 않는다. 대신 `ClassPathXmlApplicationContext`와 같은 클래스에서 선언적으로 빈을 정의한다. XML기반 빈 메타데이터를 사용한다면 `parent` 요소에 부모 빈을 명시함으로서 자식 빈정의를 표시할 수 있다. 아래의 예시가 방금 언급한 방법을 보여준다 :
+
+```xml
+<bean id="inheritedTestBean" abstract="true"
+        class="org.springframework.beans.TestBean">
+    <property name="name" value="parent"/>
+    <property name="age" value="1"/>
+</bean>
+
+<bean id="inheritsWithDifferentClass"
+        class="org.springframework.beans.DerivedTestBean"
+        parent="inheritedTestBean" init-method="initialize">  
+    <property name="name" value="override"/>
+    <!-- age 프로퍼티의 값은 부모로 부터 상속되어 1이다. -->
+</bean>
+```
+#### `parent` 요소를 주의깂게 보십시오.
+
+자식 빈 정의는 부모 빈 정의에 표시된 빈의 클래스를 사용한다. 하지만 재정의할 수 있다. 재정의할 경우, 자식 빈의 클래스는 부모 빈의 클래스와 호환되어야 한다.(부모의 프로퍼티 값을 허용해야 한다)
+
+자식 빈 정의는 스코프, 생성자 어규먼트 값, 프로퍼티, 메소드를 상속받으며 새로운 값을 추가할 수 있다. 스코프, 초기화 메소드, 파괴 메소드, `정적` 팩토리 메소드는 재정의 할 수 있다.
+
+다음의 설정은 상속받지 않고 자식 빈 정의를 따른다: depends on, autowire mode, dependency check, singleton, lazy init
+
+아래의 예시는 부모 빈 정의를 `abstract`요소를 사용하여 추상 정의로 표시한다. 부모 빈의 클래스를 명시하지 않는다면 아래 예시처럼 `abstract`요소가 필수이다:
+
+```xml
+<bean id="inheritedTestBeanWithoutClass" abstract="true">
+    <property name="name" value="parent"/>
+    <property name="age" value="1"/>
+</bean>
+
+<bean id="inheritsWithClass" class="org.springframework.beans.DerivedTestBean"
+        parent="inheritedTestBeanWithoutClass" init-method="initialize">
+    <property name="name" value="override"/>
+    <!-- age 프로퍼티의 값은 부모로 부터 상속되어 1이다. -->
+</bean>
+```
+
+부모 빈은 인스턴스화 되지 않는다. 부모 빈은 완전히 설정되지 않았고 `abstract`로 표시되어 있기 때문이다. 빈 정의가 `abstract`하면 템플릿 빈 정의로서 자식 빈을 설정하는 데에만 사용된다. 다른 빈에 ref 프로퍼티에 명시를 하거나 부모 빈 ID를 이용하여 `getBean()`을 호출하는 방법으로 `abstract` 부모 빈 자체를 사용하려하면 에러가 날것이다. 비슷하게 컨테이너 내부의 `preInstantiateSingletons()` 메소드는 추상 빈 정의를 무시할 것이다.
+
+| |
+| ----- |
+| **!** `ApplicationContext`는 기본적으로 모든 싱글톤 빈을 초기에 인스턴스화 시킨다. 따라서 템플릿으로 사용하려는 (부모) 빈 정의에 `abstract` 요소를 설정하는 것은 (적어도 싱글톤 빈에서는) 중요하다. 그렇지 않으면 어플리케이션 컨텍스트는 `abstract` 빈을 인스턴스화 하려할 것이다. |
+
 <h3 id="beans-factory-extension">컨테이너 확장 시점</h3>
 
+일반적으로 어플리케이션 개발자는 `ApplicationContext` 구현체의 자식 클래스가 필요하지 않다. 대신 스프링 IoC 컨테이너는 특정 통합 인터페이스의 구현체를 연결함으로써 확장 가능하다. 아래 몇 섹션을 이러한 통합 인터페이스를 설명한다.
+
 <h4 id="beans-factory-extension-bpp">BeanPostProcessor를 이용하여 빈 커스터마이징 하기</h4>
+
+`BeanPostProcessor` 인터페이스는 콜백 메서드를 정의한다. 이 콜백 메서드에 당신만의 (컨테이너의 기본 로직을 재정의하는) 초기화 로직, 의존성 해소 로직 등 등을 정의할 수 있다. 만약 스프링 컨테이너가 인스턴스화, 설정, 빈 초기화를 마친 이후 커스텀 로직을 추가하고 싶다면 `BeanPostProcessor` 구현체를 하나 혹은 여러개 연결할 수 있다.
+
+여러개의 `BeanPostProcessor`인스턴스를 설정할 수 있다. `BeanPostProcessor`인스턴스의 실행 순서를 `order` 프로퍼티를 이용하여 정할 수 있다. `BeanPostProcessor`구현체가 `Ordered` 인터페이스를 구현할 경우에만 설정 가능하다. 자신만의 `BeanPostProcessor`를 만든다면 `Ordered`인터페이스 또한 구현하는 것이 좋을 것이다. 추가적인 자세한 내용은, (`BeanPostProcessor`)[https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/config/BeanPostProcessor.html]와 (`Ordered`)[https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/core/Ordered.html]인터페이스의 자바독을 보십시오. (`BeanPostProcessor` 인스턴스의 프로그래밍적 등록)[#Programmatically_registering_BeanPostProcessor] 또한 보십시오.
+
+<!-- 여기서부터 이어서 작성하기-->
+
+| |
+| ----- |
+| **!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br> |
+
+<div id="Programmatically_registering_BeanPostProcessor" style="display:none"></div>
+| |
+| ----- |
+| **!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br> |
+| |
+| ----- |
+| **!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br> |
 
 <h5 id="beans-factory-extension-bpp-examples-hw">예제: Hello World, BeanPostProcessor 스타일</h5>
 <h5 id="beans-factory-extension-bpp-examples-rabpp">예제: RequiredAnnotationBeanPostProcessor</h5>

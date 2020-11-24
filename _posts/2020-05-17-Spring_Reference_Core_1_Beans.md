@@ -2000,14 +2000,14 @@ public final class Boot {
 
 <h4 id="beans-factory-aware">ApplicationContextAware, BeanNameAware</h4>
 
-`ApplicationCOntext`가 `org.springframework.contet.ApplicationContextAware`인터페이스를 구현한 객체 인스턴스를 생성할 때, 인스턴스는 `ApplicationContext`의 참조를 제공받는다. 아래 `ApplicationContextAware`의 정의이다:
+`ApplicationContext`가 `org.springframework.contet.ApplicationContextAware`인터페이스를 구현한 객체 인스턴스를 생성할 때, 인스턴스는 `ApplicationContext`의 참조를 제공받는다. 아래 `ApplicationContextAware`의 정의이다:
 ```java
 public interface ApplicationContextAware {
 
     void setApplicationContext(ApplicationContext applicationContext) throws BeansException;
 }
 ```
-따라서 빈은 자신을 만든 `ApplicationContext`를 `ApplicationContext`인터페이스를 이용하거나 (추가적인 기능이 있는 `ConfigurableApplicationContext`와 같은) 하위 클래스로 캐스팅하여 조작할 수 있다. 한가지 사용법은 프로그래밍적으로 다른 빈을 검색하는 것이다. 종종 이 기능은 유용하다. 하지만 일반적으로는 하지 않아야한다. 왜냐하면 코드와 스프링이 결합하고 역흐름 제어 방법을 따르지 않기 때문이다. 다른 `ApplicationCOntext`의 사용법은 파일 자원에 접근하거나 어플리케이션 이벤트를 발행하거나 `MessageSource`에 접근하는 사용법이다. 이러한 추가적인 기능은 [`ApplicationContext`의 추가적인 사용법](#context-introduction)에서 설명되어 있다.     
+따라서 빈은 자신을 만든 `ApplicationContext`를 `ApplicationContext`인터페이스를 이용하거나 (추가적인 기능이 있는 `ConfigurableApplicationContext`와 같은) 하위 클래스로 캐스팅하여 조작할 수 있다. 한가지 사용법은 프로그래밍적으로 다른 빈을 검색하는 것이다. 종종 이 기능은 유용하다. 하지만 일반적으로는 하지 않아야한다. 왜냐하면 코드와 스프링이 결합하고 역흐름 제어 방법을 따르지 않기 때문이다. 다른 `ApplicationContext`의 사용법은 파일 자원에 접근하거나 어플리케이션 이벤트를 발행하거나 `MessageSource`에 접근하는 사용법이다. 이러한 추가적인 기능은 [`ApplicationContext`의 추가적인 사용법](#context-introduction)에서 설명되어 있다.     
 자동연결은 `ApplicationContext`의 참조를 획득하는 또 다른 방법이다. ([자동연결 협력자](#beans-factory-autowire)에서 설명된) `constructor`와 `byType`자동연결 모드에서 `ApplicationContext`타입의 의존성을 생성자 어규먼트나 세터 메소드 파라메터로 제공할 수 있다. 필드와 여러 파라메터를 가진 메소드에 자동 연결하는 기능을 포함한 더 유연한 기능을 위해 어노테이션기반 자동연결 기능을 사용하여라. 이렇게 하면 `@Autowired`가 있는 메소드, 생성자, 필드에 `ApplicationContext`가 제공될 것이다. 더 자세한 정보는 [`@Autowired`사용하기](#beans-autowired-annotation)를 보십시오.     
 `ApplicationContext`가 `org.springframework.beans.factory.BeanNameAware`인터페이스를 구현한 클래스를 생성할 때, 빈 이름이 제공될 것이다. 아래 BeanNameAware 인터페이스의 정의이다:
 ```java
@@ -2100,22 +2100,109 @@ public interface BeanNameAware {
 
 여러개의 `BeanPostProcessor`인스턴스를 설정할 수 있다. `BeanPostProcessor`인스턴스의 실행 순서를 `order` 프로퍼티를 이용하여 정할 수 있다. `BeanPostProcessor`구현체가 `Ordered` 인터페이스를 구현할 경우에만 설정 가능하다. 자신만의 `BeanPostProcessor`를 만든다면 `Ordered`인터페이스 또한 구현하는 것이 좋을 것이다. 추가적인 자세한 내용은, [`BeanPostProcessor`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/config/BeanPostProcessor.html)와 [`Ordered`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/core/Ordered.html)인터페이스의 자바독을 보십시오. [`BeanPostProcessor` 인스턴스의 프로그래밍적 등록](#Programmatically_registering_BeanPostProcessor) 또한 보십시오.
 
-<!-- 여기서부터 이어서 작성하기-->
+| |
+| ----- |
+| **!** `BeanPostProcessor` 인스턴스는 빈 이나 객체 인스턴스에 동작한다. 이 말은 스프링 IoC 컨테이너가 빈은 인스턴스화 한 뒤 `BeanPostProcessor`가 작업을 수행한다는 말이다.
+`BeanPostProcessor`인스턴스는 컨테이너 스코프를 가진다. 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈만 후처리할 것이다. 다시 말하자면 `BeanPostProcessor`는 다른 컨테이너에 등록된 빈들의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.
+빈 정의를 수정하기 위해서는 `BeanFactoryPostProcessor`를 사용하면 된다. 자세한 설명은 [`BeanFactoryPostProcessor`를 이용하여 설정 메타데이터 설정하기](#beans-factory-extension-factory-postprocessors)에 설명되어 있다. |
+
+`org.springframework.beans.factory.config.BeanPostProcessor` 인터페이스는 정확히 두개의 콜백 메소드로 구성되어있다. 이런 클래스가 컨테이너에 후 처리기로 등록되면 컨테이너에서 생성되는 각각의 빈 인스턴스마다 후처리기 콜백이 실행된다. 이 콜백은 컨테이너의 (`InitializingBean.afterPropertiesSet`과 같은) 초기화 메서드나 `init` 메서드 보다 먼저 실행된며 빈의 초기화 콜백보다 늦게 실행된다. 빈 후처리기는 빈 인스턴스에 작업을 할 수도 있고 완전히 무시하고 넘어갈 수도 있다. 빈 후처리기는 일반적으로 콜백 인터페이스를 확인하거나 프록시로 빈을 감싸는 동작을 한다. 일부 스프링 AOP 인프라 클래스들은 빈 후처리기로 구현되어 프록시로 감싸는 동작을 수행한다.
+
+`ApplcationCOntext`는 자동으로 설정메타데이터에서 `BeanPostProcessor`를 구현한 빈을 찾는다. `ApplicationContext`는 이러한 빈들을 빈 후처리기로 등록하여 빈들이 생성된 후 호출되도록 한다. 빈 후처리기는 다른 빈들과 같은 방법으로 컨테이너에 배포된다.
+
+설정 클래스에서 `@Bean` 팩토리 메소드를 이용하여 `BeanPostProcessor`를 선언한다면 해당 팩토리 메소드의 반환 타입은 해당 구현체 클래스 자체이거나 최소한 `org.springframework.beans.factory.BeanPostProcessor` 인터페이스로 선언하여 명확하게 빈 후처리기임을 나타내야한다. 그렇지 않다면, `ApplicationContext`가 해당 빈을 완전히 생성하기 전까지 타입으로 확인을 할 수가 없을 것이다. `BeanPostProcessor`는 다른 빈보다 먼저 생성되어 다른 빈을 초기화 하는데 사용되야하기 때문에 타입으로 확인을 하는 것은 매우 중요하다.
+
 
 | |
 | ----- |
-| **!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br> |
+| **!** <div id="Programmatically_registering_BeanPostProcessor" style="display:none"></div><b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br>`BeanPostProcessor`를 등록하는 방법으로 `ApplicationContext`의 자동발견을 사용하는 것을 추천하지만 `ConfigurableBeanFactory`의 `addBeanPostProcessor` 메소드를 이용하여 프로그래밍적으로 등록할 수도 있다. 빈 후처리기등록 전에 분기문을 타야하는 상황이나 컨텍스트 계층에서 빈 후처리기를 복사해와야 하는 경우 유용하게 사용될 수 있다. 하지만 `BeanPostProcessor`를 프로그래밍적으로 등록하면 `Ordered`인터페이스의 영향을 받지 않는다는 것을 명심하여야한다. 등록한 순서가 실행의 순서가 된다. 또한 프로그래밍적으로 등록된 `BeanPostProcessor`가 자동발견되어 등록된 것들보다 먼저 실행된다는 것도 명심해야한다. |
 
-<div id="Programmatically_registering_BeanPostProcessor" style="display:none"></div>
 | |
 | ----- |
-| **!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br> |
-| |
-| ----- |
-| **!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br> |
+| **!** <b>`BeanPostProcessor` 인스턴스와 AOP 자동 프록시 생성</b><br>컨테이너는 `BeanPostProcessor`를 구현한 클래스들을 다르게 취급한다. 모든 `BeanPostProcessor`인스턴스들은 `ApplicationContext`시작 동작의 특수한 단계에서 인스턴스화 된다. 그 뒤, 모든 `BeanPostProcessor`인스턴스들은 순서대로 등록되어 앞으로 생성되는 모든 빈에 적용된다. AOP 자동 프록시 생성은 `BeanPostProcessor`로 구현되었기 때문에 `BeanPostProcessor` 인스턴스나 직접참조되는 인스턴스들은 프록시가 적용되지 않는다.
+그러한 모든 빈에 다음와 같은 Info레벨 로그를 확인할 수 있다:`Bean someBean is not eligible for getting processed by all BeanPostProcessor interfaces (for example: not eligible for auto-proxying).`
+만약 빈 자동연결이나 `@Resource`를 이용하여 `BeanPostProcessor`에 연결한 빈이 있다면 스프링은 타입이 일치하는 빈을 찾는 과정에서 의도하지 않은 빈들을 자동 프록시 객체 생성이나 다른 후처리가 적용되지 못하도록 할것이다. 예를 들어 `@Resource`어노테이션을 이용해 필드기반 의존성 주입을 사용할 때, name 어트리뷰트를 사용하지 않았고 필드의 이름과 매칭되는 빈이 없다면 스프링은 해당 타입의 다른 빈들에 접근할 것이다. |
+
+아래의 예시는 `ApplicationContext`에 `BeanPostProcessor`를 작성하고 등록하고 사용하는 예시이다.
 
 <h5 id="beans-factory-extension-bpp-examples-hw">예제: Hello World, BeanPostProcessor 스타일</h5>
+
+첫 예시는 기본적인 사용법을 알려준다. 이 예시는 각각의 빈에 `toString()`메소드를 호출하여 시스템 콘솔로 출력하는 커스텀 `BeanPostProcessor` 구현체를 보여준다.
+
+아래의 예시는 커스텀 `BeanPostProcessor`구현클래스의 정의이다:
+```java
+package scripting;
+
+import org.springframework.beans.factory.config.BeanPostProcessor;
+
+public class InstantiationTracingBeanPostProcessor implements BeanPostProcessor {
+
+    // 단순히 빈 인스턴스를 그대로 반환한다.
+    public Object postProcessBeforeInitialization(Object bean, String beanName) {
+        return bean; // 여기에 어떠한 형태의 객체 참조를 반환할 수 있다.
+    }
+
+    public Object postProcessAfterInitialization(Object bean, String beanName) {
+        System.out.println("Bean '" + beanName + "' created : " + bean.toString());
+        return bean;
+    }
+}
+```
+
+다음의 `beans` 요소는 `InstantiationTracingBeanPostProcessor`를 사용한다:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:lang="http://www.springframework.org/schema/lang"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/lang
+        https://www.springframework.org/schema/lang/spring-lang.xsd">
+
+    <lang:groovy id="messenger"
+            script-source="classpath:org/springframework/scripting/groovy/Messenger.groovy">
+        <lang:property name="message" value="Fiona Apple Is Just So Dreamy."/>
+    </lang:groovy>
+
+    <!--
+    위에 빈 (messenger)가 인스턴스화 될 때, 이 커스텀
+    BeanPostProcessor는 시스템 콘솔에 정보를 출력할 것이다.
+    -->
+    <bean class="scripting.InstantiationTracingBeanPostProcessor"/>
+
+</beans>
+```
+
+`InstantiationTracingBeanPostProcessor`가 단순히 정의된 것을 확인하십시오. 심지어 이름도 없습니다. 또한 이 빈후처리기가 빈이기 때문에 다른 빈에 의존성 주입이 될 수 있습니다. (이 빈 정의는 Groovy 스크립트 기반 빈들또한 정의합니다. 스프링의 다양한 언어 지원은 (Dynamic Language Support.)[#]라는 챕터에서 자세히 설명되어 있습니다)
+
+아래의 자바 어플리케이션은 이전의 코드와 설정을 실행합니다:
+```java
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.scripting.Messenger;
+
+public final class Boot {
+
+    public static void main(final String[] args) throws Exception {
+        ApplicationContext ctx = new ClassPathXmlApplicationContext("scripting/beans.xml");
+        Messenger messenger = ctx.getBean("messenger", Messenger.class);
+        System.out.println(messenger);
+    }
+
+}
+```
+
+위 어플리케이션의 결과는 아래와 비슷할 것입니다:
+```
+Bean 'messenger' created : org.springframework.scripting.groovy.GroovyMessenger@272961
+org.springframework.scripting.groovy.GroovyMessenger@272961
+```
+
 <h5 id="beans-factory-extension-bpp-examples-rabpp">예제: RequiredAnnotationBeanPostProcessor</h5>
+
+커스텀 `BeanPostProcessor` 구현체와 콜백 인터페이스나 어노테이션을 함께 사용하는 것은 스프링 IoC 컨테이너를 확장하는 보편적인 방법입니다. 스프링의 `RequiredAnnotationBeanPostProcessor`가 좋은 예시입니다. - 어노테이션이 설정된 빈 프로퍼티가 실제 값으로 빈주입이 되었음을 보장하는 `BeanPostProcessor`
 
 
 <h4 id="beans-factory-extension-factory-postprocessors">BeanFactoryPostProcessor를 이용하여 설정 메타데이터 설정하기</h4>

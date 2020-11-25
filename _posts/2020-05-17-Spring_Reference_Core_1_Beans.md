@@ -2259,9 +2259,9 @@ jdbc.password=root
 
 `PropertySourcesPlaceholderConfigurer`는 개발자가 명시한 `Properties` 파일 이외에도 다른 프로퍼티를 이용한다. 명시된 파일에서 프로퍼티를 찾지 못하는 경우, 스프링의 `Environment`프로퍼티와 자바 `System`프로퍼티를 확인한다.
 
-| |
-| ----- |
-| **!** `PropertySourcesPlaceholderConfigurer`를 이용하여 클래스 이름을 대체할 수 있다. 이 방법은 런타임에 특정한 클래스 구현을 선택해야할 때 유용하다. 아래의 예시가 방법을 보여준다:
+-----
+
+**!** `PropertySourcesPlaceholderConfigurer`를 이용하여 클래스 이름을 대체할 수 있다. 이 방법은 런타임에 특정한 클래스 구현을 선택해야할 때 유용하다. 아래의 예시가 방법을 보여준다:
 ```xml
 <bean class="org.springframework.beans.factory.config.PropertySourcesPlaceholderConfigurer">
     <property name="locations">
@@ -2274,9 +2274,42 @@ jdbc.password=root
 
 <bean id="serviceStrategy" class="${custom.strategy.class}"/>
 ```
-런타임에 올바른 클래스를 제공할 수 없다면 빈이 생성될 때 오류가 발생한다. 지연 초기화하지 않는 빈의 경우, `ApplicationContext`의 `preInstantiateSingletons()`를 실행하는 도중을 말한다. |
+런타임에 올바른 클래스를 제공할 수 없다면 빈이 생성될 때 오류가 발생한다. 지연 초기화하지 않는 빈의 경우, `ApplicationContext`의 `preInstantiateSingletons()`를 실행하는 도중을 말한다.
+
+-----
 
 <h5 id="beans-factory-overrideconfigurer">예제: PropertyOverrideConfigurer</h5>
+
+또 다른 빈 팩토리 후처리기인 `PropertyOverrideConfigurer`는 `PropertySourcesPlaceholderConfigurer`와 비슷하다. 다른점은 빈 정의가 기본값을 가지거나 값을 가지지않을 수 있다는 것이다. `Properties` 파일에 해당 빈 프로퍼티가 없다면 기본 컨텍스트 정의가 사용된다.
+
+빈 정의는 값이 재작성 된다는 것을 알지 못한다. 재작성되는 빈이 정의된 xml 빈 정의에서 재작성 된다는 사실이 명확하지 않다. `PropertyOverrideConfigurer`가 같은 프로퍼티에 다른 값으로 여러개 정의된다면 재작성 동작방법에 따라 마지막 것이 사용된다.
+
+프로퍼티 파일은 아래형식으로 설정한다:
+```
+beanName.property=value
+```
+
+아래 리스트는 그 예시를 보여준다:
+```
+dataSource.driverClassName=com.mysql.jdbc.Driver
+dataSource.url=jdbc:mysql:mydb
+```
+
+이 예제는 `driver`와 `url`프로퍼티가 있는 `dataSource`라는 빈이 정의된 컨테이너에서 사용될 수 있다.
+
+재작성될 마지막 프로퍼티를 제외한 나머지 프로퍼티가 null이 아니라면 복합 프로퍼티 이름또한 지원한다. 아래의 예시에서는 `tom`빈의 `fred`프로퍼티의 `bob`프로퍼티의 `sammy`프로퍼티의 값이 `123`으로 설정될 것이다:
+```
+tom.fred.bob.sammy=123
+```
+
+| |
+| ----- |
+| **!** 명시된 재작성 값은 항상 문자값이여야한다. 이 값들은 빈 참조로 해석되지 않을 것이다. 이 규칙은 빈 참조를 설정하는 xml빈 정의의 값에도 적용된다. |
+
+스프링 2.5부터 지원하는 `context` 네임스페이스를 이용하여 재작성할 프로퍼티를 아래 예시처럼 설정할 수 있다:
+```xml
+<context:property-override location="classpath:override.properties"/>
+```
 
 
 <h4 id="beans-factory-extension-factorybean">FactoryBean을 이용하여 인스턴스화 로직 커스터마이징 하기</h4>

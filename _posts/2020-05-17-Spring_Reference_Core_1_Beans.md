@@ -2223,6 +2223,59 @@ org.springframework.scripting.groovy.GroovyMessenger@272961
 | **!** 일반적인 경우 `BeanPostProcessor`와 마찬가지로 `BeanFactoryPostProcessor`를 지연 초기화하지는 않을 것이다. 다른 어떠한 빈도 `BeanPostProcessor`나 `BeanFactoryPostProcessor`를 참조하지 않으면 후처리기는 인스턴스화되지 않을 것이다. 따라서 지연 초기화 설정은 무시된다. `BeanPostProcessor`와 `BeanFactoryPostProcessor`는 지연 초기화 되지 않을 것이다. 심지어 `beans`요소의 `default-lazy-init`어트리뷰트를 `true`로 설정하여도 마찬가지이다. |
 
 <h5 id="beans-factory-placeholderconfigurer">예제: 클래스 이름 대체 PropertySourcesPlaceholderConfigurer</h5>
+
+`PropertySourcesPlaceholderConfigurer`를 이용하면 자바 표준 `Properties`를 사용하여 프로퍼티의 값을 빈 정의로부터 다른 파일로 분리할 수 있다. 이렇게 함으로써 DB url과 패스워드 같은 환경에 종속된 프로퍼티를 변경할 떄, 컨테이너의 복잡한 주요 xml 파일을 변경하는 위험성 없이 어플리케이션을 배포할 수 있다.
+
+`DataSource`가 플레이스홀더 값으로 정의된 xml 기반 설정 메타데이터의 경우를 생각해 보자:
+```xml
+<bean class="org.springframework.context.support.PropertySourcesPlaceholderConfigurer">
+    <property name="locations" value="classpath:com/something/jdbc.properties"/>
+</bean>
+
+<bean id="dataSource" destroy-method="close"
+        class="org.apache.commons.dbcp.BasicDataSource">
+    <property name="driverClassName" value="${jdbc.driverClassName}"/>
+    <property name="url" value="${jdbc.url}"/>
+    <property name="username" value="${jdbc.username}"/>
+    <property name="password" value="${jdbc.password}"/>
+</bean>
+```
+이 예시는 외부 `Properties` 파일로 프로퍼티를 설정하는 것을 보여준다. 런타임에 `PropertySourcesPlaceholderConfigurer`가 메타데이터에 적용되어 DataSource의 프로퍼티를 변경한다. Ant, log4j, JSP EL 형식을 따르는 `${property-name}`의 형식으로 작성된 플레이스홀더의 값을 변경한다.
+
+실제 값은 다른 파일에 저장되어 Java 표준 `Properties` 형식으로 전달된다:
+```
+jdbc.driverClassName=org.hsqldb.jdbcDriver
+jdbc.url=jdbc:hsqldb:hsql://production:9002
+jdbc.username=sa
+jdbc.password=root
+```
+
+따라서, `${jdbc.username}` 문자열은 런타임에 'sa'로 변경된다. 다른 플레이스홀더 값도 매칭되는 키값에 따른 프로퍼티 값으로 치환된다. `PropertySourcesPlaceholderConfigurer`가 빈 정의의 프로퍼티와 어트리뷰트의 플레이스홀더의 값을 확인하여 변경한다. 추가적으로 플레이스홀더의 접두사와 접미사를 설정할 수 있다.
+
+`context` 네임스페이스가 스프링 2.5에 소개되었다. 프로퍼티 플레이스홀더를 해당 목적으로 사용되는 설정 요소와 함께 적용할 수 있다. 아래 예시처럼 `location`어트리뷰트에 ','로 구분되는 리스트를 작성하여 파일 위치를 지정할 수 있다:
+```xml
+<context:property-placeholder location="classpath:com/something/jdbc.properties"/>
+```
+
+`PropertySourcesPlaceholderConfigurer`는 개발자가 명시한 `Properties` 파일 이외에도 다른 프로퍼티를 이용한다. 명시된 파일에서 프로퍼티를 찾지 못하는 경우, 스프링의 `Environment`프로퍼티와 자바 `System`프로퍼티를 확인한다.
+
+| |
+| ----- |
+| **!** `PropertySourcesPlaceholderConfigurer`를 이용하여 클래스 이름을 대체할 수 있다. 이 방법은 런타임에 특정한 클래스 구현을 선택해야할 때 유용하다. 아래의 예시가 방법을 보여준다:
+```xml
+<bean class="org.springframework.beans.factory.config.PropertySourcesPlaceholderConfigurer">
+    <property name="locations">
+        <value>classpath:com/something/strategy.properties</value>
+    </property>
+    <property name="properties">
+        <value>custom.strategy.class=com.something.DefaultStrategy</value>
+    </property>
+</bean>
+
+<bean id="serviceStrategy" class="${custom.strategy.class}"/>
+```
+런타임에 올바른 클래스를 제공할 수 없다면 빈이 생성될 때 오류가 발생한다. 지연 초기화하지 않는 빈의 경우, `ApplicationContext`의 `preInstantiateSingletons()`를 실행하는 도중을 말한다. |
+
 <h5 id="beans-factory-overrideconfigurer">예제: PropertyOverrideConfigurer</h5>
 
 

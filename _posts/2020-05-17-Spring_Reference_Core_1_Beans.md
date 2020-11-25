@@ -2103,9 +2103,7 @@ public interface BeanNameAware {
 
 | |
 | ----- |
-| **!** `BeanPostProcessor` 인스턴스는 빈 이나 객체 인스턴스에 동작한다. 이 말은 스프링 IoC 컨테이너가 빈은 인스턴스화 한 뒤 `BeanPostProcessor`가 작업을 수행한다는 말이다.
-`BeanPostProcessor`인스턴스는 컨테이너 스코프를 가진다. 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈만 후처리할 것이다. 다시 말하자면 `BeanPostProcessor`는 다른 컨테이너에 등록된 빈들의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.
-빈 정의를 수정하기 위해서는 `BeanFactoryPostProcessor`를 사용하면 된다. 자세한 설명은 [`BeanFactoryPostProcessor`를 이용하여 설정 메타데이터 설정하기](#beans-factory-extension-factory-postprocessors)에 설명되어 있다. |
+| **!** `BeanPostProcessor` 인스턴스는 빈 이나 객체 인스턴스에 동작한다. 이 말은 스프링 IoC 컨테이너가 빈은 인스턴스화 한 뒤 `BeanPostProcessor`가 작업을 수행한다는 말이다.<br>`BeanPostProcessor`인스턴스는 컨테이너 스코프를 가진다. 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈만 후처리할 것이다. 다시 말하자면 `BeanPostProcessor`는 다른 컨테이너에 등록된 빈들의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.<br>빈 정의를 수정하기 위해서는 `BeanFactoryPostProcessor`를 사용하면 된다. 자세한 설명은 [`BeanFactoryPostProcessor`를 이용하여 설정 메타데이터 설정하기](#beans-factory-extension-factory-postprocessors)에 설명되어 있다. |
 
 `org.springframework.beans.factory.config.BeanPostProcessor` 인터페이스는 정확히 두개의 콜백 메소드로 구성되어있다. 이런 클래스가 컨테이너에 후 처리기로 등록되면 컨테이너에서 생성되는 각각의 빈 인스턴스마다 후처리기 콜백이 실행된다. 이 콜백은 컨테이너의 (`InitializingBean.afterPropertiesSet`과 같은) 초기화 메서드나 `init` 메서드 보다 먼저 실행된며 빈의 초기화 콜백보다 늦게 실행된다. 빈 후처리기는 빈 인스턴스에 작업을 할 수도 있고 완전히 무시하고 넘어갈 수도 있다. 빈 후처리기는 일반적으로 콜백 인터페이스를 확인하거나 프록시로 빈을 감싸는 동작을 한다. 일부 스프링 AOP 인프라 클래스들은 빈 후처리기로 구현되어 프록시로 감싸는 동작을 수행한다.
 
@@ -2120,13 +2118,8 @@ public interface BeanNameAware {
 | |
 | ----- |
 | **!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br>`BeanPostProcessor`를 등록하는 방법으로 `ApplicationContext`의 자동발견을 사용하는 것을 추천하지만 `ConfigurableBeanFactory`의 `addBeanPostProcessor` 메소드를 이용하여 프로그래밍적으로 등록할 수도 있다. 빈 후처리기등록 전에 분기문을 타야하는 상황이나 컨텍스트 계층에서 빈 후처리기를 복사해와야 하는 경우 유용하게 사용될 수 있다. 하지만 `BeanPostProcessor`를 프로그래밍적으로 등록하면 `Ordered`인터페이스의 영향을 받지 않는다는 것을 명심하여야한다. 등록한 순서가 실행의 순서가 된다. 또한 프로그래밍적으로 등록된 `BeanPostProcessor`가 자동발견되어 등록된 것들보다 먼저 실행된다는 것도 명심해야한다. |
-
-
 | |
-| ----- |
-| **!** <b>`BeanPostProcessor` 인스턴스와 AOP 자동 프록시 생성</b><br>컨테이너는 `BeanPostProcessor`를 구현한 클래스들을 다르게 취급한다. 모든 `BeanPostProcessor`인스턴스들은 `ApplicationContext`시작 동작의 특수한 단계에서 인스턴스화 된다. 그 뒤, 모든 `BeanPostProcessor`인스턴스들은 순서대로 등록되어 앞으로 생성되는 모든 빈에 적용된다. AOP 자동 프록시 생성은 `BeanPostProcessor`로 구현되었기 때문에 `BeanPostProcessor` 인스턴스나 직접참조되는 인스턴스들은 프록시가 적용되지 않는다.
-그러한 모든 빈에 다음와 같은 Info레벨 로그를 확인할 수 있다:`Bean someBean is not eligible for getting processed by all BeanPostProcessor interfaces (for example: not eligible for auto-proxying).`
-만약 빈 자동연결이나 `@Resource`를 이용하여 `BeanPostProcessor`에 연결한 빈이 있다면 스프링은 타입이 일치하는 빈을 찾는 과정에서 의도하지 않은 빈들을 자동 프록시 객체 생성이나 다른 후처리가 적용되지 못하도록 할것이다. 예를 들어 `@Resource`어노테이션을 이용해 필드기반 의존성 주입을 사용할 때, name 어트리뷰트를 사용하지 않았고 필드의 이름과 매칭되는 빈이 없다면 스프링은 해당 타입의 다른 빈들에 접근할 것이다. |
+| **!** <b>`BeanPostProcessor` 인스턴스와 AOP 자동 프록시 생성</b><br>컨테이너는 `BeanPostProcessor`를 구현한 클래스들을 다르게 취급한다. 모든 `BeanPostProcessor`인스턴스들은 `ApplicationContext`시작 동작의 특수한 단계에서 인스턴스화 된다. 그 뒤, 모든 `BeanPostProcessor`인스턴스들은 순서대로 등록되어 앞으로 생성되는 모든 빈에 적용된다. AOP 자동 프록시 생성은 `BeanPostProcessor`로 구현되었기 때문에 `BeanPostProcessor` 인스턴스나 직접참조되는 인스턴스들은 프록시가 적용되지 않는다.<br>그러한 모든 빈에 다음와 같은 Info레벨 로그를 확인할 수 있다:`Bean someBean is not eligible for getting processed by all BeanPostProcessor interfaces (for example: not eligible for auto-proxying).`<br>만약 빈 자동연결이나 `@Resource`를 이용하여 `BeanPostProcessor`에 연결한 빈이 있다면 스프링은 타입이 일치하는 빈을 찾는 과정에서 의도하지 않은 빈들을 자동 프록시 객체 생성이나 다른 후처리가 적용되지 못하도록 할것이다. 예를 들어 `@Resource`어노테이션을 이용해 필드기반 의존성 주입을 사용할 때, name 어트리뷰트를 사용하지 않았고 필드의 이름과 매칭되는 빈이 없다면 스프링은 해당 타입의 다른 빈들에 접근할 것이다. |
 
 아래의 예시는 `ApplicationContext`에 `BeanPostProcessor`를 작성하고 등록하고 사용하는 예시이다.
 
@@ -2218,8 +2211,7 @@ org.springframework.scripting.groovy.GroovyMessenger@272961
 
 | |
 | ----- |
-| **!** 설정메타데이터를 이용하여 생성된 객체인 빈 인스턴스 자체를 변경하고 싶으면 `BeanPostProcessor`를 사용하십시오.([`BeanPostProcessor`를 이용하여 빈 커스터마이징 하기](#beans-factory-extension-bpp)에 설명되어 있습니다.) `BeanFactoryPostProcessor`에서 빈 인스턴스에 작업하는 것이 불가능하지 않지만(예를 들면, `BeanFactory.getBean()`을 사용하여서) 그렇게 하면 빈 인스턴스를 이른 시점에 생성하게 되어 컨테이너 표준 생명주기를 위반하게 됩니다. 이 방법은 빈 후처리를 생략하게 되는 등, 부작용을 야기할 수 있습니다.
-또한 `BeanFactoryPostProcessor` 인스턴스는 컨테이너 스코프를 가집니다. 이는 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanFactoryPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈 정의만 후처리할 것이다. 다시 말하자면 `BeanFactoryPostProcessor`는 다른 컨테이너에 등록된 빈 정의의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.  |
+| **!** 설정메타데이터를 이용하여 생성된 객체인 빈 인스턴스 자체를 변경하고 싶으면 `BeanPostProcessor`를 사용하십시오.([`BeanPostProcessor`를 이용하여 빈 커스터마이징 하기](#beans-factory-extension-bpp)에 설명되어 있습니다.) `BeanFactoryPostProcessor`에서 빈 인스턴스에 작업하는 것이 불가능하지 않지만(예를 들면, `BeanFactory.getBean()`을 사용하여서) 그렇게 하면 빈 인스턴스를 이른 시점에 생성하게 되어 컨테이너 표준 생명주기를 위반하게 됩니다. 이 방법은 빈 후처리를 생략하게 되는 등, 부작용을 야기할 수 있습니다.<br>또한 `BeanFactoryPostProcessor` 인스턴스는 컨테이너 스코프를 가집니다. 이는 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanFactoryPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈 정의만 후처리할 것이다. 다시 말하자면 `BeanFactoryPostProcessor`는 다른 컨테이너에 등록된 빈 정의의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.  |
 
 빈 팩토리 후처리기가 `ApplicationContext`에서 정의되면 생성자는 자동으로 동작하여 컨테이너에 정의된 빈 정의 설정 메타데이터에 변경을 가합니다. 스프링은 `PropertyOverrideConfigurer`나 `PropertySourcesPlaceholderConfigurer`와 같은 미리 정의된 다수의 빈 팩토리 후처리기를 포한하고 있습니다. 커스텀 `BeanFactoryPostProcessor`를 사용할 수 있습니다. - 예를 들면 커스텀 프로퍼티 에디터를 등록하는 빈 팩토리 후처리기.
 

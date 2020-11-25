@@ -2252,7 +2252,7 @@ jdbc.password=root
 
 따라서, `${jdbc.username}` 문자열은 런타임에 'sa'로 변경된다. 다른 플레이스홀더 값도 매칭되는 키값에 따른 프로퍼티 값으로 치환된다. `PropertySourcesPlaceholderConfigurer`가 빈 정의의 프로퍼티와 어트리뷰트의 플레이스홀더의 값을 확인하여 변경한다. 추가적으로 플레이스홀더의 접두사와 접미사를 설정할 수 있다.
 
-`context` 네임스페이스가 스프링 2.5에 소개되었다. 프로퍼티 플레이스홀더를 해당 목적으로 사용되는 설정 요소와 함께 적용할 수 있다. 아래 예시처럼 `location`어트리뷰트에 ','로 구분되는 리스트를 작성하여 파일 위치를 지정할 수 있다:
+스프링 2.5부터 지원하는 `context` 네임스페이스를 이용하여 프로퍼티 플레이스홀더를 해당 목적으로 사용되는 설정 요소와 함께 적용할 수 있다. 아래 예시처럼 `location`어트리뷰트에 ','로 구분되는 리스트를 작성하여 파일 위치를 지정할 수 있다:
 ```xml
 <context:property-placeholder location="classpath:com/something/jdbc.properties"/>
 ```

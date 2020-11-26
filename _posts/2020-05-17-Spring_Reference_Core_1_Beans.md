@@ -2325,7 +2325,7 @@ tom.fred.bob.sammy=123
 
 `FactoryBean` 컨셉과 인터페이스는 스프링 프레임워크에서 널리 사용된다. 스프링 자체적으로 50개 이상의 `FactoryBean`구현체를 가지고 있다.
 
-만약 컨테이너에서 `FactoryBean`인스턴스를 가져오고 싶다면, `AppicationContext`의 `getBean()` 메소드를 호출할 떄, 빈의 `id`앞에 앰퍼샌드 기호(`&`)를 붙여서 사용하면 된다. `myBean`이라는 `id`의 `FactoryBean`이 있을 때, `getBean("myBean")`을 호출하면 `FactoryBean`이 생성한 객체를 반환한다. `getBean("&myBean")`은 `FactoryBean`자체를 반환한다.
+만약 컨테이너에서 `FactoryBean`인스턴스를 가져오고 싶다면, `ApplicationContext`의 `getBean()` 메소드를 호출할 떄, 빈의 `id`앞에 앰퍼샌드 기호(`&`)를 붙여서 사용하면 된다. `myBean`이라는 `id`의 `FactoryBean`이 있을 때, `getBean("myBean")`을 호출하면 `FactoryBean`이 생성한 객체를 반환한다. `getBean("&myBean")`은 `FactoryBean`자체를 반환한다.
 
 <h3 id="beans-annotation-config">어노테이션 기반 컨테이너 설정</h3>
 

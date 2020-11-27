@@ -1785,7 +1785,7 @@ JSR-250 어노테이션을 사용하지 않더라도 스프링 고유의 인터�
 ```java
 void afterPropertiesSet() throws Exception;
 ```
-`InitializingBean`인터페이스를 사용하는 것은 추천하지 않는다. 왜냐하면 불필요하게 스프링 프레임워크와 코드가 결합하기 때문이다. 대신 [`@PostCOnstruct`](#beans-postconstruct-and-predestroy-annotations)를 사용하거나 POJO 초기화 메소드를 명시하는 것을 추천한다. XML 기반 설정 메타데이타에서는 `init-method`어트리뷰트에 void, 어규먼트가 없는 메소드의 이름을 명시하여 사용할 수 있다. 자바 설정에서는 `@Bean`의 `initMethod`어트리뷰트를 사용할 수 있다. [생명주기 콜백 받기](#beans-java-lifecycle-callbacks)를 보자. 아래는 예시이다:
+`InitializingBean`인터페이스를 사용하는 것은 추천하지 않는다. 왜냐하면 불필요하게 스프링 프레임워크와 코드가 결합하기 때문이다. 대신 [`@PostConstruct`](#beans-postconstruct-and-predestroy-annotations)를 사용하거나 POJO 초기화 메소드를 명시하는 것을 추천한다. XML 기반 설정 메타데이타에서는 `init-method`어트리뷰트에 void, 어규먼트가 없는 메소드의 이름을 명시하여 사용할 수 있다. 자바 설정에서는 `@Bean`의 `initMethod`어트리뷰트를 사용할 수 있다. [생명주기 콜백 받기](#beans-java-lifecycle-callbacks)를 보자. 아래는 예시이다:
 ```xml
 <bean id="exampleInitBean" class="examples.ExampleBean" init-method="init"/>
 ```
@@ -2329,8 +2329,242 @@ tom.fred.bob.sammy=123
 
 <h3 id="beans-annotation-config">어노테이션 기반 컨테이너 설정</h3>
 
+| |
+| ----- |
+| **어노테이션 설정이 xml 설정보다 더 나을까요?**<br>어노테이션 기반 설정이 나오면서 xml보다 더 나은 방법인지 의문이 생겨났다. 짧게 대답하면 "경우에 따라 다르다"이다. 길게 설명하면 각각의 방법은 장단점이 있고 대개의 경우 개발자가 자신에게 맞는 방법을 선택하는 것이 좋다. 어노테이션이 정의되는 방법에 의하여 어노테이션은 컨텍스트 정보를 많이 제공한다. 따라서 더 짧고 정확한 설정이 된다. 하지만 xml은 소스코드를 건드리거나 다시 컴파일할 필요없이 컴포넌트를 연결한다. 일부 개발자들은 소스코드에 연결을 작성하는 것을 선호하지만 다른 개발자들은 어노테이션이 적용된 클래스들은 더이상 POJO가 아니게 되며 설정파일이 분산되어 통제하기 힘들어진다고 말한다.<br>어떤 방법을 선택하든지 스프링은 잘 동작한다. 심지어 같이 섞어서 사용할 수 있다. [자바기반설정](#beans-java)을 또한 고려해보십시오. 이 방법은 소스코드를 건드릴 필요없이 어노테이션을 사용하게 해준다. [Spring Tools for Eclipse](https://spring.io/tools)는 이 모든 설정 방법을 지원합니다. |
+
+xml설정을 대신하는 방법은 어노테이션 기반 설정이다. 이 방법은 꺽쇠('<','>')로 컴포넌트를 연결하는 대신에 바이트코드 메타데이터를 이용한다. 빈을 연결하는데 xml을 사용하는 대신 컴포넌트 클래스 그 자체에 어노테이션을 이용하여 설정을 작성한다. 위 [예제 : `RequiredAnnotationBeanPostProcessor`](#beans-factory-extension-bpp-examples-rabpp)에서 언급했듯이, 어노테이션을 이용한 `BeanPostProcessor`설정은 스프링 IoC 컨테이너를 확장하는 보편적인 방법이다. 예를 들면, 스프링 2.0부터 프로퍼티를 반드시 설정되게 하는 [`@Required`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/spring-framework-reference/core.html#beans-required-annotation)어노테이션을 사용가능하다. 스프링 2.5에서 스프링 의존성 주입이 같은 방식으로 동작할 수 있도록 만들었다. `@Autowired` 어노테이션은 [자동연결 협력자](#beans-factory-autowire)에 설명된 기능뿐만 아니라 더 많은 기능을 지원한다. 스프링 2.5부터 `@PostConstruct`나 `@PreDestory`와 같은 JSR-250 어노테이션도 지원한다. 스프링 3.0은 `javax.inject`패키지의 `@Inject`와 `@Named`를 포함하는 JSR-330(자바 의존성 주입) 어노테이션을 지원한다. 이 어노테이션에 대한 자세한 내용은 [관련 섹션](#beans-standard-annotations)에서 볼 수 있다.
+
+| |
+| ----- |
+| **!** 어노테이션 빈 주입은 xml 빈 주입보다 먼저 실행됩니다. 따라서 xml설정이 어노테이션 기반 프로퍼티의 값을 재 작성할 것입니다. |
+
+항상 그랬듯이, 각각의 빈정의를 등록할 수 있다. 하지만 xml기반 스프링 설정에서 아래의 태그를 사용하여 함축적으로 등록할 수 있다.(`context` 네임스페이스를 사용할 것을 확인하십시오):
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+</beans>
+```
+함축적으로 등록된 후처리기에는 [`AutowiredAnnotationBeanPostProcessor`]
+(https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/annotation/AutowiredAnnotationBeanPostProcessor.html),[ `CommonAnnotationBeanPostProcessor`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/context/annotation/CommonAnnotationBeanPostProcessor.html),[ `PersistenceAnnotationBeanPostProcessor`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/orm/jpa/support/PersistenceAnnotationBeanPostProcessor.html), 이전에 언급된 [`RequiredAnnotationBeanPostProcessor`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/annotation/RequiredAnnotationBeanPostProcessor.html)가 있다.
+
+| |
+| ----- |
+| **!** `<context:annotation-config/>`는 같은 어플리케이션 컨텍스트 내부 빈의 어노테이션만 확인한다. 이 말은 `DispatcherServlet`의 `WebApplicationContext`에 `<context:annotation-config/>`를 설정하면 컨트롤러에 있는 `@Autowired` 빈을 확인할 것이지만 서비스에 있는 빈은 확인하지 않을 것이다. 자세한 내용은 [DispatcherServlet](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/spring-framework-reference/web.html#mvc-servlet)을 보십시오. |
+
 <h4 id="beans-required-annotation">@Required</h4>
+
+`@Required`어노테이션은 아래 예시처럼 프로퍼티의 세터메소드에 사용된다:
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Required
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+}
+```
+이 어노테이션은 어노테이션이 설정된 빈 프로퍼티가 스프링 설정시에 명시적 프로퍼티 값이나 자동연결을 통하여 값이 주입되야 한다는 것을 말한다. 값이 주입되지 않으면 스프링 컨테이너가 예외를 던질것이다. 이 방법으로 빠른 시점에 명시적인 실패를 일으켜 나중에 발생할 `NullPointerException` 등을 피하게 한다. 빈 클래스 자체(예를 들면 초기화 메소드)에 확인을 넣는 것을 추천한다. 이렇게 하면 컨테이너 외부에서 사용할 경우에도 필수적인 프로퍼티가 설정됨을 보장할 수 있다.
+
+| |
+| ----- |
+| **!** `@Required` 어노테이션은 스프링 5.1에서 공식적으로 사용중단을 권장한다. 필수 적인 값을 설정하는데에 생성자 주입을 사용하는 것을 추천한다. (혹은 프로퍼티 세터메소드와 커스텀 `InitializingBean.afterPropertiesSet()`구현을 사용하십시오.) |
+
 <h4 id="beans-autowired-annotation">@Autowired 사용하기</h4>
+
+| |
+| ----- |
+| **!** JSR 330의 `@Inject`어노테이션은 스프링 `@Autowired`가 사용된 곳에 사용될 수 있다. 이 섹션에 예제가 포함되어 있다. 자세한 내용은 [여기](#beans-standard-annotations)를 보십시오. |
+
+`@Autowired`어노테이션을 아래예시처럼 생성자에 적용할 수 있다:
+```java
+public class MovieRecommender {
+
+    private final CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public MovieRecommender(CustomerPreferenceDao customerPreferenceDao) {
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    // ...
+}
+```
+
+| |
+| ----- |
+| **!** 스프링 4.3부터 위와 같이 생성자가 1개인 경우에 `@Autowired`어노테이션이 필요하지 않다. 하지만 여러개의 생성자가 사용가능하고 최우선/기본 생성자가 없다면 최소 한개의 생성자가 `@Autowired` 어노테이션이 설정되어 있어야한다. 자세한 내용은 [생성자 결정](#beans-autowired-annotation-constructor-resolution)을 보십시오. |
+
+또한 `@Autowired`어노테이션은 아래 예시처럼 세터메소드에 사용 가능합니다:
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Autowired
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+}
+```
+또한 임의의 이름과 여러 어규먼트를 가진 메소드에 어노테이션을 적용할 수 있습니다:
+
+```java
+public class MovieRecommender {
+
+    private MovieCatalog movieCatalog;
+
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public void prepare(MovieCatalog movieCatalog,
+            CustomerPreferenceDao customerPreferenceDao) {
+        this.movieCatalog = movieCatalog;
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    // ...
+}
+```
+또한 필드에 사용가능합니다. 심지어 생성자와 섞어 쓸 수도 있습니다:
+
+```java
+public class MovieRecommender {
+
+    private final CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    private MovieCatalog movieCatalog;
+
+    @Autowired
+    public MovieRecommender(CustomerPreferenceDao customerPreferenceDao) {
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    // ...
+}
+```
+
+| |
+| ----- |
+| **@** 필요한 컴포넌트(예를 들면, `MovieCatalog`나 `CustomerPreferenceDao`)가 `@Autowired`가 적용된 타입으로 정의되어 있어야합니다. 그렇지 않다면 의존성 주입이 실패하며 `no type match found`에러가 런타임에 발생할 것입니다.<br>xml 빈 정의나 클래스패스 스캔을 통하여 발견된 컴포넌트 클래스들은 컨테이너가 타입을 처음부터 알고 있습니다. 하지만 `@Bean` 팩토리 메소드는 선언된 반환 타입이 충분한 정보를 가지고 있어야합니다. 여러개의 인터페이스를 구현한 컴포넌트나 구현체 타입으로 참조될 가능성이 있는 컴포넌트들은 팩토리 메서드에 가장 구체적인 리턴타입으로 선언하는 것이 좋습니다.(최소한 의존성 주입이 가능한 정도로 구체적이여야 합니다) |
+
+특정 타입 배열 형태의 필드나 메소드에 `@Autowired`를 추가하여 `ApplicationContext`가 해당 타입의 모든 빈을 제공하도록 구성할 수 있습니다:
+```java
+public class MovieRecommender {
+
+    private Set<MovieCatalog> movieCatalogs;
+
+    @Autowired
+    public void setMovieCatalogs(Set<MovieCatalog> movieCatalogs) {
+        this.movieCatalogs = movieCatalogs;
+    }
+
+    // ...
+}
+```
+
+| |
+| ----- |
+| **@** `org.springframework.core.Ordered`인터페이스를 구현하거나 `@Order`어노테이션을 사용하거나 `@Priority`표준 어노테이션을 사용하여 빈들이 특정한 순서로 정렬된 배열이나 리스트를 가져올 수 있습니다. 그렇지 않다면 컨테이너에 빈 정의가 등록된 순서를 따를 것입니다.<br>`@Order`어노테이션은 빈의 클래스나 `@Bean`메소드에 선언할 수 있습니다. `@Order`어노테이션은 의존성 주입의 우선순위에 영향을 미칠수 있습니다. 싱글톤 빈이 생성되는 순서에는 영향이 없다는 것을 알고 있어야합니다. 싱글톤 빈의 생성 순서는 의존성 관계와 `@DependsOn`정의에 따라 수직적으로 결정됩니다.<br>표준 `javax.annotation.Priority` 어노테이션은 `@Bean`에 사용할 수 없습니다. 메소드에 적용될 수 없는 어노테이션이기 떄문입니다. 대신 `@Order`값이나 `@Primary`를 이용할 수 있습니다. |
+
+심지어 키 타입이 `String`이라면 `Map`인스턴스로 자동연결될 수 잇습니다. 해당 타입의 빈의 이름을 키값으로 빈 자체를 값으로 하는 Map이 됩니다:
+```java
+public class MovieRecommender {
+
+    private Map<String, MovieCatalog> movieCatalogs;
+
+    @Autowired
+    public void setMovieCatalogs(Map<String, MovieCatalog> movieCatalogs) {
+        this.movieCatalogs = movieCatalogs;
+    }
+
+    // ...
+}
+```
+기본적으로 의존성 주입 지점에 걸맞은 빈이 없을 떄 자동주입은 실패합니다. 배열, 컬렉션, 맵이더라도 최소 1개의 맞는 빈이 필요합니다.
+
+어노테이션이 적용된 필드나 메소드를 필수 의존성으로 생각하는 것이 기본 동작입니다. 아래 예시처럼 이 동작을 바꿔서 필수적이지 않은 의존성 주입에 실패하더라도 넘어가도록 변경할 수 있습니다.(`@Autowired`의 `required` 어트리뷰트를 `false`로 설정하면 됩니다):
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Autowired(required = false)
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+}
+```
+
+필수적이지 않은 세터메소드에 맞는 의존성 어규먼트들이 없다면 그 메서드는 호출되지 않을 것입니다. 이런 경우 필수적이지 않은 필드는 변경되지 않고 기본값 그대로 유지될 것입니다.
+
+<div id="beans-autowired-annotation-constructor-resolution" style="display:none"></div>
+생성자나 팩토리 메서드의 어규먼트로 주입되는 경우는 특수한 경우입니다. 스프링의 생성자 결정 알고리즘이 여러 생성자를 처리해야 할 수도 있기 때문에 `@Autowired`의 `required`어트리뷰트는 다른 의미를 가집니다. 생성자와 팩토리 메서드 어규먼트들은 사실상 필수입니다. 생성자가 1개인 경우, 약간의 특별한 규칙이 존재합니다. 이를테면 다중 요소 주입 지점(배열, 컬렉션, 맵)의 경우, 맞는 빈이 없다면 비어있는 인스턴스가 주입됩니다. 이 방법으로 필요한 모든 의존성을 한개의 생성자에 선언하는 보편적인 구현 패턴을 사용가능하게 합니다. - 예를 들면 `@Autowired`가 없는 1개의 퍼블릭 생성자로 선언하는 것이 이러한 경우입니다.
+
+| |
+| ----- |
+| **!** 빈 클래스의 1개의 생성자만 `Required`어트리뷰트가 `true`인 `@Autowired`로 선언되어 스프링 빈으로 사용할 생성자임을 나타낼 것이다. `required`어트리뷰트가 기본값이 `true` 그대로 나둔다면 단 한개의 생성자만 `@Autowired`로 설정될 것이다. 여러개의 생성자에 어노테이션을 선언한다면, 전부 `required=false`로 선언해서 자동연결 후보로 여겨져야할 것이다.(XML에서 `autowire=constructor`와 같다.) 의존성 주입이 가능한 생성자들중 가장 많은 의존성을 가지고 있는 생성자가 스프링 컨테이너에 의하여 선택될 것이다. 자동연결 후보 중 어느 것도 의존성이 해결되지 않는다면 최우선/기본 생성자가 사용될 것이다. 비슷하게 클래스가 여러개의 생성자를 가지고있고 어느 하나 `@Autowired`로 선언되지 않았으면 최우선/기본 생성자가 사용될 것이다. 클래스가 한개의 생성자만 가지고 있다면 어노테이션 존재와 상관없이 항상 그 생성자가 사용될 것이다. 어노테이션이 적용된 생성자는 public일 필요가 없다는 것을 알아두십시오.<br>`@Autowired`의 `required`어트리뷰트는 더이상 사용을 권장하지 않는 `@Required`어노테이션을 대신하여 세터메소드에 사용하는걸 권장한다. `required`어트리뷰트를 `false`로 설정하는 것은 자동연결시에 반드시 필요하지 않다는 것을 의미하고 자동연결이 불가하면 프로퍼티는 무시됩니다. 반면에 `@Required`는 프로퍼티가 어떠한 방법으로든 컨테이너에 의하여 설정되도록 강제하고 그렇지 않으면 예외가 발생할 것이다. |
+
+대신에 반드시 필요하지 않은 특정 의존성을 자바 8의 `java.util.Optional`을 이용하여 표현할수 있다:
+```jvava
+public class SimpleMovieLister {
+
+    @Autowired
+    public void setMovieFinder(Optional<MovieFinder> movieFinder) {
+        ...
+    }
+}
+```
+
+스프링 5.0부터 `@Nullable` 어노테이션(어떤 패키지에 어떤 종류라도 상관없다 - 예를 들면 JSR-305의 `javax.annotation.Nullable`)을 사용할수 있다:
+
+```java
+public class SimpleMovieLister {
+
+    @Autowired
+    public void setMovieFinder(@Nullable MovieFinder movieFinder) {
+        ...
+    }
+}
+```
+
+또한 `@Autowired`를 주입 가능한 것으로 잘 알려진 인터페이스에 사용할 수 있다: `BeanFactory`, `ApplicationContext`, `Environment`, `ResourceLoader`, `ApplicationEventPublisher`, `MessageSource`. 이러한 인터페이스와 이러한 인터페이스를 확장한 인터페이스 (`ConfigurableApplicationContext`, `ResourcePatternResolver` 등)은 다른 추가적인 설정없이 자동적으로 주입된다. 아래의 예시는 `ApplicationContext`를 자동연결하는 예시이다:
+
+```java
+public class MovieRecommender {
+
+    @Autowired
+    private ApplicationContext context;
+
+    public MovieRecommender() {
+    }
+
+    // ...
+}
+```
+
+| |
+| ----- |
+| **!** `@Autowired`, `@Inject`, `@Value`, `@Resource` 어노테이션은 스프링 `BeanPostProcessor`의 구현체에 의해 적용된다. 이 말은 자신만의 `BeanPostProcessor`나 `BeanFactoryPostProcessor`에서 이러한 어노테이션을 적용할 수 없다는 이야기이다. 이러한 타입은 반드시 xml이나 `@Bean`메소드에서 명시적으로 연결되어야한다. |
+
 <h4 id="beans-autowired-annotation-primary">@Primary를 이용하여 어노테이션 기반 자동 연결 미세 조정하기</h4>
 <h4 id="beans-autowired-annotation-qualifiers">Qualifers를 이용하여 어노테이션 기반 자동 연결  미세 조정하기</h4>
 <h4 id="beans-generics-as-qualifiers">제네릭을 자동연결 Qualifers로 이용하기</h4>

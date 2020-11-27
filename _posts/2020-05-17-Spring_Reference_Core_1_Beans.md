@@ -94,8 +94,8 @@ sitemap:
         1. <a href="#beans-required-annotation">@Required</a>
         1. <a href="#beans-autowired-annotation">@Autowired 사용하기</a>
         1. <a href="#beans-autowired-annotation-primary">@Primary를 이용하여 어노테이션 기반 자동 연결 미세 조정하기</a>
-        1. <a href="#beans-autowired-annotation-qualifiers">Qualifers를 이용하여 어노테이션 기반 자동 연결  미세 조정하기</a>
-        1. <a href="#beans-generics-as-qualifiers">제네릭을 자동연결 Qualifers로 이용하기</a>
+        1. <a href="#beans-autowired-annotation-qualifiers">Qualifiers를 이용하여 어노테이션 기반 자동 연결  미세 조정하기</a>
+        1. <a href="#beans-generics-as-qualifiers">제네릭을 자동연결 Qualifiers로 이용하기</a>
         1. <a href="#beans-custom-autowire-configurer">CustomAutowireConfig 이용하기</a>
         1. <a href="#beans-resource-annotation">@Resource를 사용한 주입</a>
         1. <a href="#beans-value-annotations">@Value 사용하기</a>
@@ -2566,8 +2566,135 @@ public class MovieRecommender {
 | **!** `@Autowired`, `@Inject`, `@Value`, `@Resource` 어노테이션은 스프링 `BeanPostProcessor`의 구현체에 의해 적용된다. 이 말은 자신만의 `BeanPostProcessor`나 `BeanFactoryPostProcessor`에서 이러한 어노테이션을 적용할 수 없다는 이야기이다. 이러한 타입은 반드시 xml이나 `@Bean`메소드에서 명시적으로 연결되어야한다. |
 
 <h4 id="beans-autowired-annotation-primary">@Primary를 이용하여 어노테이션 기반 자동 연결 미세 조정하기</h4>
-<h4 id="beans-autowired-annotation-qualifiers">Qualifers를 이용하여 어노테이션 기반 자동 연결  미세 조정하기</h4>
-<h4 id="beans-generics-as-qualifiers">제네릭을 자동연결 Qualifers로 이용하기</h4>
+
+타입을 이용한 자동연결은 여러 후보빈들이 있을 수 있다. 따라서 종종 선택 과정에 더 자세한 조절이 필요하다. 한가지 방법은 스프링의 `@Primary` 어노테이션을 사용하는 것이다. `@Primary`는 여러 후보 빈들 중에 우선권을 준다. 만약 후보 빈들 중 단 한개의 우선 빈이 존재한다면 그 빈이 자동연결될 것이다.
+
+최우선 `MovieCatalog`로 `firstMovieCatalog`로 정의된 아래의 설정을 생각해보자:
+```java
+@Configuration
+public class MovieConfiguration {
+
+    @Bean
+    @Primary
+    public MovieCatalog firstMovieCatalog() { ... }
+
+    @Bean
+    public MovieCatalog secondMovieCatalog() { ... }
+
+    // ...
+}
+```
+위의 설정을 이용하면 아래의 `MovieRecommender`에 `firstMovieCatalog`가 자동 연결된다:
+```java
+public class MovieRecommender {
+
+    @Autowired
+    private MovieCatalog movieCatalog;
+
+    // ...
+}
+```
+관련된 빈정의는 아래와 같다:
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+    <bean class="example.SimpleMovieCatalog" primary="true">
+        <!-- 이 빈과 관련된 의존성을 주입한다. -->
+    </bean>
+
+    <bean class="example.SimpleMovieCatalog">
+        <!-- 이 빈과 관련된 의존성을 주입한다. -->
+    </bean>
+
+    <bean id="movieRecommender" class="example.MovieRecommender"/>
+
+</beans>
+```
+
+<h4 id="beans-autowired-annotation-qualifiers">Qualifiers를 이용하여 어노테이션 기반 자동 연결  미세 조정하기</h4>
+
+`@Primary`는 여러 인스턴스 중 한개를 최우선으로 결정했을 때 매우 유용하다. 선택과정에 더 많은 조정이 필요할 때에는 스프링의 `@Qualifier`를 사용할 수 있다. 특정 어규먼트에 자격 요건을 설정해주어 특정 빈이 선택되도록 후보 빈을 걸러낼 수 있다. 가장 단순한 예로 아래 예시처럼 설명적 값을 줄수있다.
+```java
+public class MovieRecommender {
+
+    @Autowired
+    @Qualifier("main")
+    private MovieCatalog movieCatalog;
+
+    // ...
+}
+```
+
+또한 `@Qualifier` 어노테이션을 각 생성자 어규먼트나 메소드 파라메터에 설정할 수 있다:
+```java
+public class MovieRecommender {
+
+    private MovieCatalog movieCatalog;
+
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Autowired
+    public void prepare(@Qualifier("main") MovieCatalog movieCatalog,
+            CustomerPreferenceDao customerPreferenceDao) {
+        this.movieCatalog = movieCatalog;
+        this.customerPreferenceDao = customerPreferenceDao;
+    }
+
+    // ...
+}
+```
+
+아래의 예시는 관련된 빈 정의를 보여준다 :
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+    <bean class="example.SimpleMovieCatalog">
+        <qualifier value="main"/> <!-- 1 -->
+		
+        <!-- 이 빈과 관련된 의존성을 주입한다. -->
+    </bean>
+
+    <bean class="example.SimpleMovieCatalog">
+        <qualifier value="action"/> <!-- 2 -->
+
+        <!-- 이 빈과 관련된 의존성을 주입한다. -->
+    </bean>
+
+    <bean id="movieRecommender" class="example.MovieRecommender"/>
+
+</beans>
+```
+
+1. `main` qualifier 값이 설정된 빈으로 같은 값으로 qualifier가 설정된 생성자 어규먼트와 연결된다.
+2. `action` qualifier 값이 설정된 빈으로 같은 값으로 설정된 qualifier가 생성자 어규먼트와 연결된다.
+
+qualifier 매칭을 위한 후보로써 빈 이름이 기본 qualifier값으로 여겨진다. 따라서 `main`이라는 `id`를 가진 빈을 정의하여 같은 결과를 가져올 수 있다. 이 방법을 사용하면 빈의 이름으로 편하게 연결할 수 있지만 `@Autowired`는 기본적으로 타입 기반 의존성 주입이다. 이 말은 qualifier 값은 매칭되는 빈들 중에서 줄여주는 역할이라는 것이다. 고유한 `id`를 참조하는 표현이 아니다. 좋은 qualifier 값은 `main`, `EMEA` `persistent`와 같이 컴포넌트의 특성을 나타내는 값이며 이 값들은 빈의 `id`와 무관하다.
+
+qualifier는 또한 이전에 이야기된 타입 컬렉션에도 적용된다. - 예를 들면 `Set<MovieCatalog>`. 이러한 경우에 선언된 qualifier를 만족하는 모든 빈이 컬렉션으로 주입된다. 이 qualifier는 반드시 고유할 필요가 없다. 대신 분류하는 기준으로 표현되야한다. 예를 들면 여러개의 `MovieCatalog`를 같은 "action" qualifier 값으로 설정할 수 있다. 이렇게하면 `@Qualifier("action")`으로 선언된 `Set<MovieCatalog>`로 모두 주입될 것이다.
+
+| |
+| ----- |
+| **@** |
+
+<h4 id="beans-generics-as-qualifiers">제네릭을 자동연결 Qualifiers로 이용하기</h4>
 <h4 id="beans-custom-autowire-configurer">CustomAutowireConfig 이용하기</h4>
 <h4 id="beans-resource-annotation">@Resource를 사용한 주입</h4>
 <h4 id="beans-value-annotations">@Value 사용하기</h4>

@@ -2692,7 +2692,211 @@ qualifier는 또한 이전에 이야기된 타입 컬렉션에도 적용된다. 
 
 | |
 | ----- |
-| **@** |
+| **@** qualifier 값으로 빈을 선택하는데 반드시 `@Qualifier` 어노테이션이 필요한 것은 아니다. 선택 표시자(qaulifer나 primary)가 없다면, 스프링이 의존성 주입 지점의 이름(필드 이름이나 파라메터 이름)을 이용하여 빈 이름을 찾아볼 것이다. |
+
+즉 이름을 이용하여 의존성 주입을 하고자 한다면 `@Autowired`를 사용하면 이름을 선택이 가능하지만 `@Autowired`를 후순위로 고려하여라. 대신에 특정한 이름을 가진 컴포넌트를 정의하는 의미를 가진 `@Resource` 어노테이션을 사용하여라. `@Autowired`는 조금 다른 의미를 가진다: 타입으로 후보 빈을 선택한 뒤에 `String` qualifer값이 이 후보 빈들 중에서 고려된다.
+
+그 자체가 `Map`, 컬렉션, 배열로 정의된 빈을 선택할 때에는 `@Resource`를 이용하는 것이 좋다. 스프링 4.3부터 `@Autowired`를 이용하여도 `Map`, 컬렉션, 배열 타입을 의존성 주입할 수 있다. 이 경우, qualifier값을 이용하여 같은 타입의 빈에서 원하는 것을 고를 수 있다.
+
+스프링 4.3부터 `@Autowired`는 자기 자신 참조 또한 의존성 주입할 수 있다. 자기 자신 의존성 주입은 마지막 선택지이다. 일반적인 의존성 주입이 먼저 실행되고 가장 마지막으로 자시자신 의존성 주입을 선택한다. 또한 개발자는 자기자신 의존성 주입을 가장 마지막 수단으로 고려해야한다(예를 들면 빈 내부에서 트랙잭션 프록시 메소드를 호출하는 것). 이러한 경우에 영향을 받는 메소드를 위임객체에 따로 분리하는 것을 고려해봐라. 또한 `@Resource`를 대신 사용하여 이름으로 프록시 객체를 얻어올 수 있다.
+
+| |
+| ----- |
+| **@** 설정 클래스 내부에서 `@Bean`메소드의 결과를 주입하는 것은 효과적인 자기 자신 참조 방법이다. 참조가 필요한 메소드에서 참조를 지연초기화 하거나 `@Bean`메소드를 `static`으로 선언하는 두 방법 모두 설정 클래스 인스턴스와 생명주기에서 빈을 독립시킨다. 그렇지 않으면 이러한 빈은 마지막에 고려되어 적합한 다른 설정 클래스의 빈들이 대신 주입될 것이다. |
+
+`@Autowired`는 필드, 생성자, 다수의 어규먼트를 가진 메소드에 적용된다. 반면에 `@Resource`는 오직 필드와 한개의 어규먼트를 가진 세터메소드에만 적용된다. 의존성 주입 지점이 생성자나 어규먼트 여러개를 가진 메소드라면 `@Autowired`를 이용해야한다.
+
+자신만의 qualifier 어노테이션을 만들 수 있다. `@Qualifier` 어노테이션이 정의된 새로운 어노테이션을 정의하면 된다:
+
+```java
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface Genre {
+
+    String value();
+}
+```
+
+그러면 자신만의 qualifier는 자동 연결하는 파라메터나 필드에 사용할 수 있다:
+
+```java
+public class MovieRecommender {
+
+    @Autowired
+    @Genre("Action")
+    private MovieCatalog actionCatalog;
+
+    private MovieCatalog comedyCatalog;
+
+    @Autowired
+    public void setComedyCatalog(@Genre("Comedy") MovieCatalog comedyCatalog) {
+        this.comedyCatalog = comedyCatalog;
+    }
+
+    // ...
+}
+```
+
+그 다음에 후보 빈정의에 필요한 정보를 제공해야한다. `<qualifer/>` 태그를 `<bean/>`태그 하위에 정의하고 `type`과 `value`를 설정하면 된다. type은 어노테이션의 클래스 전체 이름을 의미한다. 단 같은 이름이 없다면 짧게 클래스 이름만 사용해도 된다. 아래의 예시가 두가지 방법 모두 사용하는 예시이다:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+    <bean class="example.SimpleMovieCatalog">
+        <qualifier type="Genre" value="Action"/>
+        <!-- 이 빈에 필요한 의존성 주입 -->
+    </bean>
+
+    <bean class="example.SimpleMovieCatalog">
+        <qualifier type="example.Genre" value="Comedy"/>
+        <!-- 이 빈에 필요한 의존성 주입 -->
+    </bean>
+
+    <bean id="movieRecommender" class="example.MovieRecommender"/>
+
+</beans>
+```
+
+[클래스패스 스캐닝과 관리되는 컴포넌트](#beans-classpath-scanning)에서 XML에 qualifier 메타데이터를 작성하는 대신 어노테이션 기반으로 설정하는 방법을 볼 수 있다. 특히, [Qualifier 메타데이터 어노테이션으로 부여하기](#beans-scanning-qualifiers)를 보십시오.
+
+일부 경우에서 값없이 어노테이션만 사용하는 것만으로 충분할 수 있습니다. 어노테이션이 보편적인 의미를 가지고 여러 다른 타입의 의존성 걸쳐 적용될 수 있을 때, 이 방법을 사용하는 것이 유용합니다. 예를 들면 인터넷 연결이 없을 때, 사용하는 오프라인 목록이 있다고 합시다. 먼저 아래 예시처럼 간단한 어노테이션을 정의합니다:
+
+```java
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface Offline {
+
+}
+```
+
+그 다움 이 어노테이션을 자동연결할 필드나 프로퍼티에 설정합니다:
+
+```java
+public class MovieRecommender {
+
+    @Autowired
+    @Offline /* 1 */
+    private MovieCatalog offlineCatalog;
+
+    // ...
+}
+```
+
+1. 이 줄에 `@Offline`어노테이션을 추가했습니다.
+
+이게 빈 정의에는 오직 `type` qualifier만 필요합니다:
+
+```xml
+<bean class="example.SimpleMovieCatalog">
+    <qualifier type="Offline"/>  <!-- 1 -->
+    <!-- 이 빈에 필요한 의존성 주입 -->
+</bean>
+```
+
+1. 이 요소는 qualifier를 명시합니다.
+
+또한 자신만의 어노테이션에 간단한 `value` 어튜리부트 대신 다양한 어트리뷰트를 가지도록 할 수 있습니다. 자동연결할 필드나 파라메터에 다양한 어트리뷰트 값이 명시되면 빈 정의에 그러한 어트리뷰트 값이 같아야 자동연결 후보자로 선택될 것입니다. 아래예시를 보십시오:
+
+```java
+@Target({ElementType.FIELD, ElementType.PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Qualifier
+public @interface MovieQualifier {
+
+    String genre();
+
+    Format format();
+}
+```
+
+이 경우 `Format`은 아래 예시와 같은 enum 입니다.:
+
+```java
+public enum Format {
+    VHS, DVD, BLURAY
+}
+```
+
+`genre`와 `format` 값을 가진 어노테이션이 선언된 자동연결될 필드들의 예시입니다:
+
+```java
+public class MovieRecommender {
+
+    @Autowired
+    @MovieQualifier(format=Format.VHS, genre="Action")
+    private MovieCatalog actionVhsCatalog;
+
+    @Autowired
+    @MovieQualifier(format=Format.VHS, genre="Comedy")
+    private MovieCatalog comedyVhsCatalog;
+
+    @Autowired
+    @MovieQualifier(format=Format.DVD, genre="Action")
+    private MovieCatalog actionDvdCatalog;
+
+    @Autowired
+    @MovieQualifier(format=Format.BLURAY, genre="Comedy")
+    private MovieCatalog comedyBluRayCatalog;
+
+    // ...
+}
+```
+
+마지막으로 빈정의들은 반드시 걸맞은 qualifier 값을 가지고 있어야 합니다. 이 예시는 `<qaulifier/>` 대신에 빈 메타 어트리뷰트를 사용하는 예시입니다. 가능하다면 `<qaulifier/>` 요소와 어트리뷰트가 우선순위지만 `<meta/>` 태그로 제공된 메타 어트리뷰트 또한 후 순위로 받아들입니다. 아래 예시의 마지막 두 빈 정의가가 그러한 예시입니다:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:annotation-config/>
+
+    <bean class="example.SimpleMovieCatalog">
+        <qualifier type="MovieQualifier">
+            <attribute key="format" value="VHS"/>
+            <attribute key="genre" value="Action"/>
+        </qualifier>
+        <!-- 이 빈에 필요한 의존성 주입 -->
+    </bean>
+
+    <bean class="example.SimpleMovieCatalog">
+        <qualifier type="MovieQualifier">
+            <attribute key="format" value="VHS"/>
+            <attribute key="genre" value="Comedy"/>
+        </qualifier>
+        <!-- 이 빈에 필요한 의존성 주입 -->
+    </bean>
+
+    <bean class="example.SimpleMovieCatalog">
+        <meta key="format" value="DVD"/>
+        <meta key="genre" value="Action"/>
+        <!-- 이 빈에 필요한 의존성 주입 -->
+    </bean>
+
+    <bean class="example.SimpleMovieCatalog">
+        <meta key="format" value="BLURAY"/>
+        <meta key="genre" value="Comedy"/>
+        <!-- 이 빈에 필요한 의존성 주입 -->
+    </bean>
+
+</beans>
+```
 
 <h4 id="beans-generics-as-qualifiers">제네릭을 자동연결 Qualifiers로 이용하기</h4>
 <h4 id="beans-custom-autowire-configurer">CustomAutowireConfig 이용하기</h4>

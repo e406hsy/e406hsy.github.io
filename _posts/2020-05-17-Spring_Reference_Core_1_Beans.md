@@ -2899,8 +2899,70 @@ public class MovieRecommender {
 ```
 
 <h4 id="beans-generics-as-qualifiers">제네릭을 자동연결 Qualifiers로 이용하기</h4>
+
+`@Qualifier`뿐만 아니라, 자바 제네릭 타입 또한 후보 빈 선택에 사용할 수 있다. 예를 들면 아래와 같은 설정을 했다고 하자:
+
+```java
+@Configuration
+public class MyConfiguration {
+
+    @Bean
+    public StringStore stringStore() {
+        return new StringStore();
+    }
+
+    @Bean
+    public IntegerStore integerStore() {
+        return new IntegerStore();
+    }
+}
+```
+
+위 빈들이 제네릭 인터페이스의 구현체라고 하자(즉, `Store<String>`과 `Store<Integer>`). `@Autowire`와 `Store` 인터페이스, 제네릭을 이용하여 빈을 아래 예시 처럼 선택할 수 있다:
+
+```java
+@Autowired
+private Store<String> s1; // <String> qualifier, stringStore 빈 주입
+
+@Autowired
+private Store<Integer> s2; // <Integer> qualifier, integerStore 빈 주입
+```
+
+제네릭 qualifier는 리스트, `Map`, 배열에도 사용가능하다. 아래는 제네릭 `List`를 사용하는 예시다:
+
+```java
+// 모든 <Integer> 제네릭 Store 빈을 주입한다.
+// Store<String> 빈은 이 리스트에 주입되지 않는다.
+@Autowired
+private List<Store<Integer>> s;
+```
+
 <h4 id="beans-custom-autowire-configurer">CustomAutowireConfig 이용하기</h4>
+
+[`CustomAutowireConfigurer`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/annotation/CustomAutowireConfigurer.html)은 스프링 `@Qualifier`를 사용하지 않은 어노테이션을 자신만의 qaulifier로 등록하는 `BeanFactoryPostProcessor`이다. 아래예시는 `CustomAutowireConfigurer`를 사용하는 방법을 보여준다:
+
+```xml
+<bean id="customAutowireConfigurer"
+        class="org.springframework.beans.factory.annotation.CustomAutowireConfigurer">
+    <property name="customQualifierTypes">
+        <set>
+            <value>example.CustomQualifier</value>
+        </set>
+    </property>
+</bean>
+```
+`AutowireCandidateResolver`가 자동연결할 후보 빈을 아래와 같은 방법으로 결정한다:
+
+* 각 빈 정의의 `autowire-candidate`값
+* `<beans/>`요소의 `default-autowire-candidate`패턴
+* `CustomAutowireConfigurer`에 등록된 어노테이션과 `@Qualifier` 어노테이션
+
+여러개의 빈이 후보빈으로 등록되면 최우선 빈을 다음과 같이 선택한다: 정확히 한개의 빈만 `primary`로 설정되있으면 선택한다.
+
 <h4 id="beans-resource-annotation">@Resource를 사용한 주입</h4>
+
+
+
 <h4 id="beans-value-annotations">@Value 사용하기</h4>
 <h4 id="beans-postconstruct-and-predestroy-annotations">@PostConstruct와 @PreDestory 사용하기</h4>
 

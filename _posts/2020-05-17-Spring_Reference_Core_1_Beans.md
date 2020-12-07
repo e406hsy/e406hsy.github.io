@@ -2692,7 +2692,7 @@ qualifier는 또한 이전에 이야기된 타입 컬렉션에도 적용된다. 
 
 | |
 | ----- |
-| **@** qualifier 값으로 빈을 선택하는데 반드시 `@Qualifier` 어노테이션이 필요한 것은 아니다. 선택 표시자(qaulifer나 primary)가 없다면, 스프링이 의존성 주입 지점의 이름(필드 이름이나 파라메터 이름)을 이용하여 빈 이름을 찾아볼 것이다. |
+| **@** qualifier 값으로 빈을 선택하는데 반드시 `@Qualifier` 어노테이션이 필요한 것은 아니다. 선택 표시자(qualifier나 primary)가 없다면, 스프링이 의존성 주입 지점의 이름(필드 이름이나 파라메터 이름)을 이용하여 빈 이름을 찾아볼 것이다. |
 
 즉 이름을 이용하여 의존성 주입을 하고자 한다면 `@Autowired`를 사용하면 이름을 선택이 가능하지만 `@Autowired`를 후순위로 고려하여라. 대신에 특정한 이름을 가진 컴포넌트를 정의하는 의미를 가진 `@Resource` 어노테이션을 사용하여라. `@Autowired`는 조금 다른 의미를 가진다: 타입으로 후보 빈을 선택한 뒤에 `String` qualifer값이 이 후보 빈들 중에서 고려된다.
 
@@ -2853,7 +2853,7 @@ public class MovieRecommender {
 }
 ```
 
-마지막으로 빈정의들은 반드시 걸맞은 qualifier 값을 가지고 있어야 합니다. 이 예시는 `<qaulifier/>` 대신에 빈 메타 어트리뷰트를 사용하는 예시입니다. 가능하다면 `<qaulifier/>` 요소와 어트리뷰트가 우선순위지만 `<meta/>` 태그로 제공된 메타 어트리뷰트 또한 후 순위로 받아들입니다. 아래 예시의 마지막 두 빈 정의가가 그러한 예시입니다:
+마지막으로 빈정의들은 반드시 걸맞은 qualifier 값을 가지고 있어야 합니다. 이 예시는 `<qualifier/>` 대신에 빈 메타 어트리뷰트를 사용하는 예시입니다. 가능하다면 `<qualifier/>` 요소와 어트리뷰트가 우선순위지만 `<meta/>` 태그로 제공된 메타 어트리뷰트 또한 후 순위로 받아들입니다. 아래 예시의 마지막 두 빈 정의가가 그러한 예시입니다:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -2939,7 +2939,7 @@ private List<Store<Integer>> s;
 
 <h4 id="beans-custom-autowire-configurer">CustomAutowireConfig 이용하기</h4>
 
-[`CustomAutowireConfigurer`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/annotation/CustomAutowireConfigurer.html)은 스프링 `@Qualifier`를 사용하지 않은 어노테이션을 자신만의 qaulifier로 등록하는 `BeanFactoryPostProcessor`이다. 아래예시는 `CustomAutowireConfigurer`를 사용하는 방법을 보여준다:
+[`CustomAutowireConfigurer`](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/javadoc-api/org/springframework/beans/factory/annotation/CustomAutowireConfigurer.html)은 스프링 `@Qualifier`를 사용하지 않은 어노테이션을 자신만의 qualifier로 등록하는 `BeanFactoryPostProcessor`이다. 아래예시는 `CustomAutowireConfigurer`를 사용하는 방법을 보여준다:
 
 ```xml
 <bean id="customAutowireConfigurer"

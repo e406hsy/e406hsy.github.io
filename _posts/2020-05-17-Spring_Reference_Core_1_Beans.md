@@ -2692,7 +2692,7 @@ qualifier는 또한 이전에 이야기된 타입 컬렉션에도 적용된다. 
 
 | |
 | ----- |
-| **@** qualifier 값으로 빈을 선택하는데 반드시 `@Qualifier` 어노테이션이 필요한 것은 아니다. 선택 표시자(qualifier나 primary)가 없다면, 스프링이 의존성 주입 지점의 이름(필드 이름이나 파라메터 이름)을 이용하여 빈 이름을 찾아볼 것이다. |
+| **!** qualifier 값으로 빈을 선택하는데 반드시 `@Qualifier` 어노테이션이 필요한 것은 아니다. 선택 표시자(qualifier나 primary)가 없다면, 스프링이 의존성 주입 지점의 이름(필드 이름이나 파라메터 이름)을 이용하여 빈 이름을 찾아볼 것이다. |
 
 즉 이름을 이용하여 의존성 주입을 하고자 한다면 `@Autowired`를 사용하면 이름을 선택이 가능하지만 `@Autowired`를 후순위로 고려하여라. 대신에 특정한 이름을 가진 컴포넌트를 정의하는 의미를 가진 `@Resource` 어노테이션을 사용하여라. `@Autowired`는 조금 다른 의미를 가진다: 타입으로 후보 빈을 선택한 뒤에 `String` qualifer값이 이 후보 빈들 중에서 고려된다.
 
@@ -2702,7 +2702,7 @@ qualifier는 또한 이전에 이야기된 타입 컬렉션에도 적용된다. 
 
 | |
 | ----- |
-| **@** 설정 클래스 내부에서 `@Bean`메소드의 결과를 주입하는 것은 효과적인 자기 자신 참조 방법이다. 참조가 필요한 메소드에서 참조를 지연초기화 하거나 `@Bean`메소드를 `static`으로 선언하는 두 방법 모두 설정 클래스 인스턴스와 생명주기에서 빈을 독립시킨다. 그렇지 않으면 이러한 빈은 마지막에 고려되어 적합한 다른 설정 클래스의 빈들이 대신 주입될 것이다. |
+| **!** 설정 클래스 내부에서 `@Bean`메소드의 결과를 주입하는 것은 효과적인 자기 자신 참조 방법이다. 참조가 필요한 메소드에서 참조를 지연초기화 하거나 `@Bean`메소드를 `static`으로 선언하는 두 방법 모두 설정 클래스 인스턴스와 생명주기에서 빈을 독립시킨다. 그렇지 않으면 이러한 빈은 마지막에 고려되어 적합한 다른 설정 클래스의 빈들이 대신 주입될 것이다. |
 
 `@Autowired`는 필드, 생성자, 다수의 어규먼트를 가진 메소드에 적용된다. 반면에 `@Resource`는 오직 필드와 한개의 어규먼트를 가진 세터메소드에만 적용된다. 의존성 주입 지점이 생성자나 어규먼트 여러개를 가진 메소드라면 `@Autowired`를 이용해야한다.
 
@@ -2961,10 +2961,201 @@ private List<Store<Integer>> s;
 
 <h4 id="beans-resource-annotation">@Resource를 사용한 주입</h4>
 
+스프링은 JSR-250 `@Resource`(`javax.annotation.Resource`) 를 사용하여 필드나 세터메서드 빈 주입도 지원한다. Java EE에서 흔히 사용되는 방법이다. 스프링이 관리하는 객체에도 이 패턴을 사용할 수 있다.
+
+`@Resource`는 name 어트리뷰트를 가지고있다. 기본적으로 스프링은 해당 값을 주입할 빈 이름으로 해석한다. 즉 이름에 의한 빈 주입을 한다는 의미이다. 아래는 예시이다:
+
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Resource(name="myMovieFinder")  // [1]
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+}
+```
+
+1. 이 줄을 통해 `@Resource` 빈 주입을 한다.
+
+이름이 명시되지 않을 경우, 필드 이름이나 세터메서드 이름에서 기본 이름을 가져온다. 필드의 경우, 필드이름을 가져온다. 세터 메서드의 경우, 프로퍼티 이름을 가져온다. 아래 예시는 `movieFinder`라는 이름의 빈을 세터메서드를 통해 주입하는 예시이다:
+
+```java
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Resource
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+}
+```
+
+| |
+| ----- |
+| **!** `CommonAnnotationBeanPostProcessor`를 가지고 있는 `ApplicationContext`는 어노테이션에 의하여 전달된 이름을 빈 이름으로 변경한다. Spring의 `SimpleJndiBeanFactory`를 설정한다면 JNDI를 통해 이름을 변경할 수 있다. 하지만 기본 설정을 사용하는 것을 추천한다. 그러면 스프링 JNDI lookup 기능을 사용하여 간접성을 유지할 수 있다. |
+
+`@Resource`를 직접적으로 이름을 설정하지 않고 사용한 경우, `@Autowired`와 비슷하게 타입기반 빈 주입을 실행한다. 또한 알려진 해소 가능한 의존성을 주입한다 : `BeanFactory`, `ApplicationContext`, `ResourceLoader`, `ApplicationEventPublisher`, `MessageSource`인터페이스
+
+따라서 아래 예시에서 `customerPreferenceDao`필드는 먼저 "customerPreferenceDao"라는 이름의 빈을 찾아본다. 그 뒤 `CustomerPreferenceDao`타입의 우선시되는 빈을 찾는다:
+
+```java
+public class MovieRecommender {
+
+    @Resource
+    private CustomerPreferenceDao customerPreferenceDao;
+
+    @Resource
+    private ApplicationContext context; // [1]
+
+    public MovieRecommender() {
+    }
+
+    // ...
+}
+```
+
+1. `context`필드는 알려진 해소가능한 의존성 `ApplicationContext`타입에 의하여 빈 주입되었다.
 
 
 <h4 id="beans-value-annotations">@Value 사용하기</h4>
+
+`@Value`는 일반적으로 외후 프로퍼티 주입에 사용된다.
+
+```java
+@Component
+public class MovieRecommender {
+
+    private final String catalog;
+
+    public MovieRecommender(@Value("${catalog.name}") String catalog) {
+        this.catalog = catalog;
+    }
+}
+```
+함께 사용된 설정 :
+```java
+@Configuration
+@PropertySource("classpath:application.properties")
+public class AppConfig { }
+```
+`application.properties` 파일:
+```java
+catalog.name=MovieCatalog
+```
+
+이 경우에 `catalog`파라메터와 필드는 `MovieCatalog`라는 값을 가진다.
+
+스프링의 기본 내장된 값 처리기는 후한 설정을 가지고 있다. 프로퍼티값을 설정을 시도한 뒤, 실패하면 프로퍼티 이름 (예를 들면 `${catalog.name}`)을 값으로 주입한다. 존재하지 않는 값들에 엄격한 통제를 하고 싶다면 `PropertySourcesPlaceholderConfigurer`빈을 아래 예시처럼 설정해야한다:
+
+```java
+@Configuration
+public class AppConfig {
+
+     @Bean
+     public static PropertySourcesPlaceholderConfigurer propertyPlaceholderConfigurer() {
+           return new PropertySourcesPlaceholderConfigurer();
+     }
+}
+```
+
+| |
+| ----- |
+| **!** `PropertyPlaceholderConfigurer`를 자바 설정으로 설정할 경우, `@Bean`메서드는 반드시 `static`이여야 한다. |
+
+위 설정을 사용하면 `${}` 플레이스홀더에 값 주입을 할 수 없을 경우 초기화에 실패한다. 또한 `setPlaceholderPrefix`,`setPlaceholderSuffix`,`setValueSeparator`와 같은 플레이스홀더 설정 수정을 할 수 있는 메서드를 제공한다.
+
+| |
+| ----- |
+| **!** `application.properties`와 `application.yml`로부터 프로퍼티를 읽어오는 `PropertySourcesPlaceholderConfigurer`빈이 스프링 부트에서는 자동적으로 설정된다. |
+
+스프링에 포함된 컨버터가 (`int`나 `Integer`와 같은) 단순한 타입 변경을 자동으로 진행한다. 콤마로 분리된 값들을 자동으로 문자열 배열로 변경한다.
+
+아래 예시처럼 기본값을 설정하는 것도 가능하다:
+
+```java
+@Component
+public class MovieRecommender {
+
+    private final String catalog;
+
+    public MovieRecommender(@Value("${catalog.name:defaultCatalog}") String catalog) {
+        this.catalog = catalog;
+    }
+}
+```
+
+스프링의 `BeanPostProcessor`는 내부적으로 `ConversionService`를 사용하여 `@Value`의 문자열 값을 목표 타입의 값으로 변경한다. 새로운 타입에도 변경을 지원하고자 한다면 `ConversionService`를 작성하여 제공하여야 한다. 아래는 예시이다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public ConversionService conversionService() {
+        DefaultFormattingConversionService conversionService = new DefaultFormattingConversionService();
+        conversionService.addConverter(new MyCustomConverter());
+        return conversionService;
+    }
+}
+```
+
+만약 `@Value`가 [`SpEL` 표현식](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#expressions)을 포함하고 있으면 런타임에 동적으로 값이 생성될 것이다. 아래는 예시이다:
+
+```java
+@Component
+public class MovieRecommender {
+
+    private final String catalog;
+
+    public MovieRecommender(@Value("#{systemProperties['user.catalog'] + 'Catalog' }") String catalog) {
+        this.catalog = catalog;
+    }
+}
+```
+
+SpEL은 또한 더 복잡한 데이터 구조를 사용할 수 있도록 한다:
+
+```java
+@Component
+public class MovieRecommender {
+
+    private final Map<String, Integer> countOfMoviesPerCatalog;
+
+    public MovieRecommender(
+            @Value("#{ {'Thriller': 100, 'Comedy': 300} }") Map<String, Integer> countOfMoviesPerCatalog) {
+        this.countOfMoviesPerCatalog = countOfMoviesPerCatalog;
+    }
+}
+```
+
+
 <h4 id="beans-postconstruct-and-predestroy-annotations">@PostConstruct와 @PreDestory 사용하기</h4>
+
+`CommonAnnotationBeanPostProcessor`는 `@Resource` 어노테이션처리 뿐만 아니라 JSR-250 생명주기 어노테이션도 처리한다. (`javax.annotation.PostConstruct`, `javax.annotation.PreDestroy`) 스프링 2.5부터 이러한 어노테이션을 지원하면서 [콜백 정의하기](#beans-factory-lifecycle-initializingbean)와 [소멸자 콜백](#beans-factory-lifecycle-disposablebean)에 설명된 방식 이외의 생명주기 콜백 작동 방식을 제공한다. 스프링 `ApplicationContext`내부에 등록된 `CommonAnnotationBeanPostProcessor`를 통해 스프링 생명주기 콜백이나 직접 정의된 콜백 메서드와 같은 시기에 동작한다. 아래 예시는 초기화 단계에 캐시를 생성하고 소멸시에 제거하는 예시이다:
+
+```java
+public class CachingMovieLister {
+
+    @PostConstruct
+    public void populateMovieCache() {
+        // 초기화 단계에 캐시를 생성한다...
+    }
+
+    @PreDestroy
+    public void clearMovieCache() {
+        // 소멸 단계에 캐시를 제거한다....
+    }
+}
+```
+
+여러 생명주기 동작방법을 섞을 경우 효과에 대한 자세한 내용은 [생명주기 작동원리 조합하기](#beans-factory-lifecycle-combined-effects)에서 볼 수 있다.
+
+| |
+| ----- |
+| **@** `@Resource`처럼 `@PostConstruct`와 `@PreDestory`어노테이션은 JDK 6~8에 표준 자바 라이브러리였다. 하지만 `javax.annotation`패키지 전체가 JDK 9에서 자바 핵심 모듈과 분리되었고 JDK 11에서는 제거되었다. 만약 필요하다면 `javax.annotation-api` 아티펙트를 메이븐 중앙 저장소에서 얻어올 수 있다. 다른 라이브러리처럼 단순히 클래스패스에 추가하는 것으로 충분하다. |
 
 
 <h3 id="beans-classpath-scanning">클래스패스 스캐닝과 관리되는 컴포넌트</h3>

@@ -3160,7 +3160,18 @@ public class CachingMovieLister {
 
 <h3 id="beans-classpath-scanning">클래스패스 스캐닝과 관리되는 컴포넌트</h3>
 
+이 장은 스프링 컨테이너 내부에 `BeanDefinition`을 만드는 설정 메타데이터를 XML로 표현하는 예제들 위주로 구성되었다. 이전 섹션 ([어노테이션 기반 컨테이너 설정](#beans-annotation-config))에서는 소스레벨 어노테이션으로 설정 메타데이터를 제공하는 방법을 설명했다. 하지만 이러한 예제에서도 기반이되는 빈 정의는 XML파일로 작성되었고 어노테이션은 의존성 주입에만 사용되었다. 이 장에서 클래스패스를 스캔하여 후보 컴포넌트를 찾는 방법을 설명해줍니다. 필터 기준에 맞고 컨테이너에 등록된 빈 정의가 있어야 후보 컴포넌트이다. 클래스패스 스캔은 빈 등록할 때 XML을 사용할 필요를 없앤다. 대신 어노테이션(예를 들면, `@Component`), AspectJ 타입 표현식, 커스텀 필터를 사용하여 컨테이너에 등록된 빈 정의 중 선택한다.
+
+| |
+| ----- |
+| **!** 스프링 3.0부터 스프링 자바설정에 제공되는 많은 기능이 스프링 프레임워크 핵심에 포함되었다. 이 덕분에 XML 대신 자바를 사용해서 빈을 정의할 수 있다. 새 기능을 사용하는 방법을 확인하려면 `@Configuration`,`@Bean`,`@Import`,`@DependsOn`어노테이션 예시를 보십시오.
+
 <h4 id="beans-stereotype-annotations">@Component와 추가적인 정형화된 어노테이션</h4>
+
+`@Repository` 어노테이션은 리포지토리(DAO, Data Access Object로도 알려져있다.) 역할을 하는 클래스에 사용되는 표시이다. 이 표시를 사용하면 예외를 자동으로 변경하여 처리한다. [예외 번역](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/data-access.html#orm-exception-translation)에 자세한 내용이 있습니다.
+
+스프링은 몇가지 정형화된 어노테이션을 추가적으로 제공한다: `@Component`, `@Service`, `@Controller`. `@Component`는 스프링에서 관리하는 컴포넌트에 사용되는 일반적인 어노테이션이다. `@Repository`, `@Service`, `@Controller`는 `@Component`의 일종으로 특정한 경우에 사용된다 (각각 영속성, 서비스, 프레젠테이션 레이어에 사용된다). 따라서 컴포넌트 클래스에 `@Component`대신 `@Repository`,`@Service`,`@Controller`를 사용할 수 있다. 이렇게 하면 어스펙트나 도구에 의해 더 적절하게 처리될 수 있다. 예를 들면 이러한 어노테이션이 AOP 포인트컷을 만드는데 사용될 수 있다. `@Repository`,`@Service`,`@Controller`는 스프링 프레임워크 추후 발표될 버전에서 추가적인 의미를 가질수 있다. 따라서 서비스 레이어에 `@Service`를 사용할지 `@Component`를 사용할 지 고민중이라면 `@Service`가 분명히 더 좋은 선택이다. 비슷하게 `@Repository`는 예외 번역을 진행하는 영속성레이어 표시로서 이미 사용되고 있다.
+
 <h4 id="beans-meta-annotations">메타 어노테이션과 복합 어노테이션 이용하기</h4>
 <h4 id="beans-scanning-autodetection">클래스 검색과 빈 정의 등록을 자동으로 수행하기 </h4>
 <h4 id="beans-scanning-filters">필터를 이용하여 스캐닝 커스터마이징하기</h4>

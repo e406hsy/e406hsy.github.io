@@ -3173,6 +3173,65 @@ public class CachingMovieLister {
 스프링은 몇가지 정형화된 어노테이션을 추가적으로 제공한다: `@Component`, `@Service`, `@Controller`. `@Component`는 스프링에서 관리하는 컴포넌트에 사용되는 일반적인 어노테이션이다. `@Repository`, `@Service`, `@Controller`는 `@Component`의 일종으로 특정한 경우에 사용된다 (각각 영속성, 서비스, 프레젠테이션 레이어에 사용된다). 따라서 컴포넌트 클래스에 `@Component`대신 `@Repository`,`@Service`,`@Controller`를 사용할 수 있다. 이렇게 하면 어스펙트나 도구에 의해 더 적절하게 처리될 수 있다. 예를 들면 이러한 어노테이션이 AOP 포인트컷을 만드는데 사용될 수 있다. `@Repository`,`@Service`,`@Controller`는 스프링 프레임워크 추후 발표될 버전에서 추가적인 의미를 가질수 있다. 따라서 서비스 레이어에 `@Service`를 사용할지 `@Component`를 사용할 지 고민중이라면 `@Service`가 분명히 더 좋은 선택이다. 비슷하게 `@Repository`는 예외 번역을 진행하는 영속성레이어 표시로서 이미 사용되고 있다.
 
 <h4 id="beans-meta-annotations">메타 어노테이션과 복합 어노테이션 이용하기</h4>
+
+스프링에서 제공하는 많은 어노테이션을 메타 어노테이션으로 사용할 수 있다. 메타 어노테이션은 다른 어노테이션에 사용될 수 있는 어노테이션을 말한다. 아래 예시에서 알 수 있듯이 [이전 장](#beans-stereotype-annotations)에서 언급된 `@Service` 어노테이션은 `@Component`어노테이션이 적용된 메타 어노테이션이다:
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Component // [1]
+public @interface Service {
+
+    // ...
+}
+```
+
+1. `Component`는 `@Service`가 `@Component`와 같은 방식으로 처리되게 한다.
+
+메타 어노테이션을 섞어 복합 어노테이션을 만들 수 있다. 예를 들면, 스프링 MVC의 `@RestController` 어노테이션은 `@Controller`와 `@ResponseBody`를 합한 것이다.
+
+복합 어노테이션을 이용하여 메타어노테이션의 어트리뷰트를 재정의 할 수 있다. 메타 어노테이션의 일부 하위 부분만 노출하고 싶을 때에 유용하다. 예를 들면, 스프링의 `@SessionScope`는 `session` 스코프로 하드 코딩되있으며 `proxyMode`를 변경할 수 있다. 아래는 `SessionScope`의 정의이다.
+
+```java
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+@Scope(WebApplicationContext.SCOPE_SESSION)
+public @interface SessionScope {
+
+    /**
+     * Alias for {@link Scope#proxyMode}.
+     * <p>Defaults to {@link ScopedProxyMode#TARGET_CLASS}.
+     */
+    @AliasFor(annotation = Scope.class)
+    ScopedProxyMode proxyMode() default ScopedProxyMode.TARGET_CLASS;
+
+}
+```
+
+아래 예시처럼 `SessionSoce`를 `proxyMode`정의 없이 사용할 수 있다:
+
+```java
+@Service
+@SessionScope
+public class SessionScopedService {
+    // ...
+}
+```
+
+아래 예시처럼 `proxyMode`를 새 값으로 덮어쓸 수 있다:
+
+```java
+@Service
+@SessionScope(proxyMode = ScopedProxyMode.INTERFACES)
+public class SessionScopedUserService implements UserService {
+    // ...
+}
+```
+
+[스프링 어노테이션 처리 모델](https://github.com/spring-projects/spring-framework/wiki/Spring-Annotation-Programming-Model) 위키 페이지에 자세한 내용이 있습니다.
+
 <h4 id="beans-scanning-autodetection">클래스 검색과 빈 정의 등록을 자동으로 수행하기 </h4>
 <h4 id="beans-scanning-filters">필터를 이용하여 스캐닝 커스터마이징하기</h4>
 <h4 id="beans-factorybeans-annotations">컴포넌트 내부에 빈 메타데이터 정의하기</h4>

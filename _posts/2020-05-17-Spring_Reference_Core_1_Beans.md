@@ -3288,7 +3288,7 @@ public class AppConfig  {
 
 | |
 | ----- |
-| **@** 간략하게 적기 위하여 위 예시에서 어노테이션의 `value`어트리뷰트를 사용할 수 있다. (`@ComponentScan("org.example")`) |
+| **@** `<context:component-scan>`은 내부적으로 `<context:annotation-config>`의 기능을 활성화한다. 따라서 일반적으로 `<context:component-scan>`를 사용할 때 `<context:annotation-config>`를 사용할 필요가 없다. |
 
 | |
 | ----- |

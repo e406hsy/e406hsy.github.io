@@ -3164,7 +3164,7 @@ public class CachingMovieLister {
 
 | |
 | ----- |
-| **!** 스프링 3.0부터 스프링 자바설정에 제공되는 많은 기능이 스프링 프레임워크 핵심에 포함되었다. 이 덕분에 XML 대신 자바를 사용해서 빈을 정의할 수 있다. 새 기능을 사용하는 방법을 확인하려면 `@Configuration`,`@Bean`,`@Import`,`@DependsOn`어노테이션 예시를 보십시오.
+| **!** 스프링 3.0부터 스프링 자바설정에 제공되는 많은 기능이 스프링 프레임워크 핵심에 포함되었다. 이 덕분에 XML 대신 자바를 사용해서 빈을 정의할 수 있다. 새 기능을 사용하는 방법을 확인하려면 `@Configuration`,`@Bean`,`@Import`,`@DependsOn`어노테이션 예시를 보십시오. |
 
 <h4 id="beans-stereotype-annotations">@Component와 추가적인 정형화된 어노테이션</h4>
 
@@ -3233,6 +3233,74 @@ public class SessionScopedUserService implements UserService {
 [스프링 어노테이션 처리 모델](https://github.com/spring-projects/spring-framework/wiki/Spring-Annotation-Programming-Model) 위키 페이지에 자세한 내용이 있습니다.
 
 <h4 id="beans-scanning-autodetection">클래스 검색과 빈 정의 등록을 자동으로 수행하기 </h4>
+
+스프링은 자동으로 스테레오타입 어노테이션이 적용된 클래스를 찾아서 `ApplicationContext`에 `BeanDefinition` 인스턴스를 등록한다. 예를 들어 아래 두 클래스는 자동 발견 대상이다:
+
+```java
+@Service
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    public SimpleMovieLister(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+}
+```
+
+```java
+@Repository
+public class JpaMovieFinder implements MovieFinder {
+    // 명료성을 위해 구현은 생략됨
+}
+```
+
+이 클래스들을 자동으로 찾아서 빈으로 등록하기 위해서는 `@Configuraion` 클래스에 `@ComponentScan`을 추가하고 `basePackages`어트리뷰트에 두 클래스의 공통 부모 패키지로 설정하면된다. (또는 `,`,`;`,` `로 구분된 패키지 리스트로 설정해도 된다.)
+
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example")
+public class AppConfig  {
+    // ...
+}
+```
+
+| |
+| ----- |
+| **!** 간략하게 적기 위하여 위 예시에서 어노테이션의 `value`어트리뷰트를 사용할 수 있다. (`@ComponentScan("org.example")`) |
+
+또는 아래의 XML을 사용할 수 있다:
+
+```xml
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:component-scan base-package="org.example"/>
+
+</beans>
+```
+
+| |
+| ----- |
+| **@** 간략하게 적기 위하여 위 예시에서 어노테이션의 `value`어트리뷰트를 사용할 수 있다. (`@ComponentScan("org.example")`) |
+
+| |
+| ----- |
+| **!** 클래스패스 패키지 스캔을 하기 위해서는 해당 디렉토리가 클래스패스에 있어야한다. Ant로 JARs를 빌드할 때, files-only를 활성화하지 않아야한다. 또한 클래스패스 디렉토리는 일부 환경에서 보안 정책상 노출되지 않을 수 있다 - 예를 들면 JDK 1.7.0_45나 그 이상의 독립어플리케이션과 같은 환경 ( manifest에 'Trusted-Library`설정이 필요한 환경 - [https://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources](https://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources)를 보세요). |
+| JDK 9의 모듈 패스 (jigsaw)에서 스프링 클래스패스 스캔은 예상대로 동작한다. 하지만 컴포넌트 클래스들이 `module-info` 설명자에 익스포트 되어야 한다. 스프링이 퍼블릭이 아닌 멤버들을 호출하길 원한다면 `module-info`설명자에 `exports`대신 `opens`를 사용하면 된다. |
+
+추가적으로 컴포넌트 스캔 요소를 사용할 때, `AutowiredAnnotationBeanPostProcessor`와 `CommonAnnotationBeanPostProcessor`는 둘다 내부적으로 포함된다. 이 말은 이 두 컴포넌트들은 자동으로 발견되어 연결된다 - XML에 설정 메타데이터를 설정하지 않아도. 
+
+| |
+| ----- |
+| **!** `annotation-config`어트리뷰트를 `false`로 하여 `AutowiredAnnotationBeanPostProcessor`와 `CommonAnnotationBeanPostProcessor`를 등록하지 않을 수 있다. |
+
 <h4 id="beans-scanning-filters">필터를 이용하여 스캐닝 커스터마이징하기</h4>
 <h4 id="beans-factorybeans-annotations">컴포넌트 내부에 빈 메타데이터 정의하기</h4>
 <h4 id="beans-scanning-name-generator">자동 검색된 컴포넌트 이름 붙이기</h4>

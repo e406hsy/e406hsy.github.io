@@ -3302,6 +3302,48 @@ public class AppConfig  {
 | **!** `annotation-config`어트리뷰트를 `false`로 하여 `AutowiredAnnotationBeanPostProcessor`와 `CommonAnnotationBeanPostProcessor`를 등록하지 않을 수 있다. |
 
 <h4 id="beans-scanning-filters">필터를 이용하여 스캐닝 커스터마이징하기</h4>
+
+`@Component` 어노테이션이 적용된 커스텀 어노테이션, `@Component`,`@Repository`,`@Service`,`@Controller`,`@Configuration`이 적용된 클래스들을 기본적으로 후보 컴포넌트로 등록한다. 하지만 커스텀 필터를 적용하여 이 동작을 변경하거나 확장할 수 있다. `@ComponentScan`어노테이션의 `includeFilters`나 `excludeFilters`어트리뷰트(혹은 `<context:component-scan>`하위 `<context:include-filter/>`요소나 `<context:exclude-filter/>`요소)로 설정하면 된다. 각 필터는 `type`과 `expression`어트리뷰트를 설정해야한다. 아래 표는 필터링 옵션을 보여준다:
+
+#### 표 5. 필터 타입
+
+| 필터 타입 | 예시 표현 | 설명 |
+| ----- | ----- | ----- |
+| annotation (기본값) | `org.example.SomeAnnotation` | 목표 컴포넌트의 타겟레벨에 존재하는 어노테이션 (혹은 그 어노테이션의 메타 어노테이션) |
+| assignable | `org.example.SomeClass` | 목표 컴포넌트 클래스의 자식클래스나 목표 컴포넌트 인터페이스의 구현체인 클래스 |
+| aspectj | `org.example..*Service+` | 목표 컴포넌트를 설정하는 Aspectj 표현식 |
+| regex | `org\.example\.Default.*` | 목표 컴포넌트를 설정하는 정규표현식 |
+| custom | `org.example.MyTypeFilter` | `org.springframework.core.type.TypeFilter`인터페이스의 커스텀 구현체 |
+
+다음은 `@Repository` 어노테이션을 무시하고 "stub" 리포지토리를 대신 사용하는 설정이다:
+
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example",
+        includeFilters = @Filter(type = FilterType.REGEX, pattern = ".*Stub.*Repository"),
+        excludeFilters = @Filter(Repository.class))
+public class AppConfig {
+    ...
+}
+```
+
+다음은 동일한 동작을 하는 XML 예시이다:
+
+```xml
+<beans>
+    <context:component-scan base-package="org.example">
+        <context:include-filter type="regex"
+                expression=".*Stub.*Repository"/>
+        <context:exclude-filter type="annotation"
+                expression="org.springframework.stereotype.Repository"/>
+    </context:component-scan>
+</beans>
+```
+
+| |
+| ----- |
+| **!** 어노테이션에 `useDefaultFilters=false`를 설정하거나 `<component-scan>`에 `use-default-filters="false"`를 설정해서 기본 필터를 제거할 수 있다. 이는 `@Component`, `@Repository`, `@Service`, `@Controller`, `@RestController`, `@Configuration`어노테이션이 설정된 클래스 자동 발견을 취소하는 효율적인 방법이다. |
+
 <h4 id="beans-factorybeans-annotations">컴포넌트 내부에 빈 메타데이터 정의하기</h4>
 <h4 id="beans-scanning-name-generator">자동 검색된 컴포넌트 이름 붙이기</h4>
 <h4 id="beans-scanning-scope-resolver">자동 검색된 컴포넌트에 스코프 부여하기</h4>

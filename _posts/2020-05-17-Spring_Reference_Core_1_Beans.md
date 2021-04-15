@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2020-11-22T10:45:00+09:00
+date:   2021-04-15T20:45:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -206,7 +206,7 @@ sitemap:
 
 | |
 | ----- |
-| **!** XML 기반 메타데이터는 메타데이터를 설정하는 유일한 형식이 아니다. 스프링 IoC 컨테이너 그 자체는 설정 메타데이터가 어떤 형식으로 작성되어 있는 지와 완전히 무관하다. 최근에는 많은 개발자들은 스프링 어플리케이션에서 [자바 기반 설정](#beans-java)을 선택한다. |
+| ***!** XML 기반 메타데이터는 메타데이터를 설정하는 유일한 형식이 아니다. 스프링 IoC 컨테이너 그 자체는 설정 메타데이터가 어떤 형식으로 작성되어 있는 지와 완전히 무관하다. 최근에는 많은 개발자들은 스프링 어플리케이션에서 [자바 기반 설정](#beans-java)을 선택한다.* |
 
 스프링 컨테이너 메타데이터에서 사용되는 다른 형식에 관한 정보를 보려면:
 
@@ -251,7 +251,7 @@ ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", 
 
 | |
 | ----- |
-| **!** 스프링 IoC 컨테이너에 대하여 배운 이후, URI로 적힌 위치로부터 손쉽게 읽어오는 방법을 제공하는 스프링 `Resource` 추상화([리소스](../spring-reference-core-1-resources#resources)에 설명되어 있다.)에 대하여 알고 싶을 수도 있다. 특히 [어플리케이션 컨텍스트와 리소스 경로]에 설명되어 있는대로, 어플리케이션 컨텍스트를 만드는데 `Resource`경로를 사용한다. |
+| ***!** 스프링 IoC 컨테이너에 대하여 배운 이후, URI로 적힌 위치로부터 손쉽게 읽어오는 방법을 제공하는 스프링 `Resource` 추상화([리소스](../spring-reference-core-1-resources#resources)에 설명되어 있다.)에 대하여 알고 싶을 수도 있다. 특히 [어플리케이션 컨텍스트와 리소스 경로]에 설명되어 있는대로, 어플리케이션 컨텍스트를 만드는데 `Resource`경로를 사용한다.* |
 
 아래의 예시는 서비스 레이어 `(services.xml)`객체 설정 파일이다:
 
@@ -319,8 +319,7 @@ ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", 
 
 | |
 | ----- |
-| **!** 부모 디렉토리에 있는 파일을 "../"를 이용하여 나타내는 것은 가능하지만 추천하지 않는다. 이렇게 하면 현재 어플리케이션 외부에 파일에 의존하게된다. 특히 `classpath:`에 이러한 방법을 사용하는 것은 매우 추천하지 않는다.(예를 들어 `classpath:../services.xml`) 런타임에 "가장 가까운" 클래스패스 루트를 찾아 부모 디렉터리를 살펴보기 때문에 틀린 디렉토리를 선택하게 될 수도 있다.     
-상대경로 대신 완전한 리소스 위치를 얼마든지 사용할 수 있다. 예를 들면 `file:C:/config/services.xml` 또는 `classpath:/config/services.xml`. 하지만 어플리케이션의 설정을 특정 절대경로에 묶어놓는 다는 것을 확실히 알아둬야 할 것이다. 일반적으로는 이러한 절대경로를 간접적으로 유지하는 것을 선호한다. - 예를 들어 런타임에 JVM 시스템 프로퍼티에서 처리되는 "${...}" 플레이스 홀더를 이용하는 것이다. |
+| ***!** 부모 디렉토리에 있는 파일을 "../"를 이용하여 나타내는 것은 가능하지만 추천하지 않는다. 이렇게 하면 현재 어플리케이션 외부에 파일에 의존하게된다. 특히 `classpath:`에 이러한 방법을 사용하는 것은 매우 추천하지 않는다.(예를 들어 `classpath:../services.xml`) 런타임에 "가장 가까운" 클래스패스 루트를 찾아 부모 디렉터리를 살펴보기 때문에 틀린 디렉토리를 선택하게 될 수도 있다.<br>상대경로 대신 완전한 리소스 위치를 얼마든지 사용할 수 있다. 예를 들면 `file:C:/config/services.xml` 또는 `classpath:/config/services.xml`. 하지만 어플리케이션의 설정을 특정 절대경로에 묶어놓는 다는 것을 확실히 알아둬야 할 것이다. 일반적으로는 이러한 절대경로를 간접적으로 유지하는 것을 선호한다. - 예를 들어 런타임에 JVM 시스템 프로퍼티에서 처리되는 "${...}" 플레이스 홀더를 이용하는 것이다.* |
 
 네임스페이스 자체로 선언적인 기능을 제공하고 불러온다. 스프링에서 제공되는 `context`나 `util`과 같은 XML 네임스페이스를 선택하여 평범한 빈 정의를 뛰어넘는 설정도 가능하다.
 
@@ -417,7 +416,7 @@ context.refresh();
 
 | |
 | ----- |
-| **!** 빈정의와 수동으로 제공된 싱글톤 인스턴스는 가능한한 빨리 등록하어 컨테이너가 자동연결과 다른 내부 동작을 올바르게 작동할 수 있도록 해야한다. 이미 존재하는 메타데이터와 싱글톤 인스턴스를 덮어씌우는 것은 어느정도 지원하지만 새로운 빈을 런타임에 추가하는 것(팩토리에 동시접근하는 것)은 공식적으로 지원하지 않고 동시 접근 예외나 빈 컨테이너의 동시성 문제, 혹은 두 문제 모두를 발생시킬수 있다. |
+| ***!** 빈정의와 수동으로 제공된 싱글톤 인스턴스는 가능한한 빨리 등록하어 컨테이너가 자동연결과 다른 내부 동작을 올바르게 작동할 수 있도록 해야한다. 이미 존재하는 메타데이터와 싱글톤 인스턴스를 덮어씌우는 것은 어느정도 지원하지만 새로운 빈을 런타임에 추가하는 것(팩토리에 동시접근하는 것)은 공식적으로 지원하지 않고 동시 접근 예외나 빈 컨테이너의 동시성 문제, 혹은 두 문제 모두를 발생시킬수 있다.* |
 
 <h4 id="beans-beanname">빈 이름 붙이기</h4>
 
@@ -432,7 +431,7 @@ XML기반 설정 메타데이터에서 `id` 어트리뷰트, `name` 어트리뷰
 
 | |
 | ----- |
-| **!** 클래스 패스에 컴포넌트 탐색시에 스프링은 이름이 없는 컴포넌트에 이름을 생성한다. 아래의 규칙은 먼저 소개되었다: 클래스 이름을 사용한고 첫 글자를 소문자로 한다. 하지만 첫번째와 두번째글자 모두 대문자라면 원래 모습이 유지된다. 이러한 규칙은 `java.beans.Introspector.decapitalize`에 정의된다. |
+| ***!** 클래스 패스에 컴포넌트 탐색시에 스프링은 이름이 없는 컴포넌트에 이름을 생성한다. 아래의 규칙은 먼저 소개되었다: 클래스 이름을 사용한고 첫 글자를 소문자로 한다. 하지만 첫번째와 두번째글자 모두 대문자라면 원래 모습이 유지된다. 이러한 규칙은 `java.beans.Introspector.decapitalize`에 정의된다.* |
 
 <h5 id="beans-beanname-alias">빈 정의 외부에서 빈 별명 설정하기</h5>
 
@@ -557,7 +556,7 @@ public class DefaultServiceLocator {
 
 | |
 | ----- |
-| **!** 스프링 문서에서 "팩토리 빈(factory bean)"은 스프링 컨테이너에 의하여 설정되며 [인스턴스](#beans-factory-class-instance-factory-method) 혹은 [스태틱](#beans-factory-class-static-factory-method) 팩토리 메소드로 객체를 생성하는 빈을 말한다. 반면에 `FactoryBean`(대문자임을 주목하십시오) `스프링 고유의 `FactoryBean` 구현체 클래스를 의미한다. |
+| ***!** 스프링 문서에서 "팩토리 빈(factory bean)"은 스프링 컨테이너에 의하여 설정되며 [인스턴스](#beans-factory-class-instance-factory-method) 혹은 [스태틱](#beans-factory-class-static-factory-method) 팩토리 메소드로 객체를 생성하는 빈을 말한다. 반면에 `FactoryBean`(대문자임을 주목하십시오) `스프링 고유의 `FactoryBean` 구현체 클래스를 의미한다.* |
 
 <h5 id="beans-factory-type-determination">빈의 런타임 타입 결정하기</h5>
 
@@ -910,7 +909,7 @@ public class ExampleBean {
 
 | |
 | ----- |
-| **!** `idref`요소의 `local` 어트리뷰트는 4.0 beans XSD부터 지원되지 않는다. 왜냐하며 `local`어트리뷰트는 더 이상 일반적인 `bean` 참조보다 추가적인 값을 제공하지 않기 때문이다. 4.0 스키마로 업그레이드 할 시, `ifref local`참조를 `idref bean`참조로 변경하십시오. |
+| ***!** `idref`요소의 `local` 어트리뷰트는 4.0 beans XSD부터 지원되지 않는다. 왜냐하며 `local`어트리뷰트는 더 이상 일반적인 `bean` 참조보다 추가적인 값을 제공하지 않기 때문이다. 4.0 스키마로 업그레이드 할 시, `ifref local`참조를 `idref bean`참조로 변경하십시오.* |
 
 `<idref/>`요소는 (스프링 2.0보다 이전 버전에서) `ProxyFactoryBean` 빈 정의의 [AOP 인터셉터](../spring-reference-core-6-aop-api/#aop-pfb-1) 설정에서 많이 사용된다. 인터셉터 이름을 명시하는데 `<idref/>`요소를 사용하면 인터셉터 ID를 잘못 적는 실수를 방지할 수 있다.  
 
@@ -941,7 +940,7 @@ public class ExampleBean {
 
 | |
 | ----- |
-| **!** `idref`요소의 `local` 어트리뷰트는 4.0 beans XSD부터 지원되지 않는다. 왜냐하며 `local`어트리뷰트는 더 이상 일반적인 `bean` 참조보다 추가적인 값을 제공하지 않기 때문이다. 4.0 스키마로 업그레이드 할 시, `ifref local`참조를 `idref bean`참조로 변경하십시오. |
+| ***!** `idref`요소의 `local` 어트리뷰트는 4.0 beans XSD부터 지원되지 않는다. 왜냐하며 `local`어트리뷰트는 더 이상 일반적인 `bean` 참조보다 추가적인 값을 제공하지 않기 때문이다. 4.0 스키마로 업그레이드 할 시, `ifref local`참조를 `idref bean`참조로 변경하십시오.* |
 
 <h5 id="beans-inner-beans">내부 빈</h5>
 
@@ -1141,7 +1140,7 @@ p 네임스페이스를 이용하면 (중첩 `property/>`요소 대신에) `bean
 
 | |
 | ----- |
-| **!** p-네임스페이스는 표준 XML 형식보다 유연하지 못한다. 예를 들어 `Ref`로 끝나는 프로퍼티에 참조를 시킬 수 없다. XML 문서를 만드는 데에 있어 세 접근 방법을 모두 사용하지 않도록 팀원들과 충분히 상의하고 조심스럽게 진행하기를 추천한다. |
+| ***!** p-네임스페이스는 표준 XML 형식보다 유연하지 못한다. 예를 들어 `Ref`로 끝나는 프로퍼티에 참조를 시킬 수 없다. XML 문서를 만드는 데에 있어 세 접근 방법을 모두 사용하지 않도록 팀원들과 충분히 상의하고 조심스럽게 진행하기를 추천한다.* |
 
 <h5 id="beans-c-namespace">c 네임스페이스를 이용한 XML 단축</h5>
 
@@ -1179,7 +1178,7 @@ p 네임스페이스를 이용하면 (중첩 `property/>`요소 대신에) `bean
 
 | |
 | ----- |
-| **!** XML 문법 때문에 인덱스 표현은 앞에 `_`가 필요하다. 왜냐하면 XML 어트리뷰트 이름은 숫자로 시작할 수 없기 때문이다(일부 IDE는 허용하지만). 인덱스 표현은 `constructor-arg>`에서도 사용가능하지만 단순히 순서만으로 충분하기에 잘 사용되지는 않는다. |
+| ***!** XML 문법 때문에 인덱스 표현은 앞에 `_`가 필요하다. 왜냐하면 XML 어트리뷰트 이름은 숫자로 시작할 수 없기 때문이다(일부 IDE는 허용하지만). 인덱스 표현은 `constructor-arg>`에서도 사용가능하지만 단순히 순서만으로 충분하기에 잘 사용되지는 않는다.* |
 
 실제로는 생성자 분석 [과정](#beans-factory-ctor-arguments-resolution)에서 어규먼트 매칭을 효율적으로 수행한다. 따라서 정말 필요한 경우가 아니면, 이름 표현을 사용할 것을 추천한다.
 
@@ -1212,7 +1211,7 @@ p 네임스페이스를 이용하면 (중첩 `property/>`요소 대신에) `bean
 
 | |
 | ----- |
-| **!** `depends-on`어트리뷰트는 초기화 시 의존성을 표현할 수 있다. [싱글톤](#beans-factory-scopes-singleton)빈의 경우, 파괴 시 의존성 또한 표현 가능하다. `depends-on`으로 다른 빈에 의존하고 있는 빈이 먼저 파괴된다. 따라서 `depends-on`은 파괴 순서도 정할 수 있다. |
+| ***!** `depends-on`어트리뷰트는 초기화 시 의존성을 표현할 수 있다. [싱글톤](#beans-factory-scopes-singleton)빈의 경우, 파괴 시 의존성 또한 표현 가능하다. `depends-on`으로 다른 빈에 의존하고 있는 빈이 먼저 파괴된다. 따라서 `depends-on`은 파괴 순서도 정할 수 있다.* |
 
 <h4 id="beans-factory-lazy-init">지연 초기화 빈</h4>
 
@@ -1272,7 +1271,7 @@ XML 기반 설정 메타데이터([의존성 주입](#beans-factory-collaborator
 
 | |
 | ----- |
-| **!** `autowire-candidate`어트리뷰트는 오직 타입 기반 자동연결에만 영향을 미친다. 이름을 이용한 명시적 연결에는 영향을 끼치지 않는다. 결과적으로 이름을 이용한 자동연결은 이름만 맞다면 빈을 주입할 것이다. |
+| ***!** `autowire-candidate`어트리뷰트는 오직 타입 기반 자동연결에만 영향을 미친다. 이름을 이용한 명시적 연결에는 영향을 끼치지 않는다. 결과적으로 이름을 이용한 자동연결은 이름만 맞다면 빈을 주입할 것이다.* |
 
 빈 이름에 패턴 매칭을 이용하여 자동연결 후보 빈을 제한할 수 있다. 최 상위 `<beans/>`요소의 `default-autowire-candidates`어트리뷰트에 한개 이상의 패턴을 작성할 수 있다. 예를 들어, `Repository`로 끝나는 이름을 가진 빈만 자동연결 후보 빈으로 설정하고자 한다면 `*Repository`를 이용하면 된다. 여러개의 패턴을 작성하려면 반점`,`으로 분리되는 목록으로 작성하면 된다. 빈 정의에 `autowire-candidate`어트리뷰트를 명시적으로 작성하면 그 내용이 항상 우선시 된다. 이러한 빈에는 패턴 매칭 규칙이 적용되지 않는다.     
 이러한 방법은 자동연결을 이용하여 다른 빈에 주입되는 것을 막고자 할 때 유용하다. 이 방법은 자동연결 제외된 빈이 자동연결을 이용하여 자신의 의존성을 주입받지 못한다는 것을 의미하지 않는다. 자동연결 제외된 빈이 다른 빈에 자동연결되지 않는다는 의미이다.
@@ -1317,7 +1316,7 @@ public class CommandManager implements ApplicationContextAware {
 
 | |
 | ----- |
-| **!** [스프링 블로그](https://spring.io/blog/2004/08/06/method-injection/)에서 메소드 주입을 만든 동기를 볼 수 있다. |
+| ***!** [스프링 블로그](https://spring.io/blog/2004/08/06/method-injection/)에서 메소드 주입을 만든 동기를 볼 수 있다.* |
 
 <h5 id="beans-factory-lookup-method-injection">Lookup 메소드 주입</h5>
 
@@ -1398,8 +1397,7 @@ public abstract class CommandManager {
 
 | |
 | ----- |
-| **!** 스코프가 다른 빈에 접근하는 또다른 방법은 `ObjectFactory`/`Provider`를 사용하는 방법이다. 자세한 내용은 [스코프 빈 의존성](#beans-factory-scopes-other-injection)을 보자.     
-`org.springframework.beans.factory.config`에 있는 `ServiceLocatorFactoryBean`이 유용할 수도 있다. |
+| ***!** 스코프가 다른 빈에 접근하는 또다른 방법은 `ObjectFactory`/`Provider`를 사용하는 방법이다. 자세한 내용은 [스코프 빈 의존성](#beans-factory-scopes-other-injection)을 보자.<br>`org.springframework.beans.factory.config`에 있는 `ServiceLocatorFactoryBean`이 유용할 수도 있다.* |
 
 <h5 id="beans-factory-arbitrary-method-replacement">임의의 메소드 대체</h5>
 
@@ -1468,7 +1466,7 @@ str
 
 | |
 | ----- |
-| **!** 스프링 3.0부터 쓰레드 스코프가 가능하다. 하지만 기본적으로 등록되지는 않는다. 더 자세한 정보는 [`SimpleThreadScope`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/SimpleThreadScope.html)문서를 보자. 다른 커스텀 스코프를 등록하는 방법은 [커스텀 스코프 사용하기](#beans-factory-scopes-custom-using)를 보자 |
+| ***!** 스프링 3.0부터 쓰레드 스코프가 가능하다. 하지만 기본적으로 등록되지는 않는다. 더 자세한 정보는 [`SimpleThreadScope`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/SimpleThreadScope.html)문서를 보자. 다른 커스텀 스코프를 등록하는 방법은 [커스텀 스코프 사용하기](#beans-factory-scopes-custom-using)를 보자* |
 
 <h4 id="beans-factory-scopes-singleton">싱글톤 스코프</h4>
 
@@ -1593,11 +1591,7 @@ public class AppPreferences {
 
 | |
 | ----- |
-| **!** `singleton` 빈들 간에 `<aop:scoped-proxy/>`를 사용할 수 있다. 직렬화 가능한 중간 프록시를 이용하면 역직렬화 후 타겟 싱글톤 빈을 다시 획득가능해진다.     
-`prototype` 빈들에 `<aop:scoped-proxy/>`를 정의하면 프록시의 메소드를 호출할 때마다 새로운 인스턴스가 생성되어 해당 인스턴스에서 해당 메소드를 수행한다.     
-생명주기에 안전한 방법으로 더 짧은 생명주기를 가진 빈에 접근하는 방법으로는 스코프 프록시가 유일하지 않다. 인스턴스 참조를 가지고 있는 방법 대신에 `Objectfactory<MyTargetBean>`의 `getObject()`를 필요시에 호출하여 주입 순간을 정의할 수 있다.     
-`ObjectProvier<MyTargetBean>`을 이용할 수도 있다. 이는 `getIfAvailable`이나 `getIfUnique`등의 다른 접근 메소드를 제공한다.     
-JSR-330의 `Provider`는 `Provider<MyTargetBean>`으로 사용되며 `get()`을 호출하여 인스턴스에 접근한다. 자세한 내용은 [여기](#beans-standard-annotations)를 보자 |
+| ***!** `singleton` 빈들 간에 `<aop:scoped-proxy/>`를 사용할 수 있다. 직렬화 가능한 중간 프록시를 이용하면 역직렬화 후 타겟 싱글톤 빈을 다시 획득가능해진다.<br>`prototype` 빈들에 `<aop:scoped-proxy/>`를 정의하면 프록시의 메소드를 호출할 때마다 새로운 인스턴스가 생성되어 해당 인스턴스에서 해당 메소드를 수행한다.<br>생명주기에 안전한 방법으로 더 짧은 생명주기를 가진 빈에 접근하는 방법으로는 스코프 프록시가 유일하지 않다. 인스턴스 참조를 가지고 있는 방법 대신에 `Objectfactory<MyTargetBean>`의 `getObject()`를 필요시에 호출하여 주입 순간을 정의할 수 있다.<br>`ObjectProvier<MyTargetBean>`을 이용할 수도 있다. 이는 `getIfAvailable`이나 `getIfUnique`등의 다른 접근 메소드를 제공한다.<br>JSR-330의 `Provider`는 `Provider<MyTargetBean>`으로 사용되며 `get()`을 호출하여 인스턴스에 접근한다. 자세한 내용은 [여기](#beans-standard-annotations)를 보자.* |
 
 아래 설정에서 중요한 것은 단 한 줄이다. 하지만 해당 설정이 "왜", "어떻게" 적용되는지 이해하여야한다:
 ```xml
@@ -1711,7 +1705,7 @@ void registerScope(String scopeName, Scope scope);
 
 | |
 | ----- |
-| **!** 아래 예시는 스프링에 포함되있으나 기본적으로 등록되지는 않은 `SimpleThreadScope`를 사용한다. 커스텀 `Scope`구현체에서도 같은 방법으로 등록한다. |
+| ***!** 아래 예시는 스프링에 포함되있으나 기본적으로 등록되지는 않은 `SimpleThreadScope`를 사용한다. 커스텀 `Scope`구현체에서도 같은 방법으로 등록한다.* |
 
 ```java
 Scope threadScope = new SimpleThreadScope();
@@ -1756,7 +1750,7 @@ beanFactory.registerScope("thread", threadScope);
 
 | |
 | ----- |
-| **!** `FactoryBean`구현체에 `<aop:scoped-proxy/>`를 사용하면 팩토리빈 자체가 스코프를 가진다. `getObject()`로 반환되는 객체가 가지는 것이 아니다. |
+| ***!** `FactoryBean`구현체에 `<aop:scoped-proxy/>`를 사용하면 팩토리빈 자체가 스코프를 가진다. `getObject()`로 반환되는 객체가 가지는 것이 아니다.* |
 
 <h3 id="beans-factory-nature">빈의 특성 설정하기</h3>
 
@@ -1771,8 +1765,8 @@ beanFactory.registerScope("thread", threadScope);
 
 | |
 | ----- |
-| **!** 최신 스프링 어플리케이션에서 JSR-250 `@PostConstruct`와 `@PreDestory` 어노테이션이 생명주기 콜백을 가져오는 가장 좋은 방법으로 여겨진다. 이러한 빈을 사용하면 스프링 고유의 인터페이스에 묶이지 않는다. 자세한 내용은 [`@PostConstruct`와 `@PreDestory`사용하기]를 보자.     
-JSR-250 어노테이션을 사용하지 않더라도 스프링 고유의 인터페이스에 묶이고 싶지 않다면 빈 정의 메타데이터의 `init-method`와 `destory-method`를 사용해보아라. |
+| ***!** 최신 스프링 어플리케이션에서 JSR-250 `@PostConstruct`와 `@PreDestory` 어노테이션이 생명주기 콜백을 가져오는 가장 좋은 방법으로 여겨진다. 이러한 빈을 사용하면 스프링 고유의 인터페이스에 묶이지 않는다. 자세한 내용은 [`@PostConstruct`와 `@PreDestory`사용하기]를 보자.     
+JSR-250 어노테이션을 사용하지 않더라도 스프링 고유의 인터페이스에 묶이고 싶지 않다면 빈 정의 메타데이터의 `init-method`와 `destory-method`를 사용해보아라.* |
 
 내부적으로 스프링 프레임워크는 `BeanPostProcessor`구현체를 사용하여 적합한 콜백 메소드를 찾아 호출하도록 한다. 스프링이 기본적으로 제공하지 않는 생명주기 행동이나 커스텀 특성이 필요하다면 `BeanPostProcessor`를 스스로 구현할 수 있다. 자세한 내용은 [컨테이너 확장 포인트](#beans-factory-extension)를 보아라.     
 
@@ -1847,7 +1841,7 @@ public class AnotherExampleBean implements DisposableBean {
 
 | |
 | ----- |
-| **!** `<bean>`요소의 `destory-method`에 스프링이 자동으로 퍼블릭 `close`나 `shutdown`메소드를 찾아 암시적으로 값을 설정하도록 수 있다. (`java.lang.AutoClosable`이나 `java.io.Closeable`을 구현하면 해당한다.) 또한 `<beans>`요소의 `default-destroy-method`어트리뷰트에 `(inferred)`값을 설정하여 전체 빈에 암시적 설정을 할 수 있다([기본 초기화 메소드, 파괴 메소드](#beans-factory-lifecycle-default-init-destroy-methods)를 보자). 자바 기반 설정에서 위 설정이 기본 설정이다. |
+| ***!** `<bean>`요소의 `destory-method`에 스프링이 자동으로 퍼블릭 `close`나 `shutdown`메소드를 찾아 암시적으로 값을 설정하도록 수 있다. (`java.lang.AutoClosable`이나 `java.io.Closeable`을 구현하면 해당한다.) 또한 `<beans>`요소의 `default-destroy-method`어트리뷰트에 `(inferred)`값을 설정하여 전체 빈에 암시적 설정을 할 수 있다([기본 초기화 메소드, 파괴 메소드](#beans-factory-lifecycle-default-init-destroy-methods)를 보자). 자바 기반 설정에서 위 설정이 기본 설정이다.* |
 
 <h5 id="beans-factory-lifecycle-default-init-destroy-methods">기본 초기화 메소드, 파괴 메소드</h5>
 
@@ -1895,7 +1889,7 @@ public class DefaultBlogService implements BlogService {
 
 | |
 | ----- |
-| **!** 여러개의 생명주기 설정이 서로 다른 메소드이름으로 설정된다면 각각의 메소드들이 아래의 순서로 모두 동작할 것이다. 하지만 같은 이름으로 설정되면 한번만 동작할 것이다. 자세한 설명은 [앞 장](#beans-factory-lifecycle-default-init-destroy-methods)에 설명되어 있다. |
+| ***!** 여러개의 생명주기 설정이 서로 다른 메소드이름으로 설정된다면 각각의 메소드들이 아래의 순서로 모두 동작할 것이다. 하지만 같은 이름으로 설정되면 한번만 동작할 것이다. 자세한 설명은 [앞 장](#beans-factory-lifecycle-default-init-destroy-methods)에 설명되어 있다.* |
 
 하나의 빈에 여러 생명주기 설정이 다른 메소드 이름으로 존재한다면 아래 순서로 호출될 것이다:
 1. `@PostConstruct` 어노테이션으로 설정된 메소드
@@ -1937,7 +1931,7 @@ public interface LifecycleProcessor extends Lifecycle {
 
 | |
 | ----- |
-| **!** 일반 `org.springframework.context.Lifecycle`인터페이스는 시작 종료시에만 동작하며 자동 시작하는 새로고침시에는 동작하지 않는다. 특정 빈의 자동 시작시에도 통제를 하고 싶다면 `org.springframework.context.SmartLifecycle`을 구현하는 것을 고려해보십시오. |
+| ***!** 일반 `org.springframework.context.Lifecycle`인터페이스는 시작 종료시에만 동작하며 자동 시작하는 새로고침시에는 동작하지 않는다. 특정 빈의 자동 시작시에도 통제를 하고 싶다면 `org.springframework.context.SmartLifecycle`을 구현하는 것을 고려해보십시오.* |
 
 시작, 종료 메소드 호출 순서가 중요할 수 있다. 두 객체 간에 의존관계가 있다면 의존하는 객체가 늦게 시작하고 먼저 종료한다. 하지만 직접적인 의존관계가 알려지지 않은 경우가 있다. 특정 타입의 객체가 다릍 타입의 객체보다 빨리 시작해야한다는 것만 알고 있다고 하자. 이런 경우에 `SmartLifecycle` 인터페이스를 정의하는 것이 방법이 될 수 있다. `SmartLifecycle`의 부모 인터페이스인 `Phased`인터페이스의 `getPhase()`를 정의하면 된다. 아래는 `Phased`인터페이스의 정의이다:
 
@@ -1975,7 +1969,7 @@ public interface SmartLifecycle extends Lifecycle, Phased {
 
 | |
 | ----- |
-| **!** 이 장은 웹 어플리케이션이 아닌 환경에만 적용되는 내용을 담고 있다. 스프링의 웹 기반 `ApplicationContext` 구현체는 웹 어플리케이션이 종료할 때, 아름답게 종료되는 코드를 이미 가지고 있다. |
+| ***!** 이 장은 웹 어플리케이션이 아닌 환경에만 적용되는 내용을 담고 있다. 스프링의 웹 기반 `ApplicationContext` 구현체는 웹 어플리케이션이 종료할 때, 아름답게 종료되는 코드를 이미 가지고 있다.* |
 
 웹 환경이 아닌 환경에서 스프링 IoC 컨테이너를 사용한다면 JVM에 종료 훅을 등록하여야한다. 아름다운 종료를 보장하며 자원을 해제하도록 싱글톤 빈에 파괴 메소드를 호출하여 줄것이다. 물론 파괴 콜백들을 구현하고 올바르게 설정 하여야한다.     
 종료 훅을 등록하려면 `ConfigurableApplicationContext`인터페이스에 정의되어 있는 `registerShutdownHook()`을 호출하여야 한다:
@@ -2088,7 +2082,7 @@ public interface BeanNameAware {
 
 | |
 | ----- |
-| **!** `ApplicationContext`는 기본적으로 모든 싱글톤 빈을 초기에 인스턴스화 시킨다. 따라서 템플릿으로 사용하려는 (부모) 빈 정의에 `abstract` 요소를 설정하는 것은 (적어도 싱글톤 빈에서는) 중요하다. 그렇지 않으면 어플리케이션 컨텍스트는 `abstract` 빈을 인스턴스화 하려할 것이다. |
+| ***!** `ApplicationContext`는 기본적으로 모든 싱글톤 빈을 초기에 인스턴스화 시킨다. 따라서 템플릿으로 사용하려는 (부모) 빈 정의에 `abstract` 요소를 설정하는 것은 (적어도 싱글톤 빈에서는) 중요하다. 그렇지 않으면 어플리케이션 컨텍스트는 `abstract` 빈을 인스턴스화 하려할 것이다.* |
 
 <h3 id="beans-factory-extension">컨테이너 확장 시점</h3>
 
@@ -2103,7 +2097,7 @@ public interface BeanNameAware {
 
 | |
 | ----- |
-| **!** `BeanPostProcessor` 인스턴스는 빈 이나 객체 인스턴스에 동작한다. 이 말은 스프링 IoC 컨테이너가 빈은 인스턴스화 한 뒤 `BeanPostProcessor`가 작업을 수행한다는 말이다.<br>`BeanPostProcessor`인스턴스는 컨테이너 스코프를 가진다. 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈만 후처리할 것이다. 다시 말하자면 `BeanPostProcessor`는 다른 컨테이너에 등록된 빈들의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.<br>빈 정의를 수정하기 위해서는 `BeanFactoryPostProcessor`를 사용하면 된다. 자세한 설명은 [`BeanFactoryPostProcessor`를 이용하여 설정 메타데이터 설정하기](#beans-factory-extension-factory-postprocessors)에 설명되어 있다. |
+| ***!** `BeanPostProcessor` 인스턴스는 빈 이나 객체 인스턴스에 동작한다. 이 말은 스프링 IoC 컨테이너가 빈은 인스턴스화 한 뒤 `BeanPostProcessor`가 작업을 수행한다는 말이다.<br>`BeanPostProcessor`인스턴스는 컨테이너 스코프를 가진다. 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈만 후처리할 것이다. 다시 말하자면 `BeanPostProcessor`는 다른 컨테이너에 등록된 빈들의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.<br>빈 정의를 수정하기 위해서는 `BeanFactoryPostProcessor`를 사용하면 된다. 자세한 설명은 [`BeanFactoryPostProcessor`를 이용하여 설정 메타데이터 설정하기](#beans-factory-extension-factory-postprocessors)에 설명되어 있다.* |
 
 `org.springframework.beans.factory.config.BeanPostProcessor` 인터페이스는 정확히 두개의 콜백 메소드로 구성되어있다. 이런 클래스가 컨테이너에 후 처리기로 등록되면 컨테이너에서 생성되는 각각의 빈 인스턴스마다 후처리기 콜백이 실행된다. 이 콜백은 컨테이너의 (`InitializingBean.afterPropertiesSet`과 같은) 초기화 메서드나 `init` 메서드 보다 먼저 실행된며 빈의 초기화 콜백보다 늦게 실행된다. 빈 후처리기는 빈 인스턴스에 작업을 할 수도 있고 완전히 무시하고 넘어갈 수도 있다. 빈 후처리기는 일반적으로 콜백 인터페이스를 확인하거나 프록시로 빈을 감싸는 동작을 한다. 일부 스프링 AOP 인프라 클래스들은 빈 후처리기로 구현되어 프록시로 감싸는 동작을 수행한다.
 
@@ -2117,9 +2111,9 @@ public interface BeanNameAware {
 
 | |
 | ----- |
-| **!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br>`BeanPostProcessor`를 등록하는 방법으로 `ApplicationContext`의 자동발견을 사용하는 것을 추천하지만 `ConfigurableBeanFactory`의 `addBeanPostProcessor` 메소드를 이용하여 프로그래밍적으로 등록할 수도 있다. 빈 후처리기등록 전에 분기문을 타야하는 상황이나 컨텍스트 계층에서 빈 후처리기를 복사해와야 하는 경우 유용하게 사용될 수 있다. 하지만 `BeanPostProcessor`를 프로그래밍적으로 등록하면 `Ordered`인터페이스의 영향을 받지 않는다는 것을 명심하여야한다. 등록한 순서가 실행의 순서가 된다. 또한 프로그래밍적으로 등록된 `BeanPostProcessor`가 자동발견되어 등록된 것들보다 먼저 실행된다는 것도 명심해야한다. |
+| ***!** <b>`BeanPostProcessor` 인스턴스의 프로그래밍적 등록</b><br>`BeanPostProcessor`를 등록하는 방법으로 `ApplicationContext`의 자동발견을 사용하는 것을 추천하지만 `ConfigurableBeanFactory`의 `addBeanPostProcessor` 메소드를 이용하여 프로그래밍적으로 등록할 수도 있다. 빈 후처리기등록 전에 분기문을 타야하는 상황이나 컨텍스트 계층에서 빈 후처리기를 복사해와야 하는 경우 유용하게 사용될 수 있다. 하지만 `BeanPostProcessor`를 프로그래밍적으로 등록하면 `Ordered`인터페이스의 영향을 받지 않는다는 것을 명심하여야한다. 등록한 순서가 실행의 순서가 된다. 또한 프로그래밍적으로 등록된 `BeanPostProcessor`가 자동발견되어 등록된 것들보다 먼저 실행된다는 것도 명심해야한다.* |
 | |
-| **!** <b>`BeanPostProcessor` 인스턴스와 AOP 자동 프록시 생성</b><br>컨테이너는 `BeanPostProcessor`를 구현한 클래스들을 다르게 취급한다. 모든 `BeanPostProcessor`인스턴스들은 `ApplicationContext`시작 동작의 특수한 단계에서 인스턴스화 된다. 그 뒤, 모든 `BeanPostProcessor`인스턴스들은 순서대로 등록되어 앞으로 생성되는 모든 빈에 적용된다. AOP 자동 프록시 생성은 `BeanPostProcessor`로 구현되었기 때문에 `BeanPostProcessor` 인스턴스나 직접참조되는 인스턴스들은 프록시가 적용되지 않는다.<br>그러한 모든 빈에 다음와 같은 Info레벨 로그를 확인할 수 있다:`Bean someBean is not eligible for getting processed by all BeanPostProcessor interfaces (for example: not eligible for auto-proxying).`<br>만약 빈 자동연결이나 `@Resource`를 이용하여 `BeanPostProcessor`에 연결한 빈이 있다면 스프링은 타입이 일치하는 빈을 찾는 과정에서 의도하지 않은 빈들을 자동 프록시 객체 생성이나 다른 후처리가 적용되지 못하도록 할것이다. 예를 들어 `@Resource`어노테이션을 이용해 필드기반 의존성 주입을 사용할 때, name 어트리뷰트를 사용하지 않았고 필드의 이름과 매칭되는 빈이 없다면 스프링은 해당 타입의 다른 빈들에 접근할 것이다. |
+| ***!** <b>`BeanPostProcessor` 인스턴스와 AOP 자동 프록시 생성</b><br>컨테이너는 `BeanPostProcessor`를 구현한 클래스들을 다르게 취급한다. 모든 `BeanPostProcessor`인스턴스들은 `ApplicationContext`시작 동작의 특수한 단계에서 인스턴스화 된다. 그 뒤, 모든 `BeanPostProcessor`인스턴스들은 순서대로 등록되어 앞으로 생성되는 모든 빈에 적용된다. AOP 자동 프록시 생성은 `BeanPostProcessor`로 구현되었기 때문에 `BeanPostProcessor` 인스턴스나 직접참조되는 인스턴스들은 프록시가 적용되지 않는다.<br>그러한 모든 빈에 다음와 같은 Info레벨 로그를 확인할 수 있다:`Bean someBean is not eligible for getting processed by all BeanPostProcessor interfaces (for example: not eligible for auto-proxying).`<br>만약 빈 자동연결이나 `@Resource`를 이용하여 `BeanPostProcessor`에 연결한 빈이 있다면 스프링은 타입이 일치하는 빈을 찾는 과정에서 의도하지 않은 빈들을 자동 프록시 객체 생성이나 다른 후처리가 적용되지 못하도록 할것이다. 예를 들어 `@Resource`어노테이션을 이용해 필드기반 의존성 주입을 사용할 때, name 어트리뷰트를 사용하지 않았고 필드의 이름과 매칭되는 빈이 없다면 스프링은 해당 타입의 다른 빈들에 접근할 것이다.* |
 
 아래의 예시는 `ApplicationContext`에 `BeanPostProcessor`를 작성하고 등록하고 사용하는 예시이다.
 
@@ -2211,7 +2205,7 @@ org.springframework.scripting.groovy.GroovyMessenger@272961
 
 | |
 | ----- |
-| **!** 설정메타데이터를 이용하여 생성된 객체인 빈 인스턴스 자체를 변경하고 싶으면 `BeanPostProcessor`를 사용하십시오.([`BeanPostProcessor`를 이용하여 빈 커스터마이징 하기](#beans-factory-extension-bpp)에 설명되어 있습니다.) `BeanFactoryPostProcessor`에서 빈 인스턴스에 작업하는 것이 불가능하지 않지만(예를 들면, `BeanFactory.getBean()`을 사용하여서) 그렇게 하면 빈 인스턴스를 이른 시점에 생성하게 되어 컨테이너 표준 생명주기를 위반하게 됩니다. 이 방법은 빈 후처리를 생략하게 되는 등, 부작용을 야기할 수 있습니다.<br>또한 `BeanFactoryPostProcessor` 인스턴스는 컨테이너 스코프를 가집니다. 이는 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanFactoryPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈 정의만 후처리할 것이다. 다시 말하자면 `BeanFactoryPostProcessor`는 다른 컨테이너에 등록된 빈 정의의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.  |
+| ***!** 설정메타데이터를 이용하여 생성된 객체인 빈 인스턴스 자체를 변경하고 싶으면 `BeanPostProcessor`를 사용하십시오.([`BeanPostProcessor`를 이용하여 빈 커스터마이징 하기](#beans-factory-extension-bpp)에 설명되어 있습니다.) `BeanFactoryPostProcessor`에서 빈 인스턴스에 작업하는 것이 불가능하지 않지만(예를 들면, `BeanFactory.getBean()`을 사용하여서) 그렇게 하면 빈 인스턴스를 이른 시점에 생성하게 되어 컨테이너 표준 생명주기를 위반하게 됩니다. 이 방법은 빈 후처리를 생략하게 되는 등, 부작용을 야기할 수 있습니다.<br>또한 `BeanFactoryPostProcessor` 인스턴스는 컨테이너 스코프를 가집니다. 이는 컨테이너 계층을 활용할 때만 관련이있는 정보이다. `BeanFactoryPostProcessor`를 한 컨테이너에서 정의하면 그 컨테이너에 있는 빈 정의만 후처리할 것이다. 다시 말하자면 `BeanFactoryPostProcessor`는 다른 컨테이너에 등록된 빈 정의의 후처리를 하지 않을 것이다. 두 컨테이너가 같은 계층구조상에 있더라고 마찬가지이다.*  |
 
 빈 팩토리 후처리기가 `ApplicationContext`에서 정의되면 생성자는 자동으로 동작하여 컨테이너에 정의된 빈 정의 설정 메타데이터에 변경을 가합니다. 스프링은 `PropertyOverrideConfigurer`나 `PropertySourcesPlaceholderConfigurer`와 같은 미리 정의된 다수의 빈 팩토리 후처리기를 포한하고 있습니다. 커스텀 `BeanFactoryPostProcessor`를 사용할 수 있습니다. - 예를 들면 커스텀 프로퍼티 에디터를 등록하는 빈 팩토리 후처리기.
 
@@ -2220,7 +2214,7 @@ org.springframework.scripting.groovy.GroovyMessenger@272961
 
 | |
 | ----- |
-| **!** 일반적인 경우 `BeanPostProcessor`와 마찬가지로 `BeanFactoryPostProcessor`를 지연 초기화하지는 않을 것이다. 다른 어떠한 빈도 `BeanPostProcessor`나 `BeanFactoryPostProcessor`를 참조하지 않으면 후처리기는 인스턴스화되지 않을 것이다. 따라서 지연 초기화 설정은 무시된다. `BeanPostProcessor`와 `BeanFactoryPostProcessor`는 지연 초기화 되지 않을 것이다. 심지어 `beans`요소의 `default-lazy-init`어트리뷰트를 `true`로 설정하여도 마찬가지이다. |
+| ***!** 일반적인 경우 `BeanPostProcessor`와 마찬가지로 `BeanFactoryPostProcessor`를 지연 초기화하지는 않을 것이다. 다른 어떠한 빈도 `BeanPostProcessor`나 `BeanFactoryPostProcessor`를 참조하지 않으면 후처리기는 인스턴스화되지 않을 것이다. 따라서 지연 초기화 설정은 무시된다. `BeanPostProcessor`와 `BeanFactoryPostProcessor`는 지연 초기화 되지 않을 것이다. 심지어 `beans`요소의 `default-lazy-init`어트리뷰트를 `true`로 설정하여도 마찬가지이다.* |
 
 <h5 id="beans-factory-placeholderconfigurer">예제: 클래스 이름 대체 PropertySourcesPlaceholderConfigurer</h5>
 
@@ -2304,7 +2298,7 @@ tom.fred.bob.sammy=123
 
 | |
 | ----- |
-| **!** 명시된 재작성 값은 항상 문자값이여야한다. 이 값들은 빈 참조로 해석되지 않을 것이다. 이 규칙은 빈 참조를 설정하는 xml빈 정의의 값에도 적용된다. |
+| ***!** 명시된 재작성 값은 항상 문자값이여야한다. 이 값들은 빈 참조로 해석되지 않을 것이다. 이 규칙은 빈 참조를 설정하는 xml빈 정의의 값에도 적용된다.* |
 
 스프링 2.5부터 지원하는 `context` 네임스페이스를 이용하여 재작성할 프로퍼티를 아래 예시처럼 설정할 수 있다:
 ```xml
@@ -2337,7 +2331,7 @@ xml설정을 대신하는 방법은 어노테이션 기반 설정이다. 이 방
 
 | |
 | ----- |
-| **!** 어노테이션 빈 주입은 xml 빈 주입보다 먼저 실행됩니다. 따라서 xml설정이 어노테이션 기반 프로퍼티의 값을 재 작성할 것입니다. |
+| ***!** 어노테이션 빈 주입은 xml 빈 주입보다 먼저 실행됩니다. 따라서 xml설정이 어노테이션 기반 프로퍼티의 값을 재 작성할 것입니다.* |
 
 항상 그랬듯이, 각각의 빈정의를 등록할 수 있다. 하지만 xml기반 스프링 설정에서 아래의 태그를 사용하여 함축적으로 등록할 수 있다.(`context` 네임스페이스를 사용할 것을 확인하십시오):
 ```xml
@@ -2359,7 +2353,7 @@ xml설정을 대신하는 방법은 어노테이션 기반 설정이다. 이 방
 
 | |
 | ----- |
-| **!** `<context:annotation-config/>`는 같은 어플리케이션 컨텍스트 내부 빈의 어노테이션만 확인한다. 이 말은 `DispatcherServlet`의 `WebApplicationContext`에 `<context:annotation-config/>`를 설정하면 컨트롤러에 있는 `@Autowired` 빈을 확인할 것이지만 서비스에 있는 빈은 확인하지 않을 것이다. 자세한 내용은 [DispatcherServlet](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/spring-framework-reference/web.html#mvc-servlet)을 보십시오. |
+| ***!** `<context:annotation-config/>`는 같은 어플리케이션 컨텍스트 내부 빈의 어노테이션만 확인한다. 이 말은 `DispatcherServlet`의 `WebApplicationContext`에 `<context:annotation-config/>`를 설정하면 컨트롤러에 있는 `@Autowired` 빈을 확인할 것이지만 서비스에 있는 빈은 확인하지 않을 것이다. 자세한 내용은 [DispatcherServlet](https://docs.spring.io/spring-framework/docs/5.2.8.RELEASE/spring-framework-reference/web.html#mvc-servlet)을 보십시오.* |
 
 <h4 id="beans-required-annotation">@Required</h4>
 
@@ -2381,13 +2375,13 @@ public class SimpleMovieLister {
 
 | |
 | ----- |
-| **!** `@Required` 어노테이션은 스프링 5.1에서 공식적으로 사용중단을 권장한다. 필수 적인 값을 설정하는데에 생성자 주입을 사용하는 것을 추천한다. (혹은 프로퍼티 세터메소드와 커스텀 `InitializingBean.afterPropertiesSet()`구현을 사용하십시오.) |
+| ***!** `@Required` 어노테이션은 스프링 5.1에서 공식적으로 사용중단을 권장한다. 필수 적인 값을 설정하는데에 생성자 주입을 사용하는 것을 추천한다. (혹은 프로퍼티 세터메소드와 커스텀 `InitializingBean.afterPropertiesSet()`구현을 사용하십시오.)* |
 
 <h4 id="beans-autowired-annotation">@Autowired 사용하기</h4>
 
 | |
 | ----- |
-| **!** JSR 330의 `@Inject`어노테이션은 스프링 `@Autowired`가 사용된 곳에 사용될 수 있다. 이 섹션에 예제가 포함되어 있다. 자세한 내용은 [여기](#beans-standard-annotations)를 보십시오. |
+| ***!** JSR 330의 `@Inject`어노테이션은 스프링 `@Autowired`가 사용된 곳에 사용될 수 있다. 이 섹션에 예제가 포함되어 있다. 자세한 내용은 [여기](#beans-standard-annotations)를 보십시오.* |
 
 `@Autowired`어노테이션을 아래예시처럼 생성자에 적용할 수 있다:
 ```java
@@ -2406,7 +2400,7 @@ public class MovieRecommender {
 
 | |
 | ----- |
-| **!** 스프링 4.3부터 위와 같이 생성자가 1개인 경우에 `@Autowired`어노테이션이 필요하지 않다. 하지만 여러개의 생성자가 사용가능하고 최우선/기본 생성자가 없다면 최소 한개의 생성자가 `@Autowired` 어노테이션이 설정되어 있어야한다. 자세한 내용은 [생성자 결정](#beans-autowired-annotation-constructor-resolution)을 보십시오. |
+| ***!** 스프링 4.3부터 위와 같이 생성자가 1개인 경우에 `@Autowired`어노테이션이 필요하지 않다. 하지만 여러개의 생성자가 사용가능하고 최우선/기본 생성자가 없다면 최소 한개의 생성자가 `@Autowired` 어노테이션이 설정되어 있어야한다. 자세한 내용은 [생성자 결정](#beans-autowired-annotation-constructor-resolution)을 보십시오.* |
 
 또한 `@Autowired`어노테이션은 아래 예시처럼 세터메소드에 사용 가능합니다:
 ```java
@@ -2462,7 +2456,7 @@ public class MovieRecommender {
 
 | |
 | ----- |
-| **@** 필요한 컴포넌트(예를 들면, `MovieCatalog`나 `CustomerPreferenceDao`)가 `@Autowired`가 적용된 타입으로 정의되어 있어야합니다. 그렇지 않다면 의존성 주입이 실패하며 `no type match found`에러가 런타임에 발생할 것입니다.<br>xml 빈 정의나 클래스패스 스캔을 통하여 발견된 컴포넌트 클래스들은 컨테이너가 타입을 처음부터 알고 있습니다. 하지만 `@Bean` 팩토리 메소드는 선언된 반환 타입이 충분한 정보를 가지고 있어야합니다. 여러개의 인터페이스를 구현한 컴포넌트나 구현체 타입으로 참조될 가능성이 있는 컴포넌트들은 팩토리 메서드에 가장 구체적인 리턴타입으로 선언하는 것이 좋습니다.(최소한 의존성 주입이 가능한 정도로 구체적이여야 합니다) |
+| ***@** 필요한 컴포넌트(예를 들면, `MovieCatalog`나 `CustomerPreferenceDao`)가 `@Autowired`가 적용된 타입으로 정의되어 있어야합니다. 그렇지 않다면 의존성 주입이 실패하며 `no type match found`에러가 런타임에 발생할 것입니다.<br>xml 빈 정의나 클래스패스 스캔을 통하여 발견된 컴포넌트 클래스들은 컨테이너가 타입을 처음부터 알고 있습니다. 하지만 `@Bean` 팩토리 메소드는 선언된 반환 타입이 충분한 정보를 가지고 있어야합니다. 여러개의 인터페이스를 구현한 컴포넌트나 구현체 타입으로 참조될 가능성이 있는 컴포넌트들은 팩토리 메서드에 가장 구체적인 리턴타입으로 선언하는 것이 좋습니다.(최소한 의존성 주입이 가능한 정도로 구체적이여야 합니다)* |
 
 특정 타입 배열 형태의 필드나 메소드에 `@Autowired`를 추가하여 `ApplicationContext`가 해당 타입의 모든 빈을 제공하도록 구성할 수 있습니다:
 ```java
@@ -2481,7 +2475,7 @@ public class MovieRecommender {
 
 | |
 | ----- |
-| **@** `org.springframework.core.Ordered`인터페이스를 구현하거나 `@Order`어노테이션을 사용하거나 `@Priority`표준 어노테이션을 사용하여 빈들이 특정한 순서로 정렬된 배열이나 리스트를 가져올 수 있습니다. 그렇지 않다면 컨테이너에 빈 정의가 등록된 순서를 따를 것입니다.<br>`@Order`어노테이션은 빈의 클래스나 `@Bean`메소드에 선언할 수 있습니다. `@Order`어노테이션은 의존성 주입의 우선순위에 영향을 미칠수 있습니다. 싱글톤 빈이 생성되는 순서에는 영향이 없다는 것을 알고 있어야합니다. 싱글톤 빈의 생성 순서는 의존성 관계와 `@DependsOn`정의에 따라 수직적으로 결정됩니다.<br>표준 `javax.annotation.Priority` 어노테이션은 `@Bean`에 사용할 수 없습니다. 메소드에 적용될 수 없는 어노테이션이기 떄문입니다. 대신 `@Order`값이나 `@Primary`를 이용할 수 있습니다. |
+| ***@** `org.springframework.core.Ordered`인터페이스를 구현하거나 `@Order`어노테이션을 사용하거나 `@Priority`표준 어노테이션을 사용하여 빈들이 특정한 순서로 정렬된 배열이나 리스트를 가져올 수 있습니다. 그렇지 않다면 컨테이너에 빈 정의가 등록된 순서를 따를 것입니다.<br>`@Order`어노테이션은 빈의 클래스나 `@Bean`메소드에 선언할 수 있습니다. `@Order`어노테이션은 의존성 주입의 우선순위에 영향을 미칠수 있습니다. 싱글톤 빈이 생성되는 순서에는 영향이 없다는 것을 알고 있어야합니다. 싱글톤 빈의 생성 순서는 의존성 관계와 `@DependsOn`정의에 따라 수직적으로 결정됩니다.<br>표준 `javax.annotation.Priority` 어노테이션은 `@Bean`에 사용할 수 없습니다. 메소드에 적용될 수 없는 어노테이션이기 떄문입니다. 대신 `@Order`값이나 `@Primary`를 이용할 수 있습니다.* |
 
 심지어 키 타입이 `String`이라면 `Map`인스턴스로 자동연결될 수 잇습니다. 해당 타입의 빈의 이름을 키값으로 빈 자체를 값으로 하는 Map이 됩니다:
 ```java
@@ -2521,7 +2515,7 @@ public class SimpleMovieLister {
 
 | |
 | ----- |
-| **!** 빈 클래스의 1개의 생성자만 `Required`어트리뷰트가 `true`인 `@Autowired`로 선언되어 스프링 빈으로 사용할 생성자임을 나타낼 것이다. `required`어트리뷰트가 기본값이 `true` 그대로 나둔다면 단 한개의 생성자만 `@Autowired`로 설정될 것이다. 여러개의 생성자에 어노테이션을 선언한다면, 전부 `required=false`로 선언해서 자동연결 후보로 여겨져야할 것이다.(XML에서 `autowire=constructor`와 같다.) 의존성 주입이 가능한 생성자들중 가장 많은 의존성을 가지고 있는 생성자가 스프링 컨테이너에 의하여 선택될 것이다. 자동연결 후보 중 어느 것도 의존성이 해결되지 않는다면 최우선/기본 생성자가 사용될 것이다. 비슷하게 클래스가 여러개의 생성자를 가지고있고 어느 하나 `@Autowired`로 선언되지 않았으면 최우선/기본 생성자가 사용될 것이다. 클래스가 한개의 생성자만 가지고 있다면 어노테이션 존재와 상관없이 항상 그 생성자가 사용될 것이다. 어노테이션이 적용된 생성자는 public일 필요가 없다는 것을 알아두십시오.<br>`@Autowired`의 `required`어트리뷰트는 더이상 사용을 권장하지 않는 `@Required`어노테이션을 대신하여 세터메소드에 사용하는걸 권장한다. `required`어트리뷰트를 `false`로 설정하는 것은 자동연결시에 반드시 필요하지 않다는 것을 의미하고 자동연결이 불가하면 프로퍼티는 무시됩니다. 반면에 `@Required`는 프로퍼티가 어떠한 방법으로든 컨테이너에 의하여 설정되도록 강제하고 그렇지 않으면 예외가 발생할 것이다. |
+| ***!** 빈 클래스의 1개의 생성자만 `Required`어트리뷰트가 `true`인 `@Autowired`로 선언되어 스프링 빈으로 사용할 생성자임을 나타낼 것이다. `required`어트리뷰트가 기본값이 `true` 그대로 나둔다면 단 한개의 생성자만 `@Autowired`로 설정될 것이다. 여러개의 생성자에 어노테이션을 선언한다면, 전부 `required=false`로 선언해서 자동연결 후보로 여겨져야할 것이다.(XML에서 `autowire=constructor`와 같다.) 의존성 주입이 가능한 생성자들중 가장 많은 의존성을 가지고 있는 생성자가 스프링 컨테이너에 의하여 선택될 것이다. 자동연결 후보 중 어느 것도 의존성이 해결되지 않는다면 최우선/기본 생성자가 사용될 것이다. 비슷하게 클래스가 여러개의 생성자를 가지고있고 어느 하나 `@Autowired`로 선언되지 않았으면 최우선/기본 생성자가 사용될 것이다. 클래스가 한개의 생성자만 가지고 있다면 어노테이션 존재와 상관없이 항상 그 생성자가 사용될 것이다. 어노테이션이 적용된 생성자는 public일 필요가 없다는 것을 알아두십시오.*<br>*`@Autowired`의 `required`어트리뷰트는 더이상 사용을 권장하지 않는 `@Required`어노테이션을 대신하여 세터메소드에 사용하는걸 권장한다. `required`어트리뷰트를 `false`로 설정하는 것은 자동연결시에 반드시 필요하지 않다는 것을 의미하고 자동연결이 불가하면 프로퍼티는 무시됩니다. 반면에 `@Required`는 프로퍼티가 어떠한 방법으로든 컨테이너에 의하여 설정되도록 강제하고 그렇지 않으면 예외가 발생할 것이다.* |
 
 대신에 반드시 필요하지 않은 특정 의존성을 자바 8의 `java.util.Optional`을 이용하여 표현할수 있다:
 ```jvava
@@ -2563,7 +2557,7 @@ public class MovieRecommender {
 
 | |
 | ----- |
-| **!** `@Autowired`, `@Inject`, `@Value`, `@Resource` 어노테이션은 스프링 `BeanPostProcessor`의 구현체에 의해 적용된다. 이 말은 자신만의 `BeanPostProcessor`나 `BeanFactoryPostProcessor`에서 이러한 어노테이션을 적용할 수 없다는 이야기이다. 이러한 타입은 반드시 xml이나 `@Bean`메소드에서 명시적으로 연결되어야한다. |
+| ***!** `@Autowired`, `@Inject`, `@Value`, `@Resource` 어노테이션은 스프링 `BeanPostProcessor`의 구현체에 의해 적용된다. 이 말은 자신만의 `BeanPostProcessor`나 `BeanFactoryPostProcessor`에서 이러한 어노테이션을 적용할 수 없다는 이야기이다. 이러한 타입은 반드시 xml이나 `@Bean`메소드에서 명시적으로 연결되어야한다.* |
 
 <h4 id="beans-autowired-annotation-primary">@Primary를 이용하여 어노테이션 기반 자동 연결 미세 조정하기</h4>
 
@@ -2692,7 +2686,7 @@ qualifier는 또한 이전에 이야기된 타입 컬렉션에도 적용된다. 
 
 | |
 | ----- |
-| **!** qualifier 값으로 빈을 선택하는데 반드시 `@Qualifier` 어노테이션이 필요한 것은 아니다. 선택 표시자(qualifier나 primary)가 없다면, 스프링이 의존성 주입 지점의 이름(필드 이름이나 파라메터 이름)을 이용하여 빈 이름을 찾아볼 것이다. |
+| ***!** qualifier 값으로 빈을 선택하는데 반드시 `@Qualifier` 어노테이션이 필요한 것은 아니다. 선택 표시자(qualifier나 primary)가 없다면, 스프링이 의존성 주입 지점의 이름(필드 이름이나 파라메터 이름)을 이용하여 빈 이름을 찾아볼 것이다.* |
 
 즉 이름을 이용하여 의존성 주입을 하고자 한다면 `@Autowired`를 사용하면 이름을 선택이 가능하지만 `@Autowired`를 후순위로 고려하여라. 대신에 특정한 이름을 가진 컴포넌트를 정의하는 의미를 가진 `@Resource` 어노테이션을 사용하여라. `@Autowired`는 조금 다른 의미를 가진다: 타입으로 후보 빈을 선택한 뒤에 `String` qualifer값이 이 후보 빈들 중에서 고려된다.
 
@@ -2702,7 +2696,7 @@ qualifier는 또한 이전에 이야기된 타입 컬렉션에도 적용된다. 
 
 | |
 | ----- |
-| **!** 설정 클래스 내부에서 `@Bean`메소드의 결과를 주입하는 것은 효과적인 자기 자신 참조 방법이다. 참조가 필요한 메소드에서 참조를 지연초기화 하거나 `@Bean`메소드를 `static`으로 선언하는 두 방법 모두 설정 클래스 인스턴스와 생명주기에서 빈을 독립시킨다. 그렇지 않으면 이러한 빈은 마지막에 고려되어 적합한 다른 설정 클래스의 빈들이 대신 주입될 것이다. |
+| ***!** 설정 클래스 내부에서 `@Bean`메소드의 결과를 주입하는 것은 효과적인 자기 자신 참조 방법이다. 참조가 필요한 메소드에서 참조를 지연초기화 하거나 `@Bean`메소드를 `static`으로 선언하는 두 방법 모두 설정 클래스 인스턴스와 생명주기에서 빈을 독립시킨다. 그렇지 않으면 이러한 빈은 마지막에 고려되어 적합한 다른 설정 클래스의 빈들이 대신 주입될 것이다.* |
 
 `@Autowired`는 필드, 생성자, 다수의 어규먼트를 가진 메소드에 적용된다. 반면에 `@Resource`는 오직 필드와 한개의 어규먼트를 가진 세터메소드에만 적용된다. 의존성 주입 지점이 생성자나 어규먼트 여러개를 가진 메소드라면 `@Autowired`를 이용해야한다.
 
@@ -2995,7 +2989,7 @@ public class SimpleMovieLister {
 
 | |
 | ----- |
-| **!** `CommonAnnotationBeanPostProcessor`를 가지고 있는 `ApplicationContext`는 어노테이션에 의하여 전달된 이름을 빈 이름으로 변경한다. Spring의 `SimpleJndiBeanFactory`를 설정한다면 JNDI를 통해 이름을 변경할 수 있다. 하지만 기본 설정을 사용하는 것을 추천한다. 그러면 스프링 JNDI lookup 기능을 사용하여 간접성을 유지할 수 있다. |
+| ***!** `CommonAnnotationBeanPostProcessor`를 가지고 있는 `ApplicationContext`는 어노테이션에 의하여 전달된 이름을 빈 이름으로 변경한다. Spring의 `SimpleJndiBeanFactory`를 설정한다면 JNDI를 통해 이름을 변경할 수 있다. 하지만 기본 설정을 사용하는 것을 추천한다. 그러면 스프링 JNDI lookup 기능을 사용하여 간접성을 유지할 수 있다.* |
 
 `@Resource`를 직접적으로 이름을 설정하지 않고 사용한 경우, `@Autowired`와 비슷하게 타입기반 빈 주입을 실행한다. 또한 알려진 해소 가능한 의존성을 주입한다 : `BeanFactory`, `ApplicationContext`, `ResourceLoader`, `ApplicationEventPublisher`, `MessageSource`인터페이스
 
@@ -3063,13 +3057,13 @@ public class AppConfig {
 
 | |
 | ----- |
-| **!** `PropertyPlaceholderConfigurer`를 자바 설정으로 설정할 경우, `@Bean`메서드는 반드시 `static`이여야 한다. |
+| ***!** `PropertyPlaceholderConfigurer`를 자바 설정으로 설정할 경우, `@Bean`메서드는 반드시 `static`이여야 한다.* |
 
 위 설정을 사용하면 `${}` 플레이스홀더에 값 주입을 할 수 없을 경우 초기화에 실패한다. 또한 `setPlaceholderPrefix`,`setPlaceholderSuffix`,`setValueSeparator`와 같은 플레이스홀더 설정 수정을 할 수 있는 메서드를 제공한다.
 
 | |
 | ----- |
-| **!** `application.properties`와 `application.yml`로부터 프로퍼티를 읽어오는 `PropertySourcesPlaceholderConfigurer`빈이 스프링 부트에서는 자동적으로 설정된다. |
+| ***!** `application.properties`와 `application.yml`로부터 프로퍼티를 읽어오는 `PropertySourcesPlaceholderConfigurer`빈이 스프링 부트에서는 자동적으로 설정된다. *|
 
 스프링에 포함된 컨버터가 (`int`나 `Integer`와 같은) 단순한 타입 변경을 자동으로 진행한다. 콤마로 분리된 값들을 자동으로 문자열 배열로 변경한다.
 
@@ -3155,7 +3149,7 @@ public class CachingMovieLister {
 
 | |
 | ----- |
-| **@** `@Resource`처럼 `@PostConstruct`와 `@PreDestory`어노테이션은 JDK 6~8에 표준 자바 라이브러리였다. 하지만 `javax.annotation`패키지 전체가 JDK 9에서 자바 핵심 모듈과 분리되었고 JDK 11에서는 제거되었다. 만약 필요하다면 `javax.annotation-api` 아티펙트를 메이븐 중앙 저장소에서 얻어올 수 있다. 다른 라이브러리처럼 단순히 클래스패스에 추가하는 것으로 충분하다. |
+| ***@** `@Resource`처럼 `@PostConstruct`와 `@PreDestory`어노테이션은 JDK 6~8에 표준 자바 라이브러리였다. 하지만 `javax.annotation`패키지 전체가 JDK 9에서 자바 핵심 모듈과 분리되었고 JDK 11에서는 제거되었다. 만약 필요하다면 `javax.annotation-api` 아티펙트를 메이븐 중앙 저장소에서 얻어올 수 있다. 다른 라이브러리처럼 단순히 클래스패스에 추가하는 것으로 충분하다.* |
 
 
 <h3 id="beans-classpath-scanning">클래스패스 스캐닝과 관리되는 컴포넌트</h3>
@@ -3164,7 +3158,7 @@ public class CachingMovieLister {
 
 | |
 | ----- |
-| **!** 스프링 3.0부터 스프링 자바설정에 제공되는 많은 기능이 스프링 프레임워크 핵심에 포함되었다. 이 덕분에 XML 대신 자바를 사용해서 빈을 정의할 수 있다. 새 기능을 사용하는 방법을 확인하려면 `@Configuration`,`@Bean`,`@Import`,`@DependsOn`어노테이션 예시를 보십시오. |
+| ***!** 스프링 3.0부터 스프링 자바설정에 제공되는 많은 기능이 스프링 프레임워크 핵심에 포함되었다. 이 덕분에 XML 대신 자바를 사용해서 빈을 정의할 수 있다. 새 기능을 사용하는 방법을 확인하려면 `@Configuration`,`@Bean`,`@Import`,`@DependsOn`어노테이션 예시를 보십시오.* |
 
 <h4 id="beans-stereotype-annotations">@Component와 추가적인 정형화된 어노테이션</h4>
 
@@ -3267,7 +3261,7 @@ public class AppConfig  {
 
 | |
 | ----- |
-| **!** 간략하게 적기 위하여 위 예시에서 어노테이션의 `value`어트리뷰트를 사용할 수 있다. (`@ComponentScan("org.example")`) |
+| ***!** 간략하게 적기 위하여 위 예시에서 어노테이션의 `value`어트리뷰트를 사용할 수 있다. (`@ComponentScan("org.example")`)* |
 
 또는 아래의 XML을 사용할 수 있다:
 
@@ -3288,18 +3282,18 @@ public class AppConfig  {
 
 | |
 | ----- |
-| **@** `<context:component-scan>`은 내부적으로 `<context:annotation-config>`의 기능을 활성화한다. 따라서 일반적으로 `<context:component-scan>`를 사용할 때 `<context:annotation-config>`를 사용할 필요가 없다. |
+| ***@** `<context:component-scan>`은 내부적으로 `<context:annotation-config>`의 기능을 활성화한다. 따라서 일반적으로 `<context:component-scan>`를 사용할 때 `<context:annotation-config>`를 사용할 필요가 없다.* |
 
 | |
 | ----- |
-| **!** 클래스패스 패키지 스캔을 하기 위해서는 해당 디렉토리가 클래스패스에 있어야한다. Ant로 JARs를 빌드할 때, files-only를 활성화하지 않아야한다. 또한 클래스패스 디렉토리는 일부 환경에서 보안 정책상 노출되지 않을 수 있다 - 예를 들면 JDK 1.7.0_45나 그 이상의 독립어플리케이션과 같은 환경 ( manifest에 'Trusted-Library`설정이 필요한 환경 - [https://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources](https://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources)를 보세요). |
-| JDK 9의 모듈 패스 (jigsaw)에서 스프링 클래스패스 스캔은 예상대로 동작한다. 하지만 컴포넌트 클래스들이 `module-info` 설명자에 익스포트 되어야 한다. 스프링이 퍼블릭이 아닌 멤버들을 호출하길 원한다면 `module-info`설명자에 `exports`대신 `opens`를 사용하면 된다. |
+| ***!** 클래스패스 패키지 스캔을 하기 위해서는 해당 디렉토리가 클래스패스에 있어야한다. Ant로 JARs를 빌드할 때, files-only를 활성화하지 않아야한다. 또한 클래스패스 디렉토리는 일부 환경에서 보안 정책상 노출되지 않을 수 있다 - 예를 들면 JDK 1.7.0_45나 그 이상의 독립어플리케이션과 같은 환경 ( manifest에 'Trusted-Library`설정이 필요한 환경 - [https://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources](https://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources)를 보세요).* |
+| *JDK 9의 모듈 패스 (jigsaw)에서 스프링 클래스패스 스캔은 예상대로 동작한다. 하지만 컴포넌트 클래스들이 `module-info` 설명자에 익스포트 되어야 한다. 스프링이 퍼블릭이 아닌 멤버들을 호출하길 원한다면 `module-info`설명자에 `exports`대신 `opens`를 사용하면 된다.* |
 
 추가적으로 컴포넌트 스캔 요소를 사용할 때, `AutowiredAnnotationBeanPostProcessor`와 `CommonAnnotationBeanPostProcessor`는 둘다 내부적으로 포함된다. 이 말은 이 두 컴포넌트들은 자동으로 발견되어 연결된다 - XML에 설정 메타데이터를 설정하지 않아도. 
 
 | |
 | ----- |
-| **!** `annotation-config`어트리뷰트를 `false`로 하여 `AutowiredAnnotationBeanPostProcessor`와 `CommonAnnotationBeanPostProcessor`를 등록하지 않을 수 있다. |
+| ***!** `annotation-config`어트리뷰트를 `false`로 하여 `AutowiredAnnotationBeanPostProcessor`와 `CommonAnnotationBeanPostProcessor`를 등록하지 않을 수 있다.* |
 
 <h4 id="beans-scanning-filters">필터를 이용하여 스캐닝 커스터마이징하기</h4>
 
@@ -3342,9 +3336,93 @@ public class AppConfig {
 
 | |
 | ----- |
-| **!** 어노테이션에 `useDefaultFilters=false`를 설정하거나 `<component-scan>`에 `use-default-filters="false"`를 설정해서 기본 필터를 제거할 수 있다. 이는 `@Component`, `@Repository`, `@Service`, `@Controller`, `@RestController`, `@Configuration`어노테이션이 설정된 클래스 자동 발견을 취소하는 효율적인 방법이다. |
+| ***!** 어노테이션에 `useDefaultFilters=false`를 설정하거나 `<component-scan>`에 `use-default-filters="false"`를 설정해서 기본 필터를 제거할 수 있다. 이는 `@Component`, `@Repository`, `@Service`, `@Controller`, `@RestController`, `@Configuration`어노테이션이 설정된 클래스 자동 발견을 취소하는 효율적인 방법이다.* |
 
 <h4 id="beans-factorybeans-annotations">컴포넌트 내부에 빈 메타데이터 정의하기</h4>
+
+스프링 컴포넌트가 컨테이너의 빈 메타데이터에 영향을 끼칠 수 있다. `@Configuration`어노테이션이 적용된 클래스에 `@Bean`어노테이션을 사용하여 빈 메타데이터를 정의할 수 있다. 아래는 그 예시이다.
+
+```java
+@Component
+public class FactoryMethodComponent {
+
+    @Bean
+    @Qualifier("public")
+    public TestBean publicInstance() {
+        return new TestBean("publicInstance");
+    }
+
+    public void doWork() {
+        // 컴포넌트 메소드 구현은 생략되었다.
+    }
+}
+```
+
+이 클래스는 어플리케이션 로직 `doWork()`메소드를 가진 스프링 컴포넌트이다. 또한 `publicInstance()`라는 팩토리 메소드를 가진 빈 정의를 등록한다. `@Bean`어노테이션은 팩토리 메서드와 다른 빈 정의 프로퍼티(예를 들면 `@Qualifier`어노테이션을 이용하여 설정하는 qualifier값)를 설정한다. 커스텀 qualifier어노테이션, `@Scope`, `@Lazy`등의 메소드 레벨 어노테이션도 적용할 수 있다.
+
+| |
+| ----- |
+| ***!** `@Lazy`어노테이션은 컴포넌트의 지연된 초기화를 설정하는 역할을 한다. 또한 `@Autowired`나 `@Inject`로 표시된 의존선 주입 지점에 설정할 수 있다. 이렇게 하면, 지연된 처리를 하는 프록시를 주입할 수 있다.* |
+
+필드나 메소드의 자동연결도 지원한다. 이전에 이야기한 것처럼 `@Bean`메소드에 추가적으로 지원하는 것이다. 아래는 그 예시이다:
+
+```java
+@Component
+public class FactoryMethodComponent {
+
+    private static int i;
+
+    @Bean
+    @Qualifier("public")
+    public TestBean publicInstance() {
+        return new TestBean("publicInstance");
+    }
+
+    // 커스텀 qualifier를 사용하여 메소드 파라메터를 자동연결한다.
+    @Bean
+    protected TestBean protectedInstance(
+            @Qualifier("public") TestBean spouse,
+            @Value("#{privateInstance.age}") String country) {
+        TestBean tb = new TestBean("protectedInstance", 1);
+        tb.setSpouse(spouse);
+        tb.setCountry(country);
+        return tb;
+    }
+
+    @Bean
+    private TestBean privateInstance() {
+        return new TestBean("privateInstance", i++);
+    }
+
+    @Bean
+    @RequestScope
+    public TestBean requestScopedInstance() {
+        return new TestBean("requestScopedInstance", 3);
+    }
+}
+```
+
+이 예제는 `String`메소드 파라메터 `country`에 `privateInstance`의 `age`프로퍼티의 값을 넣어 자동연결한다. 스프링 표현언어(SpEL)은 프로퍼티의 값을 `#{<expression>}` 표현으로 정의한다. `@Value`어노테이션에 표현언어 처리기가 미리 설정되어 빈 이름을 찾아 표현언어를 해석한다.
+
+스프링 4.3부터 `InjectionPoint`(혹은 자식클래스인 `DependencyDescriptor`)를 팩토리 메서드의 파라메터로 정의하여 해당 빈의 생성을 요청하는 의존성 주입 지점에 접근할 수 있다. 이미 생성된 빈의 주입 지점이 아니라 생성하는 빈의 주입 지점인 것에 주의하여야 한다. 결론적으로, 프로토타입 스코프를 가진 빈에 걸맞는 방법이다. 다른 스코프에서는 빈이 생성되는 의존성 주입지점에만 동작한다(에를 들면 지연초기화 싱글톤 빈을 생성시키는 의존성 주입 지점). 이런 경우 의존성 주입 메타데이터를 제공할 수 있다. 아래는 `InjectionPoint`를 사용하는 예시이다:
+
+```java
+@Component
+public class FactoryMethodComponent {
+
+    @Bean @Scope("prototype")
+    public TestBean prototypeInstance(InjectionPoint injectionPoint) {
+        return new TestBean("prototypeInstance for " + injectionPoint.getMember());
+    }
+}
+```
+
+일반적인 스프링 컴포넌트의 `@Bean`메소드는 `@Configuration`클래스 내부의 `@Bean`메소드와 다르게 동작한다. `@Component`클래스는 메소드와 필드 호출시 CGLIB을 이용한 중간 처리가 되지 않는다. CGLIB 프록시는 `@Configuration`클래스의 `@Bean`메소드 내부 필드나 메소드를 호출하는 것이 해당되는 메타데이터 레퍼런스를 생성한다는 것이다. 이러한 메소드는 평범한 자바 로직과 같은 의미를 가지지 않는다. 이러한 메소드는 스프링 컨테이너를 통하여 처리되어 스프링 생명주기의 관리를 받게된다. 심지어 `@Bean`메소드를 프로그래밍적으로 호출하여도 다른 빈을 참조하게된다. 반면에 `@Component`클래스에서 `@Bean`메소드를 호출하는 것은 일반적인 자바 로직을 따르게 된다.
+
+| |
+| --- |
+| ***!** `@Bean`메소드를 `static`으로 선언하여 메소드가 선언된 설정클래스의 인스턴스를 만들 필요없이 빈을 생성할 수 있도록 할 수 있다.  이 방법은 빈 후처리기(예를 들면 `BeanFactoryPostProcessor`나 `BeanPostProcessor`)를 정의할 때 매우 좋다. 왜냐하면 이러한 빈들은 컨테이너 생명주기 초반에 생성되며 설정의 다른 부분이 동작하지 않아야 하기 때문이다.<br>static `@Bean`메소드의 호출은 컨테이너에 의해 처리되지 않는다. CGLIB이 static 메소드를 재정의 하지 않는다는 기술적인 한계 때문에 `@Configuration`클래스 내부에서도 마찬가지이다. 결과적으로 `@Bean`메소드는 일반적인 자바 로직을 따라며 호출할 때마다 메소드 그 자체를 통하여 인스턴스를 받게된다<br>`@Bean`메소드는 또한 컴포넌트나 설정 클래스에서도 사용할 수 있다. 또한 Java 8 인터페이스의 기본 메소드 구현에서도 사용할 수 있다. 이 방법을 통해 아주 복잡한 설정을 할 수 있는 확장성을 제공한다. 스프링 4.2부터는 Java 8 인터페이스의 기본 메소드가 여러번의 상속을 통해도 동작한다.<br>마지막으로 하나의 클래스가 같은 빈을 생성하는 `@Bean`메소드를 여러개 가질 수 있다. 각각 다른 의존성을 가지는 팩토리 메소드 여러개를 설정하는 것이다. 이는 "greediest" 생성자 선택과 같은 알고리즘이다: "greediest" 생성자 선택 - 여러 개의 `@Autowired`가 설정된 생성자 중에서 가장 많은 의존성 주입이 가능한 생성자를 선택하여 생성하는 방법.* |
+
 <h4 id="beans-scanning-name-generator">자동 검색된 컴포넌트 이름 붙이기</h4>
 <h4 id="beans-scanning-scope-resolver">자동 검색된 컴포넌트에 스코프 부여하기</h4>
 <h4 id="beans-scanning-qualifiers">Qualifier 메타데이터 어노테이션으로 부여하기</h4>

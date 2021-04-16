@@ -3424,6 +3424,48 @@ public class FactoryMethodComponent {
 | ***!** `@Bean`메소드를 `static`으로 선언하여 메소드가 선언된 설정클래스의 인스턴스를 만들 필요없이 빈을 생성할 수 있도록 할 수 있다.  이 방법은 빈 후처리기(예를 들면 `BeanFactoryPostProcessor`나 `BeanPostProcessor`)를 정의할 때 매우 좋다. 왜냐하면 이러한 빈들은 컨테이너 생명주기 초반에 생성되며 설정의 다른 부분이 동작하지 않아야 하기 때문이다.<br>static `@Bean`메소드의 호출은 컨테이너에 의해 처리되지 않는다. CGLIB이 static 메소드를 재정의 하지 않는다는 기술적인 한계 때문에 `@Configuration`클래스 내부에서도 마찬가지이다. 결과적으로 `@Bean`메소드는 일반적인 자바 로직을 따라며 호출할 때마다 메소드 그 자체를 통하여 인스턴스를 받게된다<br>`@Bean`메소드는 또한 컴포넌트나 설정 클래스에서도 사용할 수 있다. 또한 Java 8 인터페이스의 기본 메소드 구현에서도 사용할 수 있다. 이 방법을 통해 아주 복잡한 설정을 할 수 있는 확장성을 제공한다. 스프링 4.2부터는 Java 8 인터페이스의 기본 메소드가 여러번의 상속을 통해도 동작한다.<br>마지막으로 하나의 클래스가 같은 빈을 생성하는 `@Bean`메소드를 여러개 가질 수 있다. 각각 다른 의존성을 가지는 팩토리 메소드 여러개를 설정하는 것이다. 이는 "greediest" 생성자 선택과 같은 알고리즘이다: "greediest" 생성자 선택 - 여러 개의 `@Autowired`가 설정된 생성자 중에서 가장 많은 의존성 주입이 가능한 생성자를 선택하여 생성하는 방법.* |
 
 <h4 id="beans-scanning-name-generator">자동 검색된 컴포넌트 이름 붙이기</h4>
+
+자동 검색 과정에서 컴포넌트가 검색되면 스프링은 `BeanNameGenerator`을 이용하여 빈 이름을 생성한다. 기본적으로 스프링 스테레오타입 어노테이션 (`@Component`,`@Repository`,`@Service`,`@Contorller`)는 `value`를 가지고 있고 이것을 이름으로 사용한다.
+
+`value`설정되지 않은 경우나 다른 방법으로 검색된 컴포넌트들은 클래스이름의 첫글자가 소문자로 하여 이름을 가지게 된다. 예를 들면 아래 컴포넌트 클래스가 검색되면 `myMovieLister`와 `movieFinderImpl`이라는 이름을 가진다:
+
+```java
+@Service("myMovieLister")
+public class SimpleMovieLister {
+    // ...
+}
+```
+
+```java
+@Repository
+public class MovieFinderImpl implements MovieFinder {
+    // ...
+}
+```
+
+기본 빈 이름 생성 방식을 사용하고 싶지 않다면 커스텀 빈 이름 생성기를 설정할 수 있다. 먼저 `BeanNameGenerator`인터페이스를 어규면트가 없는 생성자를 포함하여 구현한다. 그 뒤, 이름 생서기의 패키지를 포함한 전체 클래스 이름을 작성하면 된다. 아래의 어노테이션과 빈 정의가 그 예시이다:
+
+| |
+| --- |
+| ***@** 여러 컴포넌트가 같은 이름을 요청하여 충돌이 발생한 경우(예를 들면, 서로 다른 패키지에 같은 이름을 가지는 클래스가 있는 경우), 패키지를 포함한 클래스이름을 빈 이름으로 설정하는 `BeanNameGenerator`를 설정해야 할 수도 있다. 스프링 5.2.3부터 제공되는 `org.springframework.context.annotation`패키지의 `FullyQualifiedAnnotationBeanNameGenerator`가 그 역할을 한다.* |
+
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example", nameGenerator = MyNameGenerator.class)
+public class AppConfig {
+    // ...
+}
+```
+
+```xml
+<beans>
+    <context:component-scan base-package="org.example"
+        name-generator="org.example.MyNameGenerator" />
+</beans>
+```
+
+같은 이름이 여러개 가지게 될 경우, 어노테이션에 충돌하지 않는 이름을 설정하는 것을 일반적인 규칙으로 하는 것이 좋다. 그렇지 않은 경우에는 자동 생성된 이름으로 충분하다.
+
 <h4 id="beans-scanning-scope-resolver">자동 검색된 컴포넌트에 스코프 부여하기</h4>
 <h4 id="beans-scanning-qualifiers">Qualifier 메타데이터 어노테이션으로 부여하기</h4>
 <h4 id="beans-scanning-index">후보 컴포넌트 색인 생성하기</h4>

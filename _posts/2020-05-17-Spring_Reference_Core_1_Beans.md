@@ -3467,6 +3467,58 @@ public class AppConfig {
 같은 이름이 여러개 가지게 될 경우, 어노테이션에 충돌하지 않는 이름을 설정하는 것을 일반적인 규칙으로 하는 것이 좋다. 그렇지 않은 경우에는 자동 생성된 이름으로 충분하다.
 
 <h4 id="beans-scanning-scope-resolver">자동 검색된 컴포넌트에 스코프 부여하기</h4>
+
+일반적으로 스프링에서 관리되는 컴포넌트의 가장 흔한 스코프이자 기본 값인 스코프는 `singleton`이다. 하지만 다른 스코프가 필요할 때, `@Scope` 어노테이션을 사용하여 설정할 수 있다. 아래 예시처럼 스코프의 이름을 어노테이션에 설정하면 된다:
+
+```
+@Scope("prototype")
+@Repository
+public class MovieFinderImpl implements MovieFinder {
+    // ...
+}
+```
+
+| |
+| --- |
+| ***!** `@Scope`어노테이션은 concrete 클래스(어노테이션이 적용된 컴포넌트)나 팩토리 메소드(`@Bean` 메소드)에만 사용할 수 있다. 반면에 XML 빈 정의에서, 클래스의 상속은 메타데이터와 무관하고 빈 정의 상속 개념이 없다.* |
+
+"request", "session"처럼 웹 환경에서만 가능한 스코프에 대한 자세한 내용은 
+[Request, Session, Application, WebSocket 스코프](#beans-factory-scopes-other)를 보십시오. 이러한 스코프에 적용된 어노테이션을 사용하면 스프링의 메타 어노테이션과 같은 방식으로 자신만의 스코프 어노테이션을 개발할 수 있을 것입니다: 예를 들면, `@Scope("prototype")`을 적용한 커스텀 어노테이션으로 커스텀 스코프 프록시 모드를 선언할 수 있을 것이다.
+
+| |
+| --- |
+| ***!** 어노테이션 기반 스코프이외에 커스텀 스코프를 만들고자 한다면 `ScopMetadataResolver`인터페이스를 구현하여 처리할 수 있다. 어규먼트가 없는 생성자가 있는 구현체를 개발하여야 한다. 그 뒤 스캐너를 설정할 때 패키지를 포함한 클래스 이름을 명시하면 된다. 아래는 그 예시를 어노테이션 기반과 XML기반 두가지로 보여준다:* |
+
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example", scopeResolver = MyScopeResolver.class)
+public class AppConfig {
+    // ...
+}
+```
+
+```xml
+<beans>
+    <context:component-scan base-package="org.example" scope-resolver="org.example.MyScopeResolver"/>
+</beans>
+```
+
+싱글톤이 아닌 특정한 스코프를 사용한다면 스코프를 사용하는 객체에 프록시를 생성해야 할 필요가 있을 수 있다. 그 이유는 [생성할 프록시 타입 정하기](#beans-factory-scopes-other-injection)에 설명되어 있다. 이러한 이유로 component-scan요소에 스코프 프록시 어트리뷰트가 존재한다. 이 어트리뷰트에 설정가능한 값으로는 `no`,`interface`,`targetClass`가 있다. 아래는 표준 JDK 동적 프록시를 생성하는 설정의 예시이다:
+
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example", scopedProxy = ScopedProxyMode.INTERFACES)
+public class AppConfig {
+    // ...
+}
+```
+
+```xml
+<beans>
+    <context:component-scan base-package="org.example" scoped-proxy="interfaces"/>
+</beans>
+```
+
 <h4 id="beans-scanning-qualifiers">Qualifier 메타데이터 어노테이션으로 부여하기</h4>
 <h4 id="beans-scanning-index">후보 컴포넌트 색인 생성하기</h4>
 

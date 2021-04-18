@@ -94,7 +94,7 @@ sitemap:
         1. <a href="#beans-required-annotation">@Required</a>
         1. <a href="#beans-autowired-annotation">@Autowired 사용하기</a>
         1. <a href="#beans-autowired-annotation-primary">@Primary를 이용하여 어노테이션 기반 자동 연결 미세 조정하기</a>
-        1. <a href="#beans-autowired-annotation-qualifiers">Qualifiers를 이용하여 어노테이션 기반 자동 연결  미세 조정하기</a>
+        1. <a href="#beans-autowired-annotation-qualifiers">Qualifiers를 이용하여 어노테이션 기반 자동 연결 미세 조정하기</a>
         1. <a href="#beans-generics-as-qualifiers">제네릭을 자동연결 Qualifiers로 이용하기</a>
         1. <a href="#beans-custom-autowire-configurer">CustomAutowireConfig 이용하기</a>
         1. <a href="#beans-resource-annotation">@Resource를 사용한 주입</a>
@@ -3520,10 +3520,99 @@ public class AppConfig {
 ```
 
 <h4 id="beans-scanning-qualifiers">Qualifier 메타데이터 어노테이션으로 부여하기</h4>
+
+`@Qualifier`어노테이션은 [Qualifiers를 이용하여 어노테이션 기반 자동 연결 미세 조정하기](#beans-autowired-annotation-qualifiers)에서 언급되었었다. 자동연결 후보빈들을 처리하는데 미세한 컨트롤을 할 수 있는 커스텀 후보자 어노테이션과 `@Qualifier`어노테이션의 사용 예제를 해당 섹션에서 볼 수 있었다. 해당 예제들은 XML로 작성되어 왔기에 후보빈 정의는 `bean`요소의 자식 요소인`qualifier`나 `meta`요소에 작성되어왔다. 컴포넌트 스캐닝에 의하여 자동 팔견된느 경우, qualifier 메타데이터를 타입레벨 어노테이션을 이용하여 설정할 수 있다. 아래는 그러한 예제이다:
+
+```java
+@Component
+@Qualifier("Action")
+public class ActionMovieCatalog implements MovieCatalog {
+    // ...
+}
+```
+
+```
+@Component
+@Genre("Action")
+public class ActionMovieCatalog implements MovieCatalog {
+    // ...
+}
+```
+
+```
+@Component
+@Offline
+public class CachingMovieCatalog implements MovieCatalog {
+    // ...
+}
+```
+
+| |
+| --- |
+| ***!** 대부분의 어노테이션 기반 대체제들이 그러하듯이 어노테이션 메타데이터는 클래스 정의 자체에 묶여있다. 반면에 XML을 사용하면 같은 타입의 여러 빈에 다양한 qualifier정보를 설정할 수 있다. 왜냐하면 클래스에 설정되는 qualifier가 아니라 인스턴스에 설정되는 qualifier이기 때문이다.* |
+
 <h4 id="beans-scanning-index">후보 컴포넌트 색인 생성하기</h4>
+
+클래스패스 스캐닝은 매우 빠르지만 컴파일 타임에 후보빈 리스트를 제공함으로서 커다란 어플리케이션의 시작 성능을 향상시킬수 있다. 이러한 방법을 사용할 시, 컴포넌트 스캔의 대상이 되는 모든 모듈이 같은 방법을 사용해야 한다.
+
+| |
+| --- |
+| ***!** `@ComponentScan`이나 `<context:component-scan>`은 특정 패키지에 있는 후보를 스캔하도록 컨텍스트에 요청하는 것이다. `ApplicationContext`가 후보 빈 색인을 발견하면 클래스패스 스캔대신 해당 색인을 이용할 것이다.* |
+
+색인을 생성하려면 컴포넌트 스캔의 대상이되는 컴포넌트를 포함하는 모든 모듈에 추가적인 의존성이 필요하다. 아래는 Maven으로 해당 설정을 하는 예시이다:
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.springframework</groupId>
+        <artifactId>spring-context-indexer</artifactId>
+        <version>5.2.6.RELEASE</version>
+        <optional>true</optional>
+    </dependency>
+</dependencies>
+```
+
+Gradle 4.5나 이전 버전에서는 해당 의존성은 `compileOnly`설정으로 선언되어야한다. 아래는 그 예시이다:
+
+```Groovy
+dependencies {
+    compileOnly "org.springframework:spring-context-indexer:5.2.6.RELEASE"
+}
+```
+
+
+Gradle 4.6나 이후 버전에서는 해당 의존성은 `annotationProcessor`설정으로 선언되어야한다. 아래는 그 예시이다:
+
+```Groovy
+dependencies {
+    annotationProcessor "org.springframework:spring-context-indexer:5.2.6.RELEASE"
+}
+```
+
+이 과정을 진행하면 `META-INF/spring.components`파일이 생성되어 jar에 포함된다.
+
+| |
+| --- |
+| ***!** IDE에서 이 모드를 사용하면 `spring-context-indexer`가 등록되어 있어야 후보빈이 변경될 때에도 색인이 최신화 될것이다.* |
+| ***@** 클래스패스에서 `META-INF/spring.components`가 발견되면 자동으로 색인이 사용될 것이다. 일부 라이브러리에서는 색인이 사용가능하나 전체 어플리케이션에서 사용할 수 있는 상황이 아니라면, 클래스패스 루트에 있는 `spring.properties`파일이나 시스템 프로퍼티의 `spring.index.ignore`를 `true`로 설정하여 일반적인 클래스패스를 이용하도록 대체할 수 있다.* |
 
 
 <h3 id="beans-standard-annotations">JSR 330 표준 어노테이션 사용하기</h3>
+
+스프링 3.0부터 스프링은 JSR-330 표준 어노테이션(의존성 주입)을 지원한다. 스프링 어노테이션과 같은 방법으로 스캔된다. 이 어노테이션을 이용하려면 관련된 jar가 클래스패스에 있어야한다.
+
+| |
+| --- |
+| ***!** Mavan을 사용하면 `javax.inject` 아티펙트가 표준 메이븐 저장소([https://repo1.maven.org/maven2/javax/inject/javax.inject/1/](https://repo1.maven.org/maven2/javax/inject/javax.inject/1/))에서 사용가능하다. 아래 의존성을 pom.xml에 추가하여 설정할 수 있다:* |
+
+```xml
+<dependency>
+    <groupId>javax.inject</groupId>
+    <artifactId>javax.inject</artifactId>
+    <version>1</version>
+</dependency>
+``` 
+
 
 <h4 id="beans-inject-named">@Inject와 @Named를 이용한 의존성 주입</h4>
 <h4 id="beans-named">@Named와 @ManagedBean: @Component 어노테이션의 표준 표현</h4>

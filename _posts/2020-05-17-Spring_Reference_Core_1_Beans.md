@@ -3615,6 +3615,91 @@ dependencies {
 
 
 <h4 id="beans-inject-named">@Inject와 @Named를 이용한 의존성 주입</h4>
+
+`@Autowired`대신 `@javax.inject.Inject`를 대신 사용할 수 있다:
+
+```java
+import javax.inject.Inject;
+
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Inject
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    public void listMovies() {
+        this.movieFinder.findMovies(...);
+        // ...
+    }
+}
+```
+
+`@Autowired`처럼 `@Inject`는 필드, 메서드, 생성자 어규먼트에 사용될 수 있다. 또한 `Provider`에 의존성 주입지점을 설정하면 `Provider.get()`을 호출하여 지연 초기화 빈이나 짧은 스코프를 가지는 빈을 가져올 수 있다. 아래는 다양한 사용 예제이다:
+
+```java
+import javax.inject.Inject;
+import javax.inject.Provider;
+
+public class SimpleMovieLister {
+
+    private Provider<MovieFinder> movieFinder;
+
+    @Inject
+    public void setMovieFinder(Provider<MovieFinder> movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    public void listMovies() {
+        this.movieFinder.get().findMovies(...);
+        // ...
+    }
+}
+```
+
+주입해야하는 의존성에 이름이 있다면, `@Named`어노테이션을 이용하여 아래 예시처럼 설정할 수 있다:
+
+```java
+import javax.inject.Inject;
+import javax.inject.Named;
+
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Inject
+    public void setMovieFinder(@Named("main") MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+}
+```
+
+`@Autowired`처럼 `@Inject`는 `java.util.Optional`이나 `@Nullable`과 같이 사용될 수 있다. `Inject`는 `required`어트리뷰트를 가지고 있지 않기때문에 더욱 적합하다. `@Inject`와 `@Nullable`을 사용하는 예시이다:
+
+```java
+public class SimpleMovieLister {
+
+    @Inject
+    public void setMovieFinder(Optional<MovieFinder> movieFinder) {
+        // ...
+    }
+}
+```
+
+```java
+public class SimpleMovieLister {
+
+    @Inject
+    public void setMovieFinder(@Nullable MovieFinder movieFinder) {
+        // ...
+    }
+}
+```
+
 <h4 id="beans-named">@Named와 @ManagedBean: @Component 어노테이션의 표준 표현</h4>
 <h4 id="beans-stardard-annotations-limitations">JSR-330 표준 어노테이션의 한계</h4>
 

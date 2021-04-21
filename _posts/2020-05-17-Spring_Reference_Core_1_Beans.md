@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-04-15T20:45:00+09:00
+date:   2021-04-21T21:09:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -3701,8 +3701,77 @@ public class SimpleMovieLister {
 ```
 
 <h4 id="beans-named">@Named와 @ManagedBean: @Component 어노테이션의 표준 표현</h4>
+
+`@Component`대신에 `@javax.inject.Named`나 `javax.annotation.ManagedBean`을 사용할 수 있다. 아래는 그 예시이다:
+
+```java
+import javax.inject.Inject;
+import javax.inject.Named;
+
+@Named("movieListener")  // @ManagedBean("movieListener") 를 사용할 수도 있다.
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Inject
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+}
+```
+
+`@Component`를 이름을 명시하지 않고 종종 사용한다. `@Named`도 같은 방법으로 사용할 수 있다. 아래는 그 예시이다:
+
+```java
+import javax.inject.Inject;
+import javax.inject.Named;
+
+@Named
+public class SimpleMovieLister {
+
+    private MovieFinder movieFinder;
+
+    @Inject
+    public void setMovieFinder(MovieFinder movieFinder) {
+        this.movieFinder = movieFinder;
+    }
+
+    // ...
+}
+```
+
+`@Named`나 `@ManagedBean`을 사용할 때, 컴포넌트 스캐닝을 스프링 어노테이션을 사용할 때와 같은 방법으로 사용할 수 있다. 아래는 그 예시이다:
+
+```java
+@Configuration
+@ComponentScan(basePackages = "org.example")
+public class AppConfig  {
+    // ...
+}
+```
+
+| |
+| --- |
+| ***!** `@Component`와 달리 JSR-330 `@Named`와 JSR-250 `@ManagedBean`은 다른 어노테이션을 구성할 수 없다. 커스텀 어노테이션을 사용하려면 스프링 어노테이션을 사용해야 한다.* |
+
 <h4 id="beans-stardard-annotations-limitations">JSR-330 표준 어노테이션의 한계</h4>
 
+표준 어노테이션을 사용할 때, 중요한 특징을 알아야한다. 아래 표에 설명되어 있다:
+
+#### 표6. 스프링 컴포넌트요소 VS JSR-330
+
+| 스프링 | javax.inject.* | javax.inject 제한 / 주석 |
+| --- | --- | ---- |
+| @Autowired | @Inject | `@Inject`는 'required' 요소가 없다. 대신 Java 8의 `Optional`과 함께 사용 가능하다 |
+| @Component | @Named / @ManagedBean | JSR-330 어노테이션은 다른 어노테이션을 구성할 수 없다. 이름을 통해서만 컴포넌트 구분이 가능하다. |
+| @Scope("singleton") | @Singleton | JSR-330의 기본 스코프는 스프링 `prototype`스코프와 비슷하다. 하지만 스프링의 기본 설정과 일관되게 하기 위하여 스프링 컨테이너에서 선언된 JSR-330 빈은 `singleton`이 기본 스코프이다. `singleton`이외의 스코프를 사용하려면 스프링의 `@Scope`어노테이션을 사용해야한다. `javax.inject`에 [@Scope](https://download.oracle.com/javaee/6/api/javax/inject/Scope.html)어노테이션이 있지만 자신만의 어노테이션을 생성하는 목적으로 사용되는 어노테이션이다. |
+| @Qualifier | @Qualifier / @Named | `javax.inject.Qualifier`는 커스텀 qualifier를 만드는데 사용되는 메타 어노테이션이다. 스프링의 `@Qualifier`와 같은 `String` 값은 `java.inject.Named`를 사용하여 설정할 수 있다. |
+ | @Value | - | 동일한 기능 없음 |
+ | @Required | - | 동일한 기능 없음 |
+ | @Lazy | - | 동일한 기능 없음 |
+ | ObjectFactory | Provider | `javax.inject.Provider`는 스프링 `ObjectFactory`의 `get()`메소드의 이름이 짧은 대체자이다. 스프링 `@Autowired`와 함께 사용가능하며 어노테이션이 적용되지 않은 생성자 어규먼트나 세터메소드에도 사용 가능하다. |
 
 <h3 id="beans-java">자바 기반 컨테이너설정</h3>
 

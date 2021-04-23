@@ -3775,7 +3775,58 @@ public class AppConfig  {
 
 <h3 id="beans-java">자바 기반 컨테이너설정</h3>
 
+이 장에서는 스프링 컨테이너를 설정하기 위해 자바 코드에 어노테이션을 사용하는 방법에 대하여 이야기한다. 아래 내용을 포함하고 있다:
+
+* [기본 개념: `@Bean`과 `@Configuration`](#beans-java-basic-concepts)
+* [`AnnotationConfigApplicationContext`를 이용하여 스프링 컨테이너 인스턴스화 하기](#beans-java-instantiating-container)
+* [`@Bean`어노테이션 이용하기](#beans-java-bean-annotation)
+* [`@Configuration`어노테이션 이용하기](#beans-java-configuration-annotation")
+* [자바 기반 설정 구성하기](#beans-java-composing-configuration-classes)
+* [빈 정의 프로필](#beans-definition-profiles)
+* [`PropertySource` 추상화](#beans-property-source-abstaction)
+* [`PropertySource` 사용하기](#beans-using-propertysource)
+* [표현법의 PlaceHolder Resolution](#beans-placeholder-resolution-in-statements)
+
 <h4 id="beans-java-basic-concepts">기본 개념: @Bean과 @Configuration</h4>
+
+스프링의 새로운 자바 기반 설정에서 가장 중심이 되는 부분은 `@Configuration`어노테이션이 적용된 클래스와 `@Bean`어노테이션이 적용된 메서드이다.     
+
+`@Bean`어노테이션은 스프링 IoC컨테이너에의해 관리되는 오브젝트를 초기화, 설정, 인스턴스화 하는 메소드를 표시한다. 스프링 `<beans>`XML 설정에 익숙한 사람들에게는 `@Bean`이 `<bean/>`요소와 같은 역할을 한다고 이해하면 좋다. 스프링 `@Component`에 `@Bean`어노테이션을 적용한 메서드를 사용할 수 있다. 하지만 `@Configuration`빈에서 사용되는 것이 일반적이다.     
+
+`@Configuration`어노테이션이 적용된 클래스는 빈 정의를 제공하는 역할을 한다. 추가적으로 `@Configuration`클래스는 내부 빈 사이의 의존성을 해당 클래스의 `@Bean`메소드를 호출하여 처리될 수 있도록 한다. 가장 간단한 `Configuration`클래스는 아래와 같다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public MyService myService() {
+        return new MyServiceImpl();
+    }
+}
+```
+
+위의 `AppConfig`클래스는 아래의 `<beans/> XML과 동일하다:
+
+```xml
+<beans>
+    <bean id="myService" class="com.acme.services.MyServiceImpl"/>
+</beans>
+```
+
+-----
+#### @Configuraion 내부에서 처리하기 vs "lite" @Bean 사용하기
+
+*`@Bean`메소드가 `@Configuration`이 적용되지 않은 클래스에서 사용되면 "lite"모드로 처리된다. `@Component`나 평범한 클래스에서 사용된 빈 메소드는 "lite"로 여겨진다. 이러한 클래스의 목적은 `@Configuration`클래스와 다르기에 `@Bean`메소드는 약간의 보너스일 뿐이다. 예를 들면, 서비스 컴포넌트가 `@Bean`메소드를 사용하여 컨테이너에 설정가능한 뷰를 노출할 수 있다. 이러한 경우에 `@Bean`메소드는 일반적인 팩토리 메서드 역할을 한다.*
+
+*`@Configuration`에서 사용한 `@Bean`메소드와 달리 lite `@Bean`메소드는 내부 빈 의존성을 정의할 수 없다. 대신 메소드가 선언된 컴포넌트의 내부 상태나 어규먼트에 따라 다르게 동작할 수 있다. 따라서 이러한 `@Bean`메소드는 다른 `@Bean`메소드를 호출하면 안된다. 이러한 메소드는 단순한 팩토리 메서드일 뿐이다. 긍정적인 점은 CGLIB이 진행하는 상속을 진행하기 않아 클래스 구성에 제한이 없다.(`final`을 포함할 수 있다. 등등)*
+
+*`@Configuration`클래스에서 `@Bean`메소드가 정의되는 것은 흔한 일이다. 이렇게 하면 스프링 생명주기의 관리를 받는 메소드 레퍼런스를 사용하게 된다. `@Bean`메소드가 실수로 일반적인 자바 호출에 따라 진행되는 것을 방지하여 추적하기 힘든 버그가 일어날 가능성을 줄여준다.*
+
+-----
+
+`@Bean`과 `@Configuration`어노테이션은 아래에 더욱 자세히 논의될 것이다. 하지만 자바 기반 설정을 하는 다양한 방법을 먼저 볼 것이다.
+
 <h4 id="beans-java-instantiating-container">AnnotationConfigApplicationContext를 이용하여 스프링 컨테이너 인스턴스화 하기</h4>
 
 <h5 id="beans-java-instantiating-container-constructor">간단하게 만들어보기</h5>

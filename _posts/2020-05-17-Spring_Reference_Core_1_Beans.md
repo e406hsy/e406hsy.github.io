@@ -3829,8 +3829,51 @@ public class AppConfig {
 
 <h4 id="beans-java-instantiating-container">AnnotationConfigApplicationContext를 이용하여 스프링 컨테이너 인스턴스화 하기</h4>
 
+이 장은 스프링 3.0부터 지원하는 `AnnotationConfigApplicationContext`을 설명한다. 이 다재다능한 `ApplicationContext` 구현체는 `@Configuration`클래스와 `@Component`클래스, JSR-330 메타데이터로 어노테이션이 적용된 클래스를 받아들인다.     
+
+`@Configuration`클래스가 주어지면 `@Configuration`클래스 자체를 빈 정의로 등록하고 선언된 `@Bean`메소드 또한 빈 정의로 등록한다.
+
+`@Autowired`나 `@Inject`같은 의존성 주입 메타데이터가 적용된다는 전제 하에 `@Component`와 JSR-330 클래스가 주어지면 빈 정의로 등록한다.
+
 <h5 id="beans-java-instantiating-container-constructor">간단하게 만들어보기</h5>
+
+`ClassPathXmlApplicationContext`에서 스프링 XML파일을 사용하여 인스턴스화할 때와 마찬가지로 `AnnotationConfigApplicationContext`는 `@Configuration`클래스를 사용하여 인스턴스화 하다. 이 방법으로 XML을 사용하지 않는 스프링 컨테이너를 만들 수 있다. 아래는 그 예시다:
+
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
+    MyService myService = ctx.getBean(MyService.class);
+    myService.doStuff();
+}
+```
+
+이전에 언급했듯이, `AnnotationConfigApplicationContext`는 `@Configuration`클래스만 이용하는 것이 아니다. `@Component`클래스와 JSR-330 어노테이션이 적용된 클래스를 사용할 수 있다. 아래는 그러한 클래스에 생성자 어규먼트를 전달하는 예시이다:
+
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(MyServiceImpl.class, Dependency1.class, Dependency2.class);
+    MyService myService = ctx.getBean(MyService.class);
+    myService.doStuff();
+}
+```
+
+위 예제는 `Dependency1`,`Dependency2`,`MyServiceImpl`이 `@Autowired`와 같은 스프링 의존성 주입 어노테이션을 사용한다는 전제하에 작성된 예시이다.
+
 <h5 id="beans-java-instantiating-container-register">register(Class<?>...)을 이용하여 프로그래밍적으로 컨테이너 만들기</h5>
+
+`AnnotationConfigApplicationContext`를 어규먼트 없는 생성자와 `register()`메소드를 사용하여 인스턴스화 할 수 있다. `AnnotationConfigApplicationContext`를 프로그래밍적으로 생성할 때 유용하다. 아래는 그 예시이다:
+
+```java
+public static void main(String[] args) {
+    AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+    ctx.register(AppConfig.class, OtherConfig.class);
+    ctx.register(AdditionalConfig.class);
+    ctx.refresh();
+    MyService myService = ctx.getBean(MyService.class);
+    myService.doStuff();
+}
+```
+
 <h5 id="beans-java-instantiating-container-scan">scan(String...)을 이용하여 컴포넌트 스캔 활성화하기</h5>
 <h5 id="beans-java-instantiating-container-web">AnnotationConfigWebApplicationContext을 이용한 웹 어플리케이션 지원</h5>
 

@@ -3875,8 +3875,99 @@ public static void main(String[] args) {
 ```
 
 <h5 id="beans-java-instantiating-container-scan">scan(String...)을 이용하여 컴포넌트 스캔 활성화하기</h5>
+
+`@Configuration` 클래스에 어노테이션을 설정하여 컴포넌트 스캔을 아래 예시처럼 활성화 할 수 있다:
+
+```java
+@Configuration
+@ComponentScan(basePackages = "com.acme") // [1] 
+public class AppConfig  {
+    ...
+}
+```
+
+1. 이 어노테이션이 컴포넌트 스캔을 활성화 한다.
+
+| |
+| --- |
+| ***@** `context` 네임스페이스를 이용하여 XML 정의 기반 컴포넌트 스캔 활성화를 사용할 수도 있다.* |
+
+```xml
+<beans>
+    <context:component-scan base-package="com.acme"/>
+</beans>
+```
+
+위의 예시에서 `com.acme`패키지의 `@Component`어노테이션이 적용된 클래스가 확인되어 컨테이너에 스프링 빈으로 등록된다. `AnnotationConfigApplicationContext`는 `scan(String...)`메서드를 직접 사용할 수 있도록 한다. 아래는 그 예시이다:
+
+```java
+public static void main(String[] args) {
+    AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+    ctx.scan("com.acme");
+    ctx.refresh();
+    MyService myService = ctx.getBean(MyService.class);
+}
+```
+
+| |
+| --- |
+| ***!** `@Component`는 `@Configuration`클래스의 [메타 어노테이션](#beans-meta-annotations)으로 적용되었다. 따라서 `@Configuration`클래스들은 컴포넌트 스캔의 대상이다. 위의 예시에서 `AppConfig`클래스가 `com.acme`패키지 혹은 그 하위 패키지에 선언되었으면 `scan()`메서드, `refresh()`메서드 실행중 클래스 내부의 `@Bean`메서드가 실행되어 컨테이너의 빈으로 등록된다.* |
+
 <h5 id="beans-java-instantiating-container-web">AnnotationConfigWebApplicationContext을 이용한 웹 어플리케이션 지원</h5>
 
+`AnnotationConfigApplicationContext`중 `WebApplicationContext`인 것은 `AnnotationConfigWebApplicationContext`이다. 스프링의 `ContextLoaderListener` 서블릿 리스너를 설정하거나 스프링 MVC `DispatcherServlet`을 사용할 때 등등의 경우에 이 구현체를 사용할 수 있다. 아래는 스프링 MVC 웹 어플리케이션의 `web.xml`설정의 일부이다(`contextClass` 컨테스트 파라메터와 초기화 파라메터의 사용을 주의 깊게 보십시오):
+
+```xml
+<web-app>
+    <!-- ContextLoaderListener가 기본 XmlWebApplicationContext대신
+        AnnotationConfigWebApplicationContext를 사용하도록 설정-->
+    <context-param>
+        <param-name>contextClass</param-name>
+        <param-value>
+            org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+        </param-value>
+    </context-param>
+
+    <!-- 설정 위치는 반드시 하나 이상의 콤마(,)혹은 공백( )으로 구분된 @Configuraion
+        클래스의 전체 이름이여야 합니다. 패키지의 전체 이름을 사용해서 컴포넌트 스캔헐
+        패키지를 설정할 수도 있습니다. -->
+    <context-param>
+        <param-name>contextConfigLocation</param-name>
+        <param-value>com.acme.AppConfig</param-value>
+    </context-param>
+
+    <!-- 보통의 경우처럼 ContextLoaderListener를 이용하여 루트 어플리케이션 컨텍스트를 설정한다. -->
+    <listener>
+        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+    </listener>
+
+    <!-- 보통의 경우처럼 스프링 MVC DispatcherServlet을 설정한다. -->
+    <servlet>
+        <servlet-name>dispatcher</servlet-name>
+        <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+        <!-- DispatcherServlet이 기본 XmlWebApplicationContext 대신
+            AnnotationConfigWebApplicationContext를 사용하도록 설정한다.  -->
+        <init-param>
+            <param-name>contextClass</param-name>
+            <param-value>
+                org.springframework.web.context.support.AnnotationConfigWebApplicationContext
+            </param-value>
+        </init-param>
+        <!-- 위에 이야기했던 것과 마찬가지로 설정 위치는 반드시 하나 이상의 콤마(,) 혹은 공백( )으로
+        구분된 @Configuraion 클래스의 전체 이름이여야 합니다. -->
+        <init-param>
+            <param-name>contextConfigLocation</param-name>
+            <param-value>com.acme.web.MvcConfig</param-value>
+        </init-param>
+    </servlet>
+
+    <!-- /app/* 경로의 모든 요청을 dispatcher servlet으로 연결한다. -->
+    <servlet-mapping>
+        <servlet-name>dispatcher</servlet-name>
+        <url-pattern>/app/*</url-pattern>
+    </servlet-mapping>
+</web-app>
+```
 
 <h4 id="beans-java-bean-annotation">@Bean 어노테이션 사용하기</h4>
 

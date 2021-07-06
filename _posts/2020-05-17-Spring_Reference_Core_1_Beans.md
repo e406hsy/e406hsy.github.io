@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-04-21T21:09:00+09:00
+date:   2021-07-07T07:28:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -3971,8 +3971,76 @@ public static void main(String[] args) {
 
 <h4 id="beans-java-bean-annotation">@Bean 어노테이션 사용하기</h4>
 
+`@Bean`어노테이션은 메서드에 적용되는 어노테이션이며 XML `<bean/>` 요소와 같은 기능을 한다. 이 어노테이션은 `<bean/>`의 어트리뷰트 중 일부를 사용할 수 있다. 예를 들면: [init-method](#beans-factory-lifecycle-initializingbean), [destory-method](#beans-factory-lifecycle-disposablebean), [autowiring](#beans-factory-autowire) `name`
+
+`@Configuration`어노테이션이나 `@Component`어노테이션이 적용된 클래스 내부에 `@Bean`어노테이션을 사용할 수 있다.
+
 <h5 id="beans-java-declaring-a-bean">빈 정의하기</h5>
+
+빈을 정의하려면 `@Bean`어노테이션을 메서드에 적용하면 된다. 이 메서드를 사용해서 메서드의 반환 값으로 타입이 지정된 빈정의를 `ApplicationContext`에 등록한다. 기본적으로 빈 이름은 메서드의 이름과 동일하다. 아래는 `@Bean`메소드 정의의 예시이다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public TransferServiceImpl transferService() {
+        return new TransferServiceImpl();
+    }
+}
+```
+
+위 설정은 아래 스프링 XML과 동일한 기능을 한다:
+
+```xml
+<beans>
+    <bean id="transferService" class="com.acme.TransferServiceImpl"/>
+</beans>
+```
+
+두 정의 모두 `TranferServiceImpl`타입의 인스턴스를 생성하고 이 객체를 `ApplicationContext`에 `transferService`라는 이름으로 등록한다:
+
+```
+transferService -> com.acme.TransferServiceImpl
+```
+
+또한 아래 예시처럼 인터페이스나 부모 클래스를 반환하는 메소드에 `@Bean`어노테이션을 적용할 수 있다.
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public TransferService transferService() {
+        return new TransferServiceImpl();
+    }
+}
+```
+
+하지만 이 방법은 타입 예측 기능을 특정 인터페이스(`TranferService`) 수준에서만 동작하게한다. 컨테이너는 완전한 타입(`TransferServiceImpl`)을 싱글톤 객체가 생성되는 시점에만 알 수 있다. 지연초기화되지 않는 싱글톤 빈들은 정의된 순서에 따라 인스턴스화된다. 그에 따라 선언되지 않은 타입으로 컴포넌트를 찾는 시점에 따라 다른 타입 매칭 결과가 나타날 수 있다. 
+(예를 들면 `@Autowired TrasferServiceImpl`, `transferService`가 인스턴스화 되어야 매칭가능한 의존성)
+
+| |
+| --- |
+| ***@** 만약 일관적으로 인터페이스 타입으로 빈을 참조한다면 `@Bean` 반환 타입은 디자인 목적과 부합할 것 수도 있다. 하지만 여러 인터페이스를 구현한 컴포넌트나 구현체 타입으로 참조될 수 있는 컴포넌트들은 가장 자세한 반환 타입을 명시하는 것이 더 안전한 방법이다. (최소한 의존성 주입받는 빈에서 참조하는 타입으로 설정하는 것이 좋다)* |
+
 <h5 id="beans-java-dependencies">빈 의존성</h5>
+
+`@Bean`어노테이션이 적용된 메서드는 빈을 생성하는데 필요한 의존성을 나타내는 여러개의 메서드 파라메터를 가질 수 있다. 예를 들어 `TransferService`가 `AccountRepository`를 필요로 한다면 그 의존성을 메서드 파라메터로 아래 예시처럼 나타낼 수 있다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public TransferService transferService(AccountRepository accountRepository) {
+        return new TransferServiceImpl(accountRepository);
+    }
+}
+```
+
+이 방법은 생성자 기반 의존성 주입과 거의 동일하다고 보면된다. 자세한 내용은 [관련 섹션](#beans-constructor-injection)에서 확인할 수 있다.
+
 <h5 id="beans-java-lifecycle-callbacks">생명주기 콜백 받기</h5>
 <h5 id="beans-java-specifying-bean-scope">빈 스코프 설정하기</h5>
 <h5 id="beans-java-customizing-bean-naming">빈 이름 설정하기</h5>

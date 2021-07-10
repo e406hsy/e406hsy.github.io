@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-07-07T07:28:00+09:00
+date:   2021-07-10T09:12:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4042,6 +4042,83 @@ public class AppConfig {
 이 방법은 생성자 기반 의존성 주입과 거의 동일하다고 보면된다. 자세한 내용은 [관련 섹션](#beans-constructor-injection)에서 확인할 수 있다.
 
 <h5 id="beans-java-lifecycle-callbacks">생명주기 콜백 받기</h5>
+
+`@Bean`어노테이션이 적용된 클래스는 일반적인 생명주기 콜백을 사용할 수 있다. JSR-250의 `@PostConstruct`와 `@PreDestory` 어노테이션도 사용할 수 있다. 자세한 내용은 [JSR-250 어노테이션](#beans-postconstruct-and-predestroy-annotations)을 확인하면 된다.
+
+일반적인 스프링 [생명주기](#beans-factory-nature) 콜백도 사용할 수 있다. 빈이 `InitailizingBean`, `DisposableBean`, `LifeCycle` 인터페이스를 구현한다면 각각의 메소드가 컨테이너에 의하여 호출될 것이다.
+
+`*Aware` 인터페이스 (예를 들면, [BeanFactoryAware](#beans-beanfactory), [BeanNameAware](#beans-factory-aware), [MessageSourceAware](#context-functionality-messagesource), [ApplicationContextAware](#beans-factory-aware) 등등)도 사용 가능하다.
+
+`@Bean`어노테이션을 사용하여 초기화 콜백, 종료 메소드를 임의로 설정하는 것도 가능하다. 스프링 XML의 `bean`요소에 `init-method`와 `destory-method`를 설정하는 것과 비슷하다. 다음은 그 예시이다:
+
+```java
+public class BeanOne {
+
+    public void init() {
+        // initialization logic
+    }
+}
+
+public class BeanTwo {
+
+    public void cleanup() {
+        // destruction logic
+    }
+}
+
+@Configuration
+public class AppConfig {
+
+    @Bean(initMethod = "init")
+    public BeanOne beanOne() {
+        return new BeanOne();
+    }
+
+    @Bean(destroyMethod = "cleanup")
+    public BeanTwo beanTwo() {
+        return new BeanTwo();
+    }
+}
+```
+
+| |
+| --- |
+| ***!** 기본적으로 자바로 설정된 빈정의는 퍼블릭 `close` 메소드나 `shutdown`메서드는 자동으로 종료 콜백으로 등록된다. 만약 퍼블릭 `close`나 `shutdown`메소드를 구현하고 있으며 컨테이너에 의하여 호출되기를 원하지 않는다면 `@Bean(destoryMethod="")`를 설정하여 기본으로 설정되는 종료 콜백메소드를 없앨 수 있다.* |
+| *JNDI에서 가져온 리소스에 기본적으로 적용되어 생명주기가 어플리케이션 외부에서 관리되기를 원할 수도 있을 것이다. 특히 Java EE 어플리케이션 서버에서 종종 문제를 일으키는 것으로 알려진 `DataSource`에는 이러한 설정을 반드시 해줘야한다.* |
+| *아래는 `DataSource`에 자동 콜백 메소드 설정을  막는 예시이다.* |
+
+```java
+@Bean(destroyMethod="")
+public DataSource dataSource() throws NamingException {
+    return (DataSource) jndiTemplate.lookup("MyDS");
+}
+```
+
+| |
+| --- |
+| *또한 `@Bean`메소드와 함께 JNDI lookup을 이용하는 경우가 많다. 주로 스프링의 `JndiTemplate`이나 `JndiLocatorDelegate`를 사용하는 방법이나 JNDI의 `JndiObjectFactoryBean`을 제외한 JNDI `InitialContext`를 사용하는 경우이다.(`JndiObjectFactoryBean`은 반환 타입을 실제 사용할 타입이 아닌 `FactoryBean`으로 설정해야하기에 실제 사용할 빈을 전달받는 `@Bean`메소드의 의도와는 다르게 동작하여 사용이 어렵다)* |
+
+위 예시의 `BeanOne`은 아래 예시와 동일하게 생성되는 중 `init()` 메소드를 호출할 것이다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public BeanOne beanOne() {
+        BeanOne beanOne = new BeanOne();
+        beanOne.init();
+        return beanOne;
+    }
+
+    // ...
+}
+```
+
+| |
+| --- |
+| ***@** 자바를 직접사용해서 설정한다면 컨테이너의 생명주기에 의존하지 않고 필요한 작업을 직접 진행할 수 있다.* |
+
 <h5 id="beans-java-specifying-bean-scope">빈 스코프 설정하기</h5>
 <h5 id="beans-java-customizing-bean-naming">빈 이름 설정하기</h5>
 <h5 id="beans-java-bean-aliasing">빈 별명 설정하기</h5>

@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-07-10T09:12:00+09:00
+date:   2021-07-13T07:53:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4120,10 +4120,98 @@ public class AppConfig {
 | ***@** 자바를 직접사용해서 설정한다면 컨테이너의 생명주기에 의존하지 않고 필요한 작업을 직접 진행할 수 있다.* |
 
 <h5 id="beans-java-specifying-bean-scope">빈 스코프 설정하기</h5>
+
+스프링은 스코프를 설정할 수 있는 `@Scope`어노테이션을 제공한다.
+
+###### `@Scope` 어노테이션 사용하기
+
+`@Bean`어노테이션으로 정의된 빈에 스코프를 설정할 수 있다. [빈 스코프](#beans-factory-scopes)에 나오는 표준 스코프 전부 사용가능하다.
+
+기본 스코프는 `singleton`이다. 하지만 `@Scope` 어노테이션을 사용하여 아래 예시처럼 재설정할 수 있다:
+
+```java
+@Configuration
+public class MyConfiguration {
+
+    @Bean
+    @Scope("prototype")
+    public Encryptor encryptor() {
+        // ...
+    }
+}
+```
+
+###### `@Scope`와 `scoped-proxy`
+
+스프링은 [스코프 프록시](#beans-factory-scopes-other-injection)를 이용하여 스코프가 설정된 의존성을 사용하는 편리한 방법을 제공한다. XML설정으로 이러한 프록시를 만드는 가장 쉬운 방법은 `<aop:scoped-proxy/>` 요소를 사용하는 것이다. `@Scope`어노테이션을 사용하는 경우, 같은 기능을 하는 `proxyMode`어트리뷰트를 사용할 수 있다. 기본값은 프록시를 적용하지 않는 것(`ScopedProxyMode.NO`)이다. 하지만 `ScopedProxyMode.TARGET_CLASS`나 `ScopedProxyMode.INTERFACES`를 설정할 수 있다.
+
+XML기반 스코프 프록시([스코프 프록시](#beans-factory-scopes-other-injection))에서 자바를 사용한 `@Bean`으로 변경하고자 한다면 아래와 같은 형태일 것이다:
+
+
+```java
+// HTTP 세션 스코프 빈 프록시
+@Bean
+@SessionScope
+public UserPreferences userPreferences() {
+    return new UserPreferences();
+}
+
+@Bean
+public Service userService() {
+    UserService service = new SimpleUserService();
+    // 프록시가 적용된 userPreferences 빈을 참조한다.
+    service.setUserPreferences(userPreferences());
+    return service;
+}
+```
+
 <h5 id="beans-java-customizing-bean-naming">빈 이름 설정하기</h5>
+
+기본적으로 설정 클래스는 `@Bean`메소드의 이름을 빈의 이름으로 사용한다. 하지만 `name`어트리뷰트를 사용하여 아래 예시처럼 재설정할 수 있다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean(name = "myThing")
+    public Thing thing() {
+        return new Thing();
+    }
+}
+```
+
 <h5 id="beans-java-bean-aliasing">빈 별명 설정하기</h5>
+
+[빈 이름 설정하기](#beans-beanname)에서 언급했듯이 종종 한개의 빈에 여러개의 이름이 필요한 경우가 있다. `@Bean`어노테이션의 `name`어트리뷰트는 문자열 배열을 이러한 목적으로 허용한다. 아래는 빈에 별명을 설정하는 예시이다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean({"dataSource", "subsystemA-dataSource", "subsystemB-dataSource"})
+    public DataSource dataSource() {
+        // DataSource 빈을 설정하고 인스턴스화 하여 반환하는 코드...
+    }
+}
+```
+
 <h5 id="beans-java-bean-description">빈 설명</h5>
 
+종종 빈에 직접적인 설명을 제공하는게 도움이 될 때가 있다. 특히 빈이 모니터링을 하기위해 노출되었을 경우(예를 들면 JMX를 통해) 유용하다.
+
+`@Bean`에 설명을 추가하려면 아래 예시처럼 [`@Description`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/annotation/Description.html)을 사용하면 된다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    @Description("Provides a basic example of a bean")
+    public Thing thing() {
+        return new Thing();
+    }
+}
+```
 
 <h4 id="beans-java-configuration-annotation">@Configuration 어노테이션 이용하기</h4>
 

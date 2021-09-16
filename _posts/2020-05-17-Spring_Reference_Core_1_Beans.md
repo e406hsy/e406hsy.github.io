@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-07-13T07:53:00+09:00
+date:   2021-09-17T07:53:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4215,10 +4215,112 @@ public class AppConfig {
 
 <h4 id="beans-java-configuration-annotation">@Configuration 어노테이션 이용하기</h4>
 
+`@Configuration`은 빈이 정의되는 클래스를 가리키는 클래스 레벨 어노테이션이다. `@Configuration`클래스들은 `@Bean` 어노테이션이 적용된 public 메소드를 사용하여 빈을 정의한다. `@Configuration`클래스 내부에서 `@Bean`메소드를 호출하는 것은 내부 빈 사이의 의존성을 나타내기 위해 사용된다. [기본 개념: `@Bean`과 `@Configuration`](#beans-java-basic-concepts)에 일반적인 소개를 확인할 수 있다.
+
 <h5 id="beans-java-injecting-dependencies">내부 빈 의존성 주입하기</h5>
+
+어떠한 빈이 다른 빈에 의존할 때, 빈 메소드에서 다른 빈 메소드를 호출하는 것이 가장 간단하게 의존성을 표현하는 방법이다. 아래는 예시이다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public BeanOne beanOne() {
+        return new BeanOne(beanTwo());
+    }
+
+    @Bean
+    public BeanTwo beanTwo() {
+        return new BeanTwo();
+    }
+}
+```
+
+위 예시에서 `beanOne`은 생성자 주입을 통하여 `beanTwo`의 참조를 얻는다.
+
+| |
+| --- |
+| ***!** `@Bean`메소드가 `@Configuration`클래스 내부에 정의 되었을 때만 이러한 내부 빈 사이의 의존성 주입이 동작한다. 일반적인 `@Component`클래스에는 내부 빈 사이의 의존성을 정의할 수 없다.* |
+
 <h5 id="beans-java-method-injection">Lookup 메소드 주입하기</h5>
+
+이미 언급했다시피 [lookup 메소드 주입](#beans-factory-method-injection)은 가끔씩 사용하는 고급기술이다. 이 방법은 싱글톤 빈이 프로토타입 빈에 의존할 때 유용하다. 이러한 설정을 할때 자바를 사용하면 아주 자연스러운 표현을 할 수 있다. 아래는 lookup 메소드 주입을 사용하는 예시이다:
+
+```java
+public abstract class CommandManager {
+    public Object process(Object commandState) {
+        // 적절한 Commond 인터페이스 구현체를 가져온다.
+        Command command = createCommand();
+        // 커맨드 인터페이스에 상태를 설정한다. (이때, 커맨드는 새로운 객체여야 한다.)
+        command.setState(commandState);
+        return command.execute();
+    }
+
+    // 그렇다면 이 메소드는 어디에서 구현되는가?
+    protected abstract Command createCommand();
+}
+```
+
+자바 설정을 이용하면 `CommandManger`의 자식 클래스를 만들어서 `createCommand()`를 재정의 하여 새로운 (프로토타입) 커맨드 객체를 생성하도록 할 수 있다. 아래는 그 예시이다:
+
+```java
+@Bean
+@Scope("prototype")
+public AsyncCommand asyncCommand() {
+    AsyncCommand command = new AsyncCommand();
+    // 여기에 필요한 의존성 주입 코드를 작성한다.
+    return command;
+}
+
+@Bean
+public CommandManager commandManager() {
+    // createCommand()가 구현된 익명 CommandManager 구현체를 반환한다.
+    // 프로토타입 Command 객체를 반환하도록 메소드를 재정의 한다.
+    return new CommandManager() {
+        protected Command createCommand() {
+            return asyncCommand();
+        }
+    }
+}
+```
+
 <h5 id="beans-java-further-information-java-config">자바 기반 설정이 내부적으로 작동하는 방법에 대한 추가적인 정보</h5>
 
+`@Bean` 어노테이션이 적용된 메소드가 두번 호출되는 예시를 생각해보자:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean
+    public ClientService clientService1() {
+        ClientServiceImpl clientService = new ClientServiceImpl();
+        clientService.setClientDao(clientDao());
+        return clientService;
+    }
+
+    @Bean
+    public ClientService clientService2() {
+        ClientServiceImpl clientService = new ClientServiceImpl();
+        clientService.setClientDao(clientDao());
+        return clientService;
+    }
+
+    @Bean
+    public ClientDao clientDao() {
+        return new ClientDaoImpl();
+    }
+}
+```
+
+`clientDao()`는 `clientService1()`과 `clientService2()`에서 각각 한번씩 호출되었다. 메소드는 새로운 `ClientDaoImpl`을 생성하여 반환하는 형태로 구현되었기 때문에 (각 서비스에 1개씩) 2개의 인스턴스가 생성될 것이라 생각할 것이다. 그렇다면 이 방법은 문제의 소지가 있다: 스프링은 기본적으로 `singleton` 스코프로 빈을 생성한다. 여기서 특별한 기술이 적용된다: 시작시점에 모든 `@Configuration`클래스는 `CGLIB`을 이용하여 자식클래스로 변경된다. 이 자식클래스의 메소드에서 컨테이너를 먼저 확인한 후 컨테이너의 빈을 반환한다. 컨테이너에 빈이 없다면 부모 메소드를 호출하여 새 인스턴스를 생성한다.
+
+| |
+| --- |
+| ***!** 이 동작은 빈의 스코프에 따라 달라진다. 여기서는 싱글톤 빈에 대한 이야기이다.* |
+| ***!** 스프링 3.2부터 CGLIB을 클래스패스에 추가할 필요가 없어졌다. CBLIB 클래스는 `org.springframework.cglib`로 다시 패키징되어 스프링 코어 JAR에 포함되었다.* |
+| ***@** CGLIB이 시작지점에 기능을 생성하기에 몇가지 제한사항이 있다. 특히 configuration 클래스는 final이 아니여야 한다는 것이다. 스프링 4.3부터 configuration 클래스는 어떠한 형태의 생성자든지 허용된다. `@Autowired`나 기본 생성자의 형태가 아닌 유일한 생성자를 사용하는 방법도 포함된다. CGLIB으로 인한 한계에서 벚어나고 싶다면 `@Configuration`클래스가 아닌 클래스(예를 들면 일반적인 `@Component` 클래스)에 `@Bean`메소드를 정의하는 것을 고려해보자. 이렇게하면 `@Bean`메소드간에 호출하는 것이 특별한 동작을 하지 않아 오직 생성자나 메소드 레벨 의존성 주입을 이용해야한다.* |
 
 <h4 id="beans-java-composing-configuration-classes">자바 기반 설정 구성하기</h4>
 

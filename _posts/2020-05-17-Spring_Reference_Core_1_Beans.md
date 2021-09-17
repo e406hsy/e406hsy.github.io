@@ -4324,11 +4324,57 @@ public class AppConfig {
 
 <h4 id="beans-java-composing-configuration-classes">자바 기반 설정 구성하기</h4>
 
+스프링 자바 기반 설정 기능은 어노테이션을 사용할 수 있어 설정을 복잡하지 않게 할 수 있다.
+
 <h5 id="beans-java-using-import">@Import 어노테이션 사용하기</h5>
+
+스프링 XML 파일의 `<import/>`처럼 `@Import`어노테이션을 설정을 모듈화 하여 다른 설정 클래스의 `@Bean` 정의를 가져올 수 있도록 한다. 아래는 그 예시이다:
+
+```java
+@Configuration
+public class ConfigA {
+
+    @Bean
+    public A a() {
+        return new A();
+    }
+}
+
+@Configuration
+@Import(ConfigA.class)
+public class ConfigB {
+
+    @Bean
+    public B b() {
+        return new B();
+    }
+}
+```
+
+이제, 콘텍스트로드 시점에 `ConfigA.class`와 `ConfigB.class` 모두 명시하지 않고 `ConfigB`만 명시하면 된다. 아래는 그 예시이다:
+
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(ConfigB.class);
+
+    // now both beans A and B will be available...
+    A a = ctx.getBean(A.class);
+    B b = ctx.getBean(B.class);
+}
+```
+
+이러한 접근법은 컨테이너 생성을 간소화한다. 수 많은 `@Configuration`클래스를 기억할 필요없이 단 한 개의 클래스만 처리하면 된다.
+
+
+
 <h5 id="beans-java-conditional">조건에 따라 @Configuration 클래스와 @Bean 메소드 포함시키기</h5>
 <h5 id="beans-java-combining">자바 기반 설정과 XML 기반 설정 조합하기</h5>
 
+| |
+| --- |
+| ***!** 스프링 4.2부터 `@Import`는 일반적인 component 클래스의 참조도 사용 가능하여 `AnnotationConfigApplicationCOntext.register` 메소드를 대신 할수있다. 컴포넌트 스캔을 사용하지 않고 몇 개의 설정 클래스만 추가하고자 할 때 유용하다.* |
 
+###### 임포드된 `@Bean` 정의에 의존성 주입하기
 
 
 <h3 id="beans-envirionment">환경 추상화</h3>

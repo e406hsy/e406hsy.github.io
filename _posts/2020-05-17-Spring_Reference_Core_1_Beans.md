@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-09-17T07:53:00+09:00
+date:   2021-09-18T08:53:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4368,7 +4368,6 @@ public static void main(String[] args) {
 
 
 <h5 id="beans-java-conditional">조건에 따라 @Configuration 클래스와 @Bean 메소드 포함시키기</h5>
-<h5 id="beans-java-combining">자바 기반 설정과 XML 기반 설정 조합하기</h5>
 
 | |
 | --- |
@@ -4376,6 +4375,108 @@ public static void main(String[] args) {
 
 ###### 임포드된 `@Bean` 정의에 의존성 주입하기
 
+위의 예시는 잘 동작하지만 단순하다. 실제 사용 환경에서는 여러 설정 클래스 간에 의존성을 가지게 된다. XML을 사용할 때는 자바 컴파일러가 관여하지 않고 스프링 컨테이너에 동작을 맡기기 때문에 문제가 되지 않는다. `@Configuration`클래스를 사용할 경우에는 자바 컴파일러가 관여하여 제약을 가지게 되고 반드시 올바른 자바 문법을 따라야 한다.
+
+다행이도 해결방법은 간단하다. 이미 [언급했듯이](#beans-java-dependencies) `@Bean`메소드는 여러 파라메터를 가질수 있고 이 파라메터로 의존성을 나타낼 수 있다. `@Configuration` 클래스의 실제 사용예시를 보자:
+
+```java
+@Configuration
+public class ServiceConfig {
+
+    @Bean
+    public TransferService transferService(AccountRepository accountRepository) {
+        return new TransferServiceImpl(accountRepository);
+    }
+}
+
+@Configuration
+public class RepositoryConfig {
+
+    @Bean
+    public AccountRepository accountRepository(DataSource dataSource) {
+        return new JdbcAccountRepository(dataSource);
+    }
+}
+
+@Configuration
+@Import({ServiceConfig.class, RepositoryConfig.class})
+public class SystemTestConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        // 새로운 DataSource를 반환한다.
+    }
+}
+
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(SystemTestConfig.class);
+    // 모든 의존성은 Configuration 클래스를 통해 해소된다.
+    TransferService transferService = ctx.getBean(TransferService.class);
+    transferService.transfer(100.00, "A123", "C456");
+}
+```
+
+다른 방법을 통해서도 같은 결과를 얻을 수 있다. `@Configuration` 클래스 자체도 컨테이너의 빈이라고 언급했었다: 이 말은 `@Autowired`와 `@Value` 의존성 주입을 다른 빈처럼 사용할 수 있다는 의미이다.
+
+| |
+| --- |
+| ***!** 의존성 주입은 가능하면 간단하게 하는 것이 좋다. `@Configuration` 클래스는 컨텍스트 초기화의 초기단계에서 처리되어 의도하지 않은 빠른 초기화를 일으킬 수 있다. 가능하면 위의 예시처럼 파라메터 기반 의존성 주입을 사용하는 것이 좋다. 또한 `@Bean`을 이용하여 `BeanPostProcessor`와 `BeanFactoryPostProcessor`를 정의할 때 주의하여야한다. 이러한 경우 `static @Bean`메소드로 선언하여 이들을 정의하고 있는 설정 클래스의 인스턴스화를 진행시키지 않아야한다. 그렇지 않으면 설정 클래스에서 `@Autowired`와 `@Value`가 동작하지 않을 것이다. 왜냐하면 [`AutowiredAnnotationBeanPostProcessor`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/beans/factory/annotation/AutowiredAnnotationBeanPostProcessor.html)보다 먼저 인스턴스화가 될 수 있기 때문이다.* |
+
+아래 예시는 빈을 다른 빈에 자동 연결하는 예시이다:
+
+```java
+@Configuration
+public class ServiceConfig {
+
+    @Autowired
+    private AccountRepository accountRepository;
+
+    @Bean
+    public TransferService transferService() {
+        return new TransferServiceImpl(accountRepository);
+    }
+}
+
+@Configuration
+public class RepositoryConfig {
+
+    private final DataSource dataSource;
+
+    public RepositoryConfig(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    @Bean
+    public AccountRepository accountRepository() {
+        return new JdbcAccountRepository(dataSource);
+    }
+}
+
+@Configuration
+@Import({ServiceConfig.class, RepositoryConfig.class})
+public class SystemTestConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        // 새로운 DataSource를 반환한다.
+    }
+}
+
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(SystemTestConfig.class);
+    // 모든 의존성은 Configuration 클래스를 통해 해소된다.
+    TransferService transferService = ctx.getBean(TransferService.class);
+    transferService.transfer(100.00, "A123", "C456");
+}
+```
+
+| |
+| --- |
+| ***!** `@Configuration`클래스의 생성자 기반 의존성 주입은 스프링 4.3부터 지원한다. 생성자가 오직 한 개인 경우 `@Autowired`를 명시할 필요는 없다.* |
+
+###### 임포트할 빈 이름 전체를 명시하여 탐색 간소화 하기
+
+<h5 id="beans-java-combining">자바 기반 설정과 XML 기반 설정 조합하기</h5>
 
 <h3 id="beans-envirionment">환경 추상화</h3>
 

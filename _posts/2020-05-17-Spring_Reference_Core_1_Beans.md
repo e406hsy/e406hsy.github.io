@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-09-18T08:53:00+09:00
+date:   2021-10-02T17:53:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4366,9 +4366,6 @@ public static void main(String[] args) {
 이러한 접근법은 컨테이너 생성을 간소화한다. 수 많은 `@Configuration`클래스를 기억할 필요없이 단 한 개의 클래스만 처리하면 된다.
 
 
-
-<h5 id="beans-java-conditional">조건에 따라 @Configuration 클래스와 @Bean 메소드 포함시키기</h5>
-
 | |
 | --- |
 | ***!** 스프링 4.2부터 `@Import`는 일반적인 component 클래스의 참조도 사용 가능하여 `AnnotationConfigApplicationCOntext.register` 메소드를 대신 할수있다. 컴포넌트 스캔을 사용하지 않고 몇 개의 설정 클래스만 추가하고자 할 때 유용하다.* |
@@ -4475,6 +4472,109 @@ public static void main(String[] args) {
 | ***!** `@Configuration`클래스의 생성자 기반 의존성 주입은 스프링 4.3부터 지원한다. 생성자가 오직 한 개인 경우 `@Autowired`를 명시할 필요는 없다.* |
 
 ###### 임포트할 빈 이름 전체를 명시하여 탐색 간소화 하기
+
+위 시나리오에서 `@Autowired`는 잘 동작하며 모듈화를 제공하지만 어떠한 빈을 선택할지는 모호하다. 개발자가 `ServiceConfig`를 보며 정의된 `@Autowired AccountRepository`가 어디있는지 알 방법은 무엇이 있을까? 코드에 명시적으로 존재하지 않을 수 있다. [Spring Tools For Eclipse](https://spring.io/tools)에서 빈들의 연결 그래프를 제공하여 연결되었는지 확인할 수 있다. 또한 Java IDE에서 `AccountRepository`가 정의되고 사용되는 모든 곳을 검색하여 `@Bean` 메소드를 확인할 수 있다.
+
+이러한 모호함이 용인되지않는 환경에서 `@Configuration`클래스와 다른 연결되는 클래스를 바로 연결가능하도록 하고 싶다면 아래 예시처럼 설정할 수 있다:
+
+```java
+@Configuration
+public class ServiceConfig {
+
+    @Autowired
+    private RepositoryConfig repositoryConfig;
+
+    @Bean
+    public TransferService transferService() {
+        // 다른 설정 클래스의 '@Bean' 메소드를 통하여 연결한다.
+        return new TransferServiceImpl(repositoryConfig.accountRepository());
+    }
+}
+```
+
+위 예시에서 `AccountRepository`는 명시적으로 정의되었다. 하지만 `ServiceCOnfig`는 이제 `RepositoryConfig`와 긴밀한 결합을 가지게 되었다. 
+이것은 트레이드오프이다. 인터페이스나 추상 클래스 기반 `@Configuration`클래스를 사용하여 긴밀한 결합울 줄일 수 있다. 아래 예시를 보자:
+
+```java
+@Configuration
+public class ServiceConfig {
+
+    @Autowired
+    private RepositoryConfig repositoryConfig;
+
+    @Bean
+    public TransferService transferService() {
+        return new TransferServiceImpl(repositoryConfig.accountRepository());
+    }
+}
+
+@Configuration
+public interface RepositoryConfig {
+
+    @Bean
+    AccountRepository accountRepository();
+}
+
+@Configuration
+public class DefaultRepositoryConfig implements RepositoryConfig {
+
+    @Bean
+    public AccountRepository accountRepository() {
+        return new JdbcAccountRepository(...);
+    }
+}
+
+@Configuration
+@Import({ServiceConfig.class, DefaultRepositoryConfig.class})  // 구상 설정 클래스를 가져온다. 
+public class SystemTestConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        // DataSource를 반환한다.
+    }
+
+}
+
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(SystemTestConfig.class);
+    TransferService transferService = ctx.getBean(TransferService.class);
+    transferService.transfer(100.00, "A123", "C456");
+}
+
+```
+
+이제 `ServiceConfig`는 `DefaultRepositoryConfig`와 느슨한 결합을 가진다. IDE를 이용해 여전히 `RepositoryConfig`구현체를 쉽게 찾을 수 있다. 이렇게 하면, `@Configuration` 클래스와 의존 클래스 간에 돌아다니는 것은 인터페이스 기반 코드 간에 돌아다니는 것과 동일한 과정을 거친다.
+
+| |
+| --- |
+| ***!** 특정한 빈들의 생성 순서에 영향을 미치고 싶다면, 빈들을 `@Lazy` (시작시 생성되지 않고 빈을 처음 사용할 때 생성된다)로 설정하는 것을 고려해봐라. 혹은 `@DependsOn`을 이용하여 다른 빈에 의존성을 가질 수 있다(특정한 다른 빈이 생성되고 난뒤에 생성되는 것을 보장한다)* |
+
+<h5 id="beans-java-conditional">조건에 따라 @Configuration 클래스와 @Bean 메소드 포함시키기</h5>
+
+`@Configuration`클래스나 `@Bean`메소드를 특정 조건에 따라 활성화하거나 비활성화하는 것은 종종 유용하게 사용된다. 자주 사용되는 예시로는 `@Profile` 어노테이션을 사용하여 특정한 스프링 `Environment`([빈 정의 프로파일](#beans-definition-profiles)에 자세한 내용이 있다)가 작동하는 경우에만 활성화하는 것이다. 
+
+`@Profile` 어노테이션은 더 유연하게 사용될 수 있는 [`@Conditional`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/annotation/Conditional.html)어노테이션을 이용하여 구현되어 있다. `@Conditional` 어노테이션이 `@Bean`이 등록되기 전에 사용되는 `org.springframework.context.annotation.Condition` 구현체를 가리키고 있다.
+
+`Condition` 인터페이스의 구현체는 `true`나 `false`를 반환하는 `matches(...)` 메소드를 제공한다. 다음은 `@Profile`에 사용되는 실제 `Condition` 구현체의 예시이다:
+
+```java
+@Override
+public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    // @Profile 어노테이션 어트리뷰트를 읽어온다.
+    MultiValueMap<String, Object> attrs = metadata.getAllAnnotationAttributes(Profile.class.getName());
+    if (attrs != null) {
+        for (Object value : attrs.get("value")) {
+            if (context.getEnvironment().acceptsProfiles(((String[]) value))) {
+                return true;
+            }
+        }
+        return false;
+    }
+    return true;
+}
+```
+
+[`@Conditional`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/annotation/Conditional.html) 자바독에 자세한 내용을 볼 수 있다.
 
 <h5 id="beans-java-combining">자바 기반 설정과 XML 기반 설정 조합하기</h5>
 

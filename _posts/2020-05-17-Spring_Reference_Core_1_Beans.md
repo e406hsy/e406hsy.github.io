@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-02T17:53:00+09:00
+date:   2021-10-04T10:38:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4577,6 +4577,142 @@ public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata)
 [`@Conditional`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/annotation/Conditional.html) 자바독에 자세한 내용을 볼 수 있다.
 
 <h5 id="beans-java-combining">자바 기반 설정과 XML 기반 설정 조합하기</h5>
+
+스프링의 `@Configuration` 클래스는 스프링 XML 설정을 100% 대체하기 위해서 만들어진 것이 아니다. 스프링 XML 네임스페이스같은 일부 기능은 여전히 컨테이너를 설정하는 이상적인 방법이다. XML이 편리하고 필요한 경우에는 `ClassPathXmlApplicationContext`를 사용하는 "XML-중심"의 방법과 `AnnotationConfigApplicationContext`에 `@ImportResource`로 XML을 추가하는 `Java-중심"의 방법 중 선택할 수 있다.
+
+###### XML-중심의 `@Configuration` 클래스 사용하기
+
+스프링 컨테이너를 XML로 설정하고 `@Configuration`클래스를 각각 추가하는 방법을 선호할 수도 있다. 예를 들면 커다란 스프링 XML 기반의 설정이 존재할 때, `@Configuration`클래스를 필요에 따라 생성하고 XML 파일에 포함시키는 것이다. 이 장 뒤쪽에서 "XML-중심"의 상황에서 `@COnfiguration` 클래스를 사용하는 방법에 대해 이야기 할 것이다.
+
+###### `@Configuration` 클래스를 일반적인 스프링 `<bean/>`으로 선언하기
+
+`@Configuration`클래스는 컨테이너에서 빈 정의라는 것을 기억하여야 한다. 다음의 예시들에서 `AppConfig`라는 `@Configuration`클래스를 생성하고 `system-test-config.xml`에 `<bean/>` 빈 정의로서 포함시킬 것이다. `<context:annotation-config/>`가 설정되면 컨테이너는 `@Configuration` 어노테이션을 찾아서 `AppConfig`에 `@Bean`메소드를 처리할 것이다.
+
+아래 예시는 일반적인 자바 설정의 예시이다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Bean
+    public AccountRepository accountRepository() {
+        return new JdbcAccountRepository(dataSource);
+    }
+
+    @Bean
+    public TransferService transferService() {
+        return new TransferService(accountRepository());
+    }
+}
+```
+
+아래의 예시는 `system-test-config.xml` 파일의 일부분이다:
+
+```xml
+<beans>
+    <!-- @Autowired, @Configuration 같은 어노테이션의 처리를 활성화시킨다. -->
+    <context:annotation-config/>
+    <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+
+    <bean class="com.acme.AppConfig"/>
+
+    <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+</beans>
+```
+
+아래 예시는 `jdbc.properties` 파일의 예시이다:
+
+```
+jdbc.url=jdbc:hsqldb:hsql://localhost/xdb
+jdbc.username=sa
+jdbc.password=
+```
+
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new ClassPathXmlApplicationContext("classpath:/com/acme/system-test-config.xml");
+    TransferService transferService = ctx.getBean(TransferService.class);
+    // ...
+}
+```
+
+| |
+| --- |
+| ***!** `system-test-config.xml` 파일에서 `AppConfig` `<bean/>`에 `id` 어트리뷰트를 정의하지 않았다. 필요하지 않다면 생략할수 있기 때문이다. 예를 들면 다른 빈이 참조하지 않고 컨테이너에서 이름으로 빈을 가져올 일이 없을 경우이다. 비슷하게 `DataSource` 빈은 오직 자동연결로만 사용되어서 `id`가 반드시 필요하지 않다.* |
+
+###### <context:component-scan>을 활용하여 `@Configuration` 클래스 선택하기
+
+`@Configuration`이 `@Component` 메타 어노테이션이 적용된 어노테이션이기에 `@Configuration` 어노테이션이 적용된 클래스는 자동적으로 컨포넌트 스캐닝의 대상이 된다. 이전 예시와 같은 상황에서 `system-test-config.xml`을 다시 정의하여 컨포넌트 스캐닝의 장점을 이용할 수 있다. 이 경우에 우리는 `<context:annotation-config/>`를 직접 사용하지 않고 `<context:component-scan/>`을 사용하여 같은 동작을 하도록 할 것이다.
+
+아래의 예시는 변경된 `system-test-config.xml` 파일의 예시이다.
+
+```xml
+<beans>
+    <!-- AppConfig 빈 정의를 찾아서 등록하도록 한다. -->
+    <context:component-scan base-package="com.acme"/>
+    <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+
+    <bean class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+</beans>
+```
+
+###### `@ImportResource`를 사용하여 XML에서 `@Configuration` 클래스 중심으로 사용하기
+
+`@Configuration`이 최 우선의 설정방법으로 사용되는 어플리케이션에서도 약간의 XML을 사용할 필요가 있을 수 있다. 이러한 경우에는 `@ImportResource`를 사용하여 필요한 만큼의 XML을 정의하여 사용할 수 있다. 이렇게 하면 "Java-중심"의 접근을 가져가면서 XML을 최소한으로 유지할 수 있다. 아래의 예시는 `@ImportResource` 어노테이션을 사용하여 "Java-중심"의 XML 설정을 보여준다:
+
+```java
+@Configuration
+@ImportResource("classpath:/com/acme/properties-config.xml")
+public class AppConfig {
+
+    @Value("${jdbc.url}")
+    private String url;
+
+    @Value("${jdbc.username}")
+    private String username;
+
+    @Value("${jdbc.password}")
+    private String password;
+
+    @Bean
+    public DataSource dataSource() {
+        return new DriverManagerDataSource(url, username, password);
+    }
+}
+```
+
+```xml
+properties-config.xml
+<beans>
+    <context:property-placeholder location="classpath:/com/acme/jdbc.properties"/>
+</beans>
+```
+
+```
+jdbc.properties
+jdbc.url=jdbc:hsqldb:hsql://localhost/xdb
+jdbc.username=sa
+jdbc.password=
+```
+
+```java
+public static void main(String[] args) {
+    ApplicationContext ctx = new AnnotationConfigApplicationContext(AppConfig.class);
+    TransferService transferService = ctx.getBean(TransferService.class);
+    // ...
+}
+```
 
 <h3 id="beans-envirionment">환경 추상화</h3>
 

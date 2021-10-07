@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-04T10:38:00+09:00
+date:   2021-10-07T18:05:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4716,7 +4716,46 @@ public static void main(String[] args) {
 
 <h3 id="beans-envirionment">환경 추상화</h3>
 
+[`Environment`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/core/env/Environment.html) 인터페이스는 어플리케이션의 두 중요한 측면인 [프로필](#beans-definition-profiles)과 [프로퍼티](#beans-property-source-abstraction)를 추상화한 것이다.
+
+프로필은 특정 프로필이 활성화 됬을 경우에만 컨테이너에 등록되는 빈 정의들을 모아서 이름지어 놓은 것이다. 빈들은 XML이나 어노테이션을 이용하여 프로필에 등록할 수 있다. `Environment` 객체의 프로필과 관련된 역할은 어떤 프로필이 현재 활성화되었는지, 어떤 프로필이 기본으로 활성화되어야 하는지 결정하는 역할을 한다.
+
+프로퍼팀는 거의 모든 어플리케이션에서 중요한 역할을 하며 다양한 곳으로 부터 설정된다: 프로퍼티 파일, JVM 시스템 프로퍼티, 시스템 환경 변수, JNDI, 서블릿 컨텍스트 파라메터, 각각의 `Properties` 객체, `Map` 객체 등등. `Environment` 객체의 프로퍼티와 관련된 역할은 프로퍼티를 설정하는 편리한 인터페이스를 유저에게 제공하는 역할이다.
+
 <h4 id="beans-definition-profiles">빈 정의 프로필</h4>
+
+빈 정의 프로필은 다양한 환경에서의 다양한 빈들을 핵심 컨테이너에 등록하는 기능을 제공한다. "environment"은 다양한 의미를 가지는 단어지만 제공하는 기능은 실사용할 때 도움이 될것이다. 아래는 실사용의 예시이다:
+
+* 개발시에 메모리기반 데이터를 사용하고 QA, 실사용시 JNDI기반 데이터를 사용한다.
+* 성능이 중요한 환경에 배포시에만 어플리케이션의 인프라 모니터링을 실행한다.
+* 각 사용자에게 맞춤으로 구현된 빈을 사용자에 따라 등록한다.
+
+첫 번째 예시에서는 `DataSource`를 사용하는 어플리케이션의 예시이다. 테스트 환경에선 아래와 같은 설정을 할 것이다:
+
+```java
+@Bean
+public DataSource dataSource() {
+    return new EmbeddedDatabaseBuilder()
+        .setType(EmbeddedDatabaseType.HSQL)
+        .addScript("my-schema.sql")
+        .addScript("my-test-data.sql")
+        .build();
+}
+```
+
+이 어플리케이션이 QA나 실사용 환경에 배포되어 JNDI에 등록된 데이터를 사용해야 한다고 생각해보자. 그렇다면 `dataSource`빈은 아래의 형태를 가질 것이다:
+
+```java
+@Bean(destroyMethod="")
+public DataSource dataSource() throws Exception {
+    Context ctx = new InitialContext();
+    return (DataSource) ctx.lookup("java:comp/env/jdbc/datasource");
+}
+```
+
+문제는 환경에 따라서 둘간에 전환이 필요하다는 것이다. 긴 시간동안 스프링 사용자들은 다양한 방법으로 해결해 왔다. 보통은 적합상 설정 파일을 찾아주는 `${placeholder}`를 가진 XML `<import/>` 구문과 환경 변수를 조합하여 해결해 왔다.
+
+이제 환경 특화된 빈 정의를 사용하여 이전의 예시를 일반화한다면, 현재 컨텍스트에 특정 빈 정의만 등록하고 나머지는 등록하지 않을 필요가 있다. 그렇게 처리하기 위해 이제부터 설정파일을 변경해갈 것이다.
 
 <h5 id="beans-definition-profiles-java">@Profile 이용하기</h5>
 <h5 id="beans-definition-profiles-xml">XML 빈 정의 프로필</h5>

@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-07T18:05:00+09:00
+date:   2021-10-08T07:24:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4758,6 +4758,101 @@ public DataSource dataSource() throws Exception {
 이제 환경 특화된 빈 정의를 사용하여 이전의 예시를 일반화한다면, 현재 컨텍스트에 특정 빈 정의만 등록하고 나머지는 등록하지 않을 필요가 있다. 그렇게 처리하기 위해 이제부터 설정파일을 변경해갈 것이다.
 
 <h5 id="beans-definition-profiles-java">@Profile 이용하기</h5>
+
+[`Profile`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/annotation/Profile.html) 어노테이션은 특정 프로필이 활성화 된 경우에만 등록되는 컴포넌트롤 표시하는 어노테이션이다. 아래는 `dataSource` 설정을 새롭게 작성한 예시이다:
+
+```java
+@Configuration
+@Profile("development")
+public class StandaloneDataConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.HSQL)
+            .addScript("classpath:com/bank/config/sql/schema.sql")
+            .addScript("classpath:com/bank/config/sql/test-data.sql")
+            .build();
+    }
+}
+```
+
+```java
+@Configuration
+@Profile("production")
+public class JndiDataConfig {
+
+    @Bean(destroyMethod="")
+    public DataSource dataSource() throws Exception {
+        Context ctx = new InitialContext();
+        return (DataSource) ctx.lookup("java:comp/env/jdbc/datasource");
+    }
+}
+```
+
+| |
+| --- |
+| ***!** 이전에 언급했듯이 `@Bean` 메소드에서 스프링 `JndiTemplate`/`JndiLocateorDelegate`를 사용하여 JNDI lookup을 프로그래밍적으로 이용할 수 있고 JNDI `InitialContext`를 직접 사용할 수 있다. 하지만 `JndiObjectFactoryBean`은 `FactoryBean` 타입을 반환하기때문에 사용할 수 없다.* |
+
+프로필 문자열은 단순한 프로필 이름(예를 들면, `production`) 혹은 프로필 표현식으로 설정할 수 있다. 프로필 표현식은 더 복잡한 프로필 선택로직을 사용할 수 있도록 해준다(예를 들면, `production & us-east`). 아래는 지원하는 표현식 연산자이다:
+
+* `!` : "not" 연산
+* `&` : "and" 연산
+* `|` : "or" 연산
+
+| |
+| --- |
+| ***!** `&`와 `|` 연산자를 괄호 없이 조합할 수 없다. 예를 들면 `production & us-east | eu-central`은 잘못된 표현식이다. `production & (us-east | eu-central)`로 표현되어야 한다.* |
+
+맞춤형 복합 어노테이션을 만드는 [메타 어노테이션](#beans-meta-annotations)으로 `@Profile`을 사용할 수있다. 아래의 예시는 `@Profile("production")`을 대체하는 `@Production`어노테이션을 정의하는 예시이다:
+
+```java
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+@Profile("production")
+public @interface Production {
+}
+```
+
+| |
+| --- |
+| ***@** `@Configuration`클래스에 `@Profile`어노테이션이 적용되면 해당 프로필이 활성화되지 않을 경우, `@Bean`메소드와 `@Import` 어노테이션은 전부 무시된다. `@Component`나 `@Configuration`클래스에 `@Profile({"p1", "p2"})` 어노테이션이 적용되면 'p1'이나 'p2'프로필이 활성화되어야 등록된다. NOT 연산자 (`!`)로 표시되면 프로필이 활성화되지 않은 경우에 등록된다. 예를 들면 `@Profile({"p1", "!p2"})`가 적용되면 'p1'이 활성화되거나 'p2'가 활성화되지 않은 경우에 등록된다.* |
+
+
+`@Profile`은 메소드 레벨에 적용되어 설정 클래스의 특정빈에만 동작할 수 있다. 아래는 그 예시이다:
+
+```java
+@Configuration
+public class AppConfig {
+
+    @Bean("dataSource")
+    @Profile("development")     // [1]
+    public DataSource standaloneDataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.HSQL)
+            .addScript("classpath:com/bank/config/sql/schema.sql")
+            .addScript("classpath:com/bank/config/sql/test-data.sql")
+            .build();
+    }
+
+    @Bean("dataSource")
+    @Profile("production")      // [2]
+    public DataSource jndiDataSource() throws Exception {
+        Context ctx = new InitialContext();
+        return (DataSource) ctx.lookup("java:comp/env/jdbc/datasource");
+    }
+}
+```
+
+1. `standaloneDataSource` 메소드는 `development`프로필에서만 등록된다.
+2. `jndiDataSource` 메소드는 `production`프로필에서만 등록된다.
+
+| |
+| --- |
+| ***@** `@Profile`이 적용된 `@Bean`메소드에서 특별한 경우가 일어날 수 있다. 같은 이름으로 오버로드된 `@Bean`메소드에서 `@Profile`은 같은 조건으로 설정되어야한다. 만약 조건이 다르다면, 오버로드된 여러 메소드 중에서 첫번째 조건만 확인한다. 따라서, `@Profile`은 오버로드된 메소드 중에서 한개를 선택하는 용도로 사용할 수 없다.* |
+| *프로필에 따라 같은 이름의 빈을 선택하도록 하고 싶다면 각각의 메소드에 서로 다른 이름을 부여하고 `@Bean`의 name 어트리뷰트에 같은 이름을 부여하면 된다. 특히 모든 어규먼트 타입이 같은 경우에는 이러한 방법이 올바른 자바 문법을 사용하는 유일한 방법이다.* |
+
+
 <h5 id="beans-definition-profiles-xml">XML 빈 정의 프로필</h5>
 <h5 id="beans-definition-profiles-enable">프로필 활성화하기</h5>
 <h5 id="beans-definition-profiles-default">기본 프로필</h5>

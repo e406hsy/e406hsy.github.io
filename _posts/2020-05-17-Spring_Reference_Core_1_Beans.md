@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-08T07:24:00+09:00
+date:   2021-10-09T07:22:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -4854,8 +4854,131 @@ public class AppConfig {
 
 
 <h5 id="beans-definition-profiles-xml">XML 빈 정의 프로필</h5>
+
+XML에는 `<beans>`요소의 `profile` 어트리뷰트를 사용해서 같은 동작을 할 수 있다. 이전의 예시가 아래와 같이 XML로 다시 작성되었다:
+
+```xml
+<beans profile="development"
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xsi:schemaLocation="...">
+
+    <jdbc:embedded-database id="dataSource">
+        <jdbc:script location="classpath:com/bank/config/sql/schema.sql"/>
+        <jdbc:script location="classpath:com/bank/config/sql/test-data.sql"/>
+    </jdbc:embedded-database>
+</beans>
+```
+
+```xml
+<beans profile="production"
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xsi:schemaLocation="...">
+
+    <jee:jndi-lookup id="dataSource" jndi-name="java:comp/env/jdbc/datasource"/>
+</beans>
+```
+
+위 예시처럼 분리하지 않고 `<beans>`안에 묶을 수 있다. 아래는 그 예시이다:
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xsi:schemaLocation="...">
+
+    <!-- 다른 빈 정의들 -->
+
+    <beans profile="development">
+        <jdbc:embedded-database id="dataSource">
+            <jdbc:script location="classpath:com/bank/config/sql/schema.sql"/>
+            <jdbc:script location="classpath:com/bank/config/sql/test-data.sql"/>
+        </jdbc:embedded-database>
+    </beans>
+
+    <beans profile="production">
+        <jee:jndi-lookup id="dataSource" jndi-name="java:comp/env/jdbc/datasource"/>
+    </beans>
+</beans>
+```
+
+| |
+| --- |
+| ***@** 위에서 언급한 프로필 표현식을 XML에서는 사용할 수 없다. 하지만 `!`연산자를 사용할 수 있다. 또한 논리 "and"연산을 프로필내에 프로필을 설정해서 표현할 수 있다. 아래는 그 예시이다:* |
+
+```xml
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+    xmlns:jee="http://www.springframework.org/schema/jee"
+    xsi:schemaLocation="...">
+
+    <!-- 다른 빈 정의 -->
+
+    <beans profile="production">
+        <beans profile="us-east">
+            <jee:jndi-lookup id="dataSource" jndi-name="java:comp/env/jdbc/datasource"/>
+        </beans>
+    </beans>
+</beans>
+```
+| |
+| --- |
+| *위 예시에서 `dataSource`빈은 `production`과 `us-east`프로필이 모두 활성화된 경우에만 노출된다.* |
+
 <h5 id="beans-definition-profiles-enable">프로필 활성화하기</h5>
+
+지금까지 우리는 설정파일을 설정해왔다. 이제는 어떤 프로필을 활성화할지 스프링에 설정할 차례이다. 우리의 예제 어플리케이션을 동작시킨다면 `NoSuchBeanDefinitionException` 예외가 발생할 것이다. 왜냐하면 `dataSource`빈을 찾을 수 없기 때문이다.
+
+프로필은 여러가지 방법으로 활성화할 수 있다. 가장 직접적인 방법은 `ApplicationContext`를 통하여 획득할 수 있는 `Environment` API를 직접 사용하는 것이다. 아래는 그 예시이다.
+
+```java
+AnnotationConfigApplicationContext ctx = new AnnotationConfigApplicationContext();
+ctx.getEnvironment().setActiveProfiles("development");
+ctx.register(SomeConfig.class, StandaloneDataConfig.class, JndiDataConfig.class);
+ctx.refresh();
+```
+
+또한 시스템 환경 변수, JVM 시스템 프로퍼티, `web.xml`의 서블릿 콘텍스트 파라메터, 심지어 JNDI([`PropertySource` 추상화](#beans-property-source-abstraction))를 통하여 설정할 수 있는 `spring.profiles.active` 프로퍼티를 통하여 설정할 수 있다. 통합테스트에서는 spring-test 모듈([환경 프로필로 컨텍스트 설정하기](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/testing.html#testcontext-ctx-management-env-profiles))의 `@ActiveProfiles`어노테이션을 통해 설정할 수 있다.
+
+스프링 프로필은 양자택일 해야하는 것이 아니다. 여러개의 프로필을 동시에 활성화 할 수 있다. `String...` 어규먼트를 받는 `setActiveProfiles()` 메소드에 여러개의 프로필 이름으로 호출하여 설정할 수 있다. 아래는 그 예시이다:
+
+```java
+ctx.getEnvironment().setActiveProfiles("profile1", "profile2");
+```
+
+선언적으로 사용할 때는 `spring.profiles.active`에 반점으로 구분되는 프로필 이름 리스트를 입력하면 된다. 아래는 그 예시이다:
+
+```
+-Dspring.profiles.active="profile1,profile2"
+```
+
 <h5 id="beans-definition-profiles-default">기본 프로필</h5>
+
+기본 프로필은 기본적으로 활성화되는 프로필을 의미한다. 아래의 예시를 보자:
+
+```java
+@Configuration
+@Profile("default")
+public class DefaultDataConfig {
+
+    @Bean
+    public DataSource dataSource() {
+        return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.HSQL)
+            .addScript("classpath:com/bank/config/sql/schema.sql")
+            .build();
+    }
+}
+```
+
+아무런 프로필이 활성화 되지 않았다면 `dataSource` 빈이 생성된다. 이 방법으로 여러 빈들의 기본 값을 설정할 수 있다. 특정 프로필이 활성화 된다면 기본 프로필은 동작하지 않는다.
+
+`Environment`의 `setDefaultProfiles()`를 이용하거나 `spring.profiles.default`프로퍼티를 이용하여 기본 프로필의 이름을 변경할 수 있다.
 
 
 <h4 id="beans-property-source-abstaction">PropertySource 추상화</h4>

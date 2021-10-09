@@ -4982,6 +4982,45 @@ public class DefaultDataConfig {
 
 
 <h4 id="beans-property-source-abstaction">PropertySource 추상화</h4>
+
+스프링 `Environment` 추상화는 프로퍼티 소스 계층에서 탐색하는 기능을 제공한다. 아래의 예를 보자:
+
+```java
+ApplicationContext ctx = new GenericApplicationContext();
+Environment env = ctx.getEnvironment();
+boolean containsMyProperty = env.containsProperty("my-property");
+System.out.println("Does my environment contain the 'my-property' property? " + containsMyProperty);
+```
+
+위 코드에서 현재 환경에 `my-property`가 설정되었는지 확인하는 하이 레벨의 방법을 볼 수 있다. 이 질문에 대답하기 위해 `Environment`는 [`PropertySource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/core/env/PropertySource.html)객체들을 탐색을 한다. `PropertySource`는 key-value 페어들을 추상화한 것이며 스프링 [`StandardEnvironment`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/core/env/StandardEnvironment.html)는 두개의 PropertySource 객체로 구성된다. - 하나는 JVM 시스템 프로퍼티(`System.getProperties()`)를 나타내며 나머지 하나는 시스템 환경 변수(`System.getenv()`)를 나타낸다.
+
+| |
+| --- |
+| ***!** 독립 어플리케이션에 사용되는 `StandardEnvironment`에 이러한 기본 프로퍼티 소스가 존재한다. [`StandardServletEnvironment`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/web/context/support/StandardServletEnvironment.html)는 서블릿 설정과 서플릿 컨텍스트 파라메터를 가지고 있는 프로퍼티 소스를 추가로 가진다. 또한 [`JndiPropertySource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/jndi/JndiPropertySource.html)를 원한다면 추가할 수 있다. 자세한 내용은 자바독에서 확인 가능하다.* |
+
+즉, `StandardEnvironment`를 사용할 때, `env.containsProperty("my-property")`를 호출한다면 `my-property`가 시스템 프로퍼티나 환경변수일 경우에 true를 반환할 것이다.
+
+| |
+| --- |
+| ***@** 프로퍼티 검색은 계층적으로 진행된다. 기본적으로 시스템 프로퍼티가 환경변수보다 우선이다. 그래서 만약 `my-property`가 둘 모두에 설정되어 있다면 `env.getProperty("my-property")`를 호출하면 시스템 프로퍼티가 선택되어 반환될 것이다. 프로퍼티 값이 여러곳에 설정되면 합쳐지지 않고 한개의 값만 설정된다는 것에 주의하여야한다.* |
+| *`StandardServletEnvironment`에서 모든 계층 순서는 아래와 같다. 우선되는 계층이 먼저 작성되었다:* |
+
+1. ServletConfig 파라메터 (단 사용 가능한 경우에만 -- 예를 들면, `DispatcherServlet` 컨텍스트에서 사용되는 경우)
+2. ServletContext 파라메터 (web.xml 컨텍스트 파라메터)
+3. JNDI 환경 변수 (`java:comp/env/`)
+4. JVM 시스템 프로퍼티 (`-D` 커맨드 라인 어규먼트)
+5. JVM 시스템 환경 (운영 체제 환경 변수)
+
+이 모든 메커니즘이 설정 가능하다. 만약 커스텀 프로퍼티 소스가 검색되도록 추가하고 싶다고 가정하자. 그렇다면 자신만의 `PropertySource`를 구현하고 현재 `Environment`의 `PropertySources`로 추가하면 된다. 아래는 그 예시이다:
+
+```java
+ConfigurableApplicationContext ctx = new GenericApplicationContext();
+MutablePropertySources sources = ctx.getEnvironment().getPropertySources();
+sources.addFirst(new MyPropertySource());
+```
+
+위 코드에서 `MyPropertySource`가 가장 먼저 검색된다. 이 프로퍼티소스가 `my-property`를 가지고 있다면 다른 어떤 `PropertySource`의 `my-property`보다 우선적으로 이것이 선택되어 반환될 것이다. [`MutablePropertySource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/core/env/MutablePropertySources.html) API는 프로퍼티 소스를 설정하는 다양한 기능의 메소드를 제공한다.
+
 <h4 id="beans-using-propertysource">@PropertySource 사용하기</h4>
 <h4 id="beans-placeholder-resolution-in-statements">표현법의 PlaceHolder Resolution</h4>
 

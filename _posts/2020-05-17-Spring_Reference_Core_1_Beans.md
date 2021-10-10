@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-09T07:22:00+09:00
+date:   2021-10-10T11:15:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -5022,8 +5022,66 @@ sources.addFirst(new MyPropertySource());
 위 코드에서 `MyPropertySource`가 가장 먼저 검색된다. 이 프로퍼티소스가 `my-property`를 가지고 있다면 다른 어떤 `PropertySource`의 `my-property`보다 우선적으로 이것이 선택되어 반환될 것이다. [`MutablePropertySource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/core/env/MutablePropertySources.html) API는 프로퍼티 소스를 설정하는 다양한 기능의 메소드를 제공한다.
 
 <h4 id="beans-using-propertysource">@PropertySource 사용하기</h4>
+
+`@PropertySource` 어노테이션은 스프링 `Environment`에 `PropertySource`를 추가하는 편리한 방법이다.
+
+`app.properties`라는 파일에 `testbean.name=myTestBean`이라는 key-value 페어를 가지고 있을 때, 아래의 `@Configuration`은 `@PropertySource`를 사용하여 `testBean.getName()`이 `myTestBean`을 반환하도록 설정한다:
+
+```java
+@Configuration
+@PropertySource("classpath:/com/myco/app.properties")
+public class AppConfig {
+
+    @Autowired
+    Environment env;
+
+    @Bean
+    public TestBean testBean() {
+        TestBean testBean = new TestBean();
+        testBean.setName(env.getProperty("testbean.name"));
+        return testBean;
+    }
+}
+```
+
+`${...}` 플레이스 홀더가 `@PropertySource`의 리소스 위치에 사용되면 이미 환경에 등록된 프로퍼티로부터 값을 가져와 처리한다. 아래는 그 예시이다:
+
+
+```java
+@Configuration
+@PropertySource("classpath:/com/${my.placeholder:default/path}/app.properties")
+public class AppConfig {
+
+    @Autowired
+    Environment env;
+
+    @Bean
+    public TestBean testBean() {
+        TestBean testBean = new TestBean();
+        testBean.setName(env.getProperty("testbean.name"));
+        return testBean;
+    }
+}
+```
+
+`my.placeholder`가 이미 등록된 프로퍼티 소스(예를 들면, 시스템 프로퍼티나 환경 변수)에 존재한다면 해당 값으로 처리될 것이다. 그렇지 않다면 `default/path`가 기본값으로 사용될 것이다. 기본값이 설정되지 않고 프로퍼티도 없다면 `IllegalArgumentException`이 발생할 것이다.
+
+
+| |
+| --- |
+| ***!** `@PropertySource` 어노테이션은 자바 8 컨벤션에 따라 반복가능하다. 하지만 그러한 `@PropertySource`어노테이션은 모두 같은 수준에 사용되어야 한다. 모두 설정 클래스 자체에 설정되거나 모두 커스텀 어노테이션의 메타어노테이션으로 설정되어야 한다. 두가지를 섞는 것은 추천하지 않는다. 왜냐하면 메타 어노테이션에 설정된 값은 설정 클래스에 직접 설정된 값으로 대체될 것이기 때문이다.* |
+
 <h4 id="beans-placeholder-resolution-in-statements">표현법의 PlaceHolder Resolution</h4>
 
+플레이스 홀더에 처리되는 값을 보통 JVM 시스템 프로퍼티나 환경 변수로 처리되어 왔다. 하지만 더 이상 그렇게 사용하지 않는다. `Envionment` 추상화는 컨테이너에 통합되어 있기 때문에 컨테이너를 통하여 쉽게 처리할 수 있기 때문이다. 이 말은 개발자가 원하는 방식으로 처리하도록 설정할 수 있다는 것이다. 시스템 프로퍼티나 환경 변수의 우선순위를 변경할 수도 있고 아예 제거할 수도 있다. 또한 자신만의 프로퍼티 소스를 적절히 추가하여 사용할 수 있다.
+
+즉, 아래의 표현에서 `customer`프로퍼티가 어디에 정의되어 있든 `Environment`에서 접근할 수 있다면 잘 동작할 것이다:
+
+```xml
+<beans>
+    <import resource="com/bank/service/${customer}-config.xml"/>
+</beans>
+```
 
 <h3 id="context-load-time-weaver">LoadTimeWeaver 등록하기</h3>
 <h3 id="context-introduction">어플리케이션 콘텍스트의 추가적인 사용기능</h3>

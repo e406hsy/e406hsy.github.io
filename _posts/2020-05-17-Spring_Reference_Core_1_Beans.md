@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-13T18:17:00+09:00
+date:   2021-10-13T21:09:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -148,7 +148,7 @@ sitemap:
         1. <a href="#beans-placeholder-resolution-in-statements">표현법의 PlaceHolder Resolution</a>
     1. <a href="#context-load-time-weaver">LoadTimeWeaver 등록하기</a>
     1. <a href="#context-introduction">어플리케이션 콘텍스트의 추가적인 사용기능</a>
-        1. <a href="#context-functionality-messagesource">MessageSource를 이용한 내재화</a>
+        1. <a href="#context-functionality-messagesource">MessageSource를 이용한 국제화</a>
         1. <a href="#context-functionality-events">표준, 커스텀 이벤트</a>
             * <a href="#context-functionality-events-annotation">어노테이션 기반 이벤트 리스너</a>
             * <a href="#context-functionality-events-async">비동기 리스너</a>
@@ -5117,7 +5117,134 @@ XML 설정에서는 `context:load-time-weaver` 요소를 사용하여 같은 동
 * `ApplicationEventPublisher`를 사용하여 이벤트를 발행하고 `ApplicationListener`인터페이스를 구현한 빈에 이벤트 전달하기
 * `HierarchicalBeanFactory`인터페이스를 사용하여 특정 단계에 집중한 컨텍스트를 여러개 로드하기
 
-<h4 id="context-functionality-messagesource">MessageSource를 이용한 내재화</h4>
+<h4 id="context-functionality-messagesource">MessageSource를 이용한 국제화</h4>
+
+`ApplicationContext` 인터페이스는 `MessageSource` 인터페이스를 확장하고 있어 국제화("i18n") 기능을 제공한다. 스프링은 `HierarchicalMessageSource` 인터페이스를 제공하여 우선순위를 두어 메세지를 설정할 수 있다. 이러한 인터페이스들을 이용하여 스프링은 메세지를 처리한다. 이 인터페이스에는 아래 메소드들이 정의되어 있다:
+
+* `String getMessage(String code, Object[] args, String default, Locale loc)`: `MessageSource`로부터 메세지를 획득하는 기본적인 메소드. 설정한 지역에 메세지가 없으면 기본 메세지가 사용된다. 전달된 어규먼트들은 표준 라이브러리에서 제공되는 `MessageFormat`을 이용하여 대체값으로 사용된다.
+* `String getMessage(String code, Object[] args, Locale loc)`: 위에 언급한 메소드가 한가지만 제외하고 동일하다: 기본 메세지가 없다. 메세지가 발견되지 않으면 `NoSuchMessageException`이 발생한다.
+* `String getMessage(MessageSourceResolvable resolvable, Locale locale)`: 위에 언급한 메소드들에서 사용되는 모든 프로퍼티는 `MessageSourceResolvable`이라는 클래스로 포장되어 이 메소드로 사용할 수 있다.
+
+`ApplicationContext`가 로드되면 컨텍스트에서 `MessageSource`빈을 찾는다. 반드시 `messageSource`라는 이름을 가지고 있어야 한다. 그런 빈이 발견되면 위에 메소드들은 전부 메세지 소스에 위임하여 동작한다. 만약 빈이 발견되지 않으면 `ApplicationContext`는 부모 컨텍스트에서 그 이름을 가진 빈을 찾는다. 찾는 다면 그 빈을 `MessageSource`로 사용한다. 만약 `ApplicationContext`가 메세지 소스를 전혀 찾지 못한다면 비어있는 `DelegateMessageSource`가 생성되어 위에 메소드들을 위임받을 것이다.
+
+스프링은 두가지 `MessageSource` 구현체를 제공한다. `ResourceBundleMessageSource`와 `StaticMessageSource`이다. 두개 모두 `HierarchicalMessageSource`를 구현하여 중첩된 메세지처리를 지원한다. `StaticMessageSource`는 자주 사용되지 않지만 프로그래밍 적으로 메세지 소스를 추가하는 방법을 제공한다. 아래는 `ResourceBundleMessageSource`의 예시이다:
+
+```xml
+<beans>
+    <bean id="messageSource"
+            class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basenames">
+            <list>
+                <value>format</value>
+                <value>exceptions</value>
+                <value>windows</value>
+            </list>
+        </property>
+    </bean>
+</beans>
+```
+
+위 예제에서는 `format`, `exception`, `windows`라는 이름의 세가지 리소스 번들이 클래스패스에 존재한다고 가정하였다. 메세지 처리가 필요한 모든 요청은 JDK-표준 메세지 처리 방법인 `ResourceBundle` 객체를 통하여 처리될 것이다. 예시로 보여주기 위해 위에 언급한 세 리소스 번들 중 두개의 모습이 아래와 같다고 하자:
+
+```
+    # in format.properties
+    message=Alligators rock!
+```
+
+```
+    # in exceptions.properties
+    argument.required=The {0} argument is required.
+```
+
+다음 예시는 프로그래밍 적으로 `MessageSource`를 실행하는 방법을 보여준다. 모든 `ApplicationContext` 구현체는 `MessageSource`의 구현체이기도 하기 때문에 `MessageSource` 인터페이스르 형변환하여 사용할 수 있다.
+
+```java
+public static void main(String[] args) {
+    MessageSource resources = new ClassPathXmlApplicationContext("beans.xml");
+    String message = resources.getMessage("message", null, "Default", Locale.ENGLISH);
+    System.out.println(message);
+}
+```
+
+위 프로그램의 실행 결과는 아래와 같을 것이다:
+
+```
+Alligators rock!
+```
+
+요약하자면 클래스패스 루트에 존재하는 `beans.xml`이라는 파일에 `MessageSource`가 정의된다. `MessageSource` 빈 정의는 여러 리소스 번들을 `basenames` 프로퍼티를 통하여 참조한다. `basenames`프로퍼티로 전달된 세가지 파일은 클래스패스의 루트에 존재하며 각각 `format.properties`, `exception.properties`, `windows.properties`라는 이름을 가진다.
+
+다음 예시는 메시지 처리에 어규먼트가 전달되는 예시이다. 세개의 어규먼트는 `String` 객체로 변경되어 메세지 처리시 플레이스홀더에 추가된다.
+
+```xml
+<beans>
+
+    <!-- 이 메세지 소스는 웹 어플리케이션에서 사용될 것이다. -->
+    <bean id="messageSource" class="org.springframework.context.support.ResourceBundleMessageSource">
+        <property name="basename" value="exceptions"/>
+    </bean>
+
+    <!-- POJO에 위 메세지소스를 주입한다. -->
+    <bean id="example" class="com.something.Example">
+        <property name="messages" ref="messageSource"/>
+    </bean>
+
+</beans>
+```
+
+```Java
+public class Example {
+
+    private MessageSource messages;
+
+    public void setMessages(MessageSource messages) {
+        this.messages = messages;
+    }
+
+    public void execute() {
+        String message = this.messages.getMessage("argument.required",
+            new Object [] {"userDao"}, "Required", Locale.ENGLISH);
+        System.out.println(message);
+    }
+}
+```
+
+`excute()`메소드를 실행한 결과는 아래와 같다:
+
+```
+The userDao argument is required.
+```
+
+국제화("i18n")과 관련하여 스프링의 다양한 `MessageSource` 구현체들은 모두 JDK 표준 `ResourceBundle`의 지역 처리 방법과 처리 실패 규칙을 따른다. 즉, 위에 언급한 `messageSource`예시들로 이야기하자면 영국(`en-GB`)지역으로 메세지를 처리하고자 한다면 `format_en_GB.properties`, `exceptions_en_GB.properties`, `windows_en_GB.properties`라는 이름으로 파일을 만들어야 한다.
+
+일반적으로 지역 처리는 어플리케이션의 환경에 따라 처리된다. 아래의 예시에서 지역을 수동으로 명시하여 처리하는 예시이다:
+
+```
+# in exceptions_en_GB.properties
+argument.required=Ebagum lad, the ''{0}'' argument is required, I say, required.
+```
+
+```java
+public static void main(final String[] args) {
+    MessageSource resources = new ClassPathXmlApplicationContext("beans.xml");
+    String message = resources.getMessage("argument.required",
+        new Object [] {"userDao"}, "Required", Locale.UK);
+    System.out.println(message);
+}
+```
+
+위 프로그램을 실행한 결과는 아래와 같다:
+
+```
+Ebagum lad, the 'userDao' argument is required, I say, required.
+```
+
+정의된 `MessageSource`의 참조를 획득하기 위해 `MessageSourceAware` 인터페이스를 사용할 수 있다. `ApplicationContext`에 정의되어 있고 `MessageSourceAware`를 구현하는 빈들이 생성될 때, 어플리케이션 컨텍스트의 `MessageSource`가 주입될 것이다.
+
+| |
+| --- |
+| ***!** `ResourceBundleMessageSource`의 대체제로서 스프링은 `ReloadableResourceBundleMessageSource` 클래스를 제공한다. 이 클래스는 JDK 표준 `ResourceBundleMessageSource`구현체와 같은 번들 파일을 지원하면서 더 다양하게 사용할 수 있다. 특히 (클래스 패스 뿐만아니라) 스프링에서 지원하는 모든 리소스에서 파일을 읽어올 수 있다. 또한 번들 파일을 다시 로드할 수 있다(효율적인 캐싱이 적용된다). [`ReloadableResourceBundleMessageSource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/ReloadableResourceBundleMessageSource.html) 자바독에 자세한 내용이 있다.*|
+
 <h4 id="context-functionality-events">표준, 커스텀 이벤트</h4>
 
 <h5 id="context-functionality-events-annotation">어노테이션 기반 이벤트 리스너</h5>

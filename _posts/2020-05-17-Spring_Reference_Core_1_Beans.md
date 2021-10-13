@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-10T11:15:00+09:00
+date:   2021-10-13T18:17:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -2026,7 +2026,7 @@ public interface BeanNameAware {
 | `BeanFactoryAware` | `BeanFactory` | [`ApplicationContext`와 `BeanNameAware`](#beans-factory-aware) |
 | `BeanNameAware` | 빈 이름 | [`ApplicationContext`와 `BeanNameAware`](#beans-factory-aware) |
 | `BootstrapContextAware` | `BootstrapContext`. 일반적으로 JCA-aware `ApplicationContext`에서만 사용 가능하다 | [JCA CCI](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#cci)
-| `LoadTimeWeaverAware` | 로드 타임에 클래스 정의를 수행하는 위버 | [스프링 프레임워크에서 AspectJ를 이용한 로드타임 위버](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#aop-aj-ltw) |
+| `LoadTimeWeaverAware` | 로드 타임에 클래스 정의를 수행하는 위버 | [스프링 프레임워크에서 AspectJ를 이용하여 로드타임 위빙하기](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#aop-aj-ltw) |
 | `MessageSourceAware` | 메세지를 처리하는 전략 설정 | [`ApplicationContext`의 추가적인 기능](#context-introduction) |
 | `NotificationPublisherAware` | 스프링 JMX 알림 발행자 | [알림](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#jmx-notifications) |
 | `ResourceLoaderAware` | 저수준 자원에 접근하는 로더 | [리소스](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources) | 
@@ -5084,7 +5084,38 @@ public class AppConfig {
 ```
 
 <h3 id="context-load-time-weaver">LoadTimeWeaver 등록하기</h3>
+
+스프링은 `LoadTimeWeaver`를 사용하여 JVM에 로드되는 시점에 클래스를 동적으로 변경한다.
+
+로드 타임 위빙을 홠겅화하려면 `@Configuration`클래스에 `@EnableLoadTimeWeaving`을 추가하면 된다. 아래는 그 예시이다:
+
+```java
+@Configuration
+@EnableLoadTimeWeaving
+public class AppConfig {
+}
+```
+
+XML 설정에서는 `context:load-time-weaver` 요소를 사용하여 같은 동작을 할 수 있다:
+
+```xml
+<beans>
+    <context:load-time-weaver/>
+</beans>
+```
+
+`ApplicationContext`에 설정되었을 경우, `ApplicationContext`에 등록된 `LoadTimeWeaverAware` 구현체 빈이 있으면 로드 타임 위버 빈 참조를 획득할 수 있다. JPA 클래스 변환에 사용하기 때문에 이 방법은 [스프링 JPA](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/data-access.html#orm-jpa)에서 특히 유용하다. ['LocalContainerEntityManagerFactoryBean'](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/orm/jpa/LocalContainerEntityManagerFactoryBean.html) 자바독에 자세한 내용이 있다. AspectJ 로드 타임 위빙에 대해서는 ['스프링 프레임워크에서 AspectJ를 활용하여 로드타임위빙하기](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#aop-aj-ltw)를 확인해보자
+
 <h3 id="context-introduction">어플리케이션 콘텍스트의 추가적인 사용기능</h3>
+
+[챕터를 시작할 때](#beans) 언급하였듯이 `org.springframework.beans.factory` 패키지는 빈을 관리하는 기본적인 기능을 제공한다. `org.springframework.context`는 `Beanfactory`인터페이스를 확장한 [`ApplicationContext`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/ApplicationContext.html) 인터페이스를 제공하여 어플리케이션 프레임워크 기반으로 더 많은 추가 기능을 제공한다. 많은 사람들은 `ApplicationContext`를 선언적인 방식으로 사용한다. 심지어 프로그래밍적으로 생성하지도 않고 기반클래스에 의존한다. 예를 들면 JAVA EE에서 `ContextLoader`가 어플리케이션 시작과정에 자동으로 `ApplicationContext`를 생성한다.
+
+`BeanFactory`를 더욱더 프레임워크 기반 방식으로 사용하기 위해서 context 패키지는 아래의 기능을 제공한다:
+
+* `MessageSource` 인터페이스를 사용하여 i18n 스타일의 메세지 사용하기
+* `ResourceLoader` 인터페이스를 사용하여 URL이나 파일같은 리소스 접근하기
+* `ApplicationEventPublisher`를 사용하여 이벤트를 발행하고 `ApplicationListener`인터페이스를 구현한 빈에 이벤트 전달하기
+* `HierarchicalBeanFactory`인터페이스를 사용하여 특정 단계에 집중한 컨텍스트를 여러개 로드하기
 
 <h4 id="context-functionality-messagesource">MessageSource를 이용한 내재화</h4>
 <h4 id="context-functionality-events">표준, 커스텀 이벤트</h4>

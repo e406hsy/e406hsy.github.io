@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-13T21:09:00+09:00
+date:   2021-10-14T19:09:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -5246,6 +5246,114 @@ Ebagum lad, the 'userDao' argument is required, I say, required.
 | ***!** `ResourceBundleMessageSource`의 대체제로서 스프링은 `ReloadableResourceBundleMessageSource` 클래스를 제공한다. 이 클래스는 JDK 표준 `ResourceBundleMessageSource`구현체와 같은 번들 파일을 지원하면서 더 다양하게 사용할 수 있다. 특히 (클래스 패스 뿐만아니라) 스프링에서 지원하는 모든 리소스에서 파일을 읽어올 수 있다. 또한 번들 파일을 다시 로드할 수 있다(효율적인 캐싱이 적용된다). [`ReloadableResourceBundleMessageSource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/support/ReloadableResourceBundleMessageSource.html) 자바독에 자세한 내용이 있다.*|
 
 <h4 id="context-functionality-events">표준, 커스텀 이벤트</h4>
+
+`ApplicationContext`에서 이벤트 처리는 `ApplicationEvent` 클래스와 `ApplicationListener` 인터페이스를 사용하여 처리된다. `ApplicationListener`을 구현한 빈은 컨텍스트에 배포되어 `ApplicationContext`에 `ApplicationEvent`가 발행될 때마다 전달될 것이다. 이 방법은 표준 관찰자 디자인 패턴이다.
+
+| |
+| --- |
+| ***@** 스프링 4.2부터 이벤트 기반 시스템은 매우 발전되었고 [어노테이션 기반 모델](#context-functionality-events-annotation)을 제공하여 임의의 이벤트를 발생할 수 있다(즉 `ApplicationEvent`를 상속하지 않은 객체도 가능하다). 이러한 객체가 발행되면 이벤트로 감싸서 처리될 것이다.*|
+
+아래 표는 스프링이 제공하는 표준 이벤트를 설명한다:
+
+#### 표 7. 기본 이벤트
+
+| 이벤트 |  설명 |
+| ----- | ----- |
+| `ContextRefreshedEvent` | `ApplicationContext`가 초기화되거나 새로고침될 때(예를 들면 `ConfigurableApplicationContext`인터페이스의 `refresh()` 메소드를 사용하는 경우) 발행된다. 여기서 초기화된다는 의미는 모든 빈들이 로드되고 후처리 빈들이 발견되어 활성화되고 싱글톤 빈들은 모두 인스턴스화 되고 `ApplicationContext`가 사용가능한 상태가 되었을 때를 말한다. 컨텍스트가 종료되지 않는 이상 여러번 새로 고침될 수 있다. 특히 `ApplicationContext`가 "hot" 새로고침(역주. hot refresh는 컨텍스트가 종료되지 않고 새로 고침되는 것을 의미한다)을 지원하는 경우이다. 예를 들면 `XmlWebApplicationContext`는 hot 새로 고침을 지원한지만 `GenericApplicationContext`는 그렇지 않다. |
+| `ContextStartedEvent` | `ConfigurableApplicationContext`의 `start()`메소드를 사용하여 `ApplicationContext`가 시작할 때 발생된다. 여기서 시작한다는 의미는 모든 생명주기를 가진 빈이 시작 신호를 받는다는 의미이다. 일반적으로 이 신호는 빈들이 종료된후 명시적으로 재시작하기위해 사용된다. 또한 자동시작되지 않은 컴포넌트들을 시작할 때에도 사용된다(예를 들면 컨텍스트 초기화시기에 시작되지 않은 컴포넌트). |
+| `ContextStoppedEvent` | `ConfigurableApplicationContext` 인터페이스의 `stop()` 메소드를 사용하여 `ApplicationContext`가 정지될 때 발행된다. 여기서 정지된다는 의미는 모든 생명주기 빈이 정지 신호를 받는다는 의미이다. 정지된 컨텍스트는 `start()` 호출을 통하여 다시 시작할 수 있다. |
+|`ContextClosedEvent`| JVM 종료 훅이나 `ConfigurableApplicationContext` 인터페이스의 `close()`메소드를 호출하여 `ApplicationContext`가 종료될시 발행된다. 여기서 종료된다는 의미는 모든 싱글톤 빈이 종료되었다는 의미이다. 컨텍스트가 종료되면, 컨텍스트는 완전히 멈추어 다시 시작하거나 새로고침될 수 없다. |
+| `RequestHandledEvent` | 웹에 국한된 이벤트로 HTTP 요청이 처리되었다는 내용을 모든 빈에 전달하는 이벤트이다. 요청이 처리되면 발행된다. 스프링 `DispatcherServlet`을 사용하는 웹 어플리케이션에서만 사용가능한 이벤트이다. |
+| `ServletRequestHandledEvent` | `RequestHandledEvent`의 자식 클래스로 서블릿에 국한된 컨텍스트 정보를 가지고 있다. |
+
+자신만의 이벤트를 생성하여 발행하는 것도 가능하다. 아래는 스프링의 `ApplicationEvent` 기반의 클래스를 확장하는 간단한 클래스의 예시이다:
+
+```java
+public class BlackListEvent extends ApplicationEvent {
+
+    private final String address;
+    private final String content;
+
+    public BlackListEvent(Object source, String address, String content) {
+        super(source);
+        this.address = address;
+        this.content = content;
+    }
+
+    // 기타 다른 메소드들...
+}
+```
+
+`ApplicationEvent`를 발행하기 위해서는 `ApplicationEventPublisher`의 `publishEvent()` 메소드를 호출하면 된다. 일반적으로 `ApplicationEventPublisherAware`인터페이스를 구현하여 스프링 빈으로 등록하여 처리할 수 있다. 아래는 그러한 예시이다:
+
+```java
+public class EmailService implements ApplicationEventPublisherAware {
+
+    private List<String> blackList;
+    private ApplicationEventPublisher publisher;
+
+    public void setBlackList(List<String> blackList) {
+        this.blackList = blackList;
+    }
+
+    public void setApplicationEventPublisher(ApplicationEventPublisher publisher) {
+        this.publisher = publisher;
+    }
+
+    public void sendEmail(String address, String content) {
+        if (blackList.contains(address)) {
+            publisher.publishEvent(new BlackListEvent(this, address, content));
+            return;
+        }
+        // 메일을 전송하는 코드...
+    }
+}
+```
+
+컨테이너를 설정하는 시기에 컨테이너는 `EmailService`가 `ApplicationEventPublisherAware`를 구현하고 있다는 것을 발견하고 `setApplicationEventPublisher()`를 호출한다. 메소드에 전달하는 파라메터는 스프링 컨테이너가 자체적으로 가지고 있다. `ApplicationEventPublisher`인터페이스를 이용하여 어플리케이션 컨텍스트와 상호작용하고 있는 것이다.
+
+자신만의 `ApplicationEvent`를 받기 위해서는 `ApplicationListener`를 구현한 클래스를 만들고 스프링 빈으로 등록해야 한다. 아래는 그 예시이다:
+
+```java
+public class BlackListNotifier implements ApplicationListener<BlackListEvent> {
+
+    private String notificationAddress;
+
+    public void setNotificationAddress(String notificationAddress) {
+        this.notificationAddress = notificationAddress;
+    }
+
+    public void onApplicationEvent(BlackListEvent event) {
+        // notificationAddress를 이용하여 적합한 부분에 알림처리한다...
+    }
+}
+```
+
+`ApplicationListener`는 일반적으로 자신만의 이벤트(이 예시에서는 `BlackListEvent`)를 파라메터로 가진다. 이 말은 `onApplicationEvent()`는 타입 세이프하여 다운 캐스팅을 할 필요가 없다. 기본적으로 이벤트 리스너는 이벤트를 동기적으로 전달받는다. 이 말은 `publishEvent()` 메소드는 모든 이벤트 처리가 완료될 때까지 다른 동작을 막는다는 의미이다. 이 동기적이고 단일 쓰레드식 접근의 한 장점은 트랜잭션이 사용가능한 경우 트랜잭션 내에서 동작한다는 것이다. 이벤트 발행에 다른 접근법이 필요한 경우 스프링 [`ApplicationEventMulticaster`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/event/ApplicationEventMulticaster.html)인터페이스와 [`SimpleApplicationEventMulticaster`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/context/event/SimpleApplicationEventMulticaster.html) 구현체를 보고 설정하면 된다.
+
+아래의 예시는 위 클래스들로 빈 정의를 설정하여 빈을 등록하는 예시이다:
+
+```xml
+<bean id="emailService" class="example.EmailService">
+    <property name="blackList">
+        <list>
+            <value>known.spammer@example.org</value>
+            <value>known.hacker@example.org</value>
+            <value>john.doe@example.org</value>
+        </list>
+    </property>
+</bean>
+
+<bean id="blackListNotifier" class="example.BlackListNotifier">
+    <property name="notificationAddress" value="blacklist@example.org"/>
+</bean>
+```
+
+`emailService`빈의 `sendEmail()` 메소드가 호출될 때, 블랙리스트 되야하는 이메일 메세지가 존재한다면 `BlackListEvent`라는 커스텀 이벤트가 발행된다. `blackListNotifier` 빈이 `ApplicationListener`로 등록되어 `BlackListEvent`를 전달받아 적절한 곳에 알림처리할 수 있다.
+
+| |
+| --- |
+| ***!** 스프링의 이벤트 동작 원리는 같은 컨텍스트 내의 스프링 빈들간의 간단한 상호작용을 목표로 설계되었다. 하지만 더 복잡한 기업용 통합이 필요하다면 별도로 관리되는 [스프링 통합](https://projects.spring.io/spring-integration/) 프로젝트가 가벼우면서 [패턴 기반](https://www.enterpriseintegrationpatterns.com/)의 이벤트에 의해 동작하는 스프링으로 만들어진 아키텍처를 제공한다.*|
 
 <h5 id="context-functionality-events-annotation">어노테이션 기반 이벤트 리스너</h5>
 <h5 id="context-functionality-events-async">비동기 리스너</h5>

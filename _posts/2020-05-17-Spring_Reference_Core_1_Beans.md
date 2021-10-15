@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-14T19:09:00+09:00
+date:   2021-10-14T16:31:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
@@ -5356,6 +5356,75 @@ public class BlackListNotifier implements ApplicationListener<BlackListEvent> {
 | ***!** 스프링의 이벤트 동작 원리는 같은 컨텍스트 내의 스프링 빈들간의 간단한 상호작용을 목표로 설계되었다. 하지만 더 복잡한 기업용 통합이 필요하다면 별도로 관리되는 [스프링 통합](https://projects.spring.io/spring-integration/) 프로젝트가 가벼우면서 [패턴 기반](https://www.enterpriseintegrationpatterns.com/)의 이벤트에 의해 동작하는 스프링으로 만들어진 아키텍처를 제공한다.*|
 
 <h5 id="context-functionality-events-annotation">어노테이션 기반 이벤트 리스너</h5>
+
+스프링 4.2부터 `@EventListener` 어노테이션을 사용하여 임의의 public 메소드를 이벤트 리스너로 설정할 수 있다. `BlackListNotifier`는 아래처럼 작성될 수도 있다:
+
+```java
+public class BlackListNotifier {
+
+    private String notificationAddress;
+
+    public void setNotificationAddress(String notificationAddress) {
+        this.notificationAddress = notificationAddress;
+    }
+
+    @EventListener
+    public void processBlackListEvent(BlackListEvent event) {
+        // notificationAddress를 이용하여 적합한 부분에 알림처리한다...
+    }
+}
+```
+
+특정한 이벤트 리스너 인터페이스를 구현하지 않으며 임의의 이름과 이벤트 타입을 가진 어규먼트로 메소드가 정의되었다. 이벤트 타입은 구현체에서 타입을 설정한다면 제네릭으로 설정될 수도 있다.
+
+만약 이벤트 여러개를 설정하거나 메소드 파라메터 없이 정의하고자한다면 어노테이션 자체에 이벤트를 설정할 수 있다. 아래는 그 예시이다:
+
+```java
+@EventListener({ContextStartedEvent.class, ContextRefreshedEvent.class})
+public void handleContextStart() {
+    // ...
+}
+```
+
+어노테이션의 `condition` 어트리뷰트에 [`SpEL` 표현식](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#expressions)으로 특정 이벤트에만 동작하도록 추가적인 필터링 규칙을 추가할 수 있다.
+
+아래의 예시는 이벤트의 `content` 어트리뷰트가 `my-event`인 경우에만 동작하도록 하는 예시이다:
+
+```java
+@EventListener(condition = "#blEvent.content == 'my-event'")
+public void processBlackListEvent(BlackListEvent blEvent) {
+        // notificationAddress를 이용하여 적합한 부분에 알림처리한다...
+}
+```
+
+각각의 `SpEL` 표현식은 각각의 컨텍스트에서 해석된다. 아래의 표는 가능한 컨텍스트 리스트이다. 이벤트 조건을 설정하는데 사용할 수 있다:
+
+#### 표 8. 이벤트 SpEL 사용가능한 메타데이터
+
+| 이름 | 위치 | 설명 | 예시 |
+| ----- | ----- | ----- | ----- |
+| 이벤트 | 루트 객체 | `ApplicationEvent` 그 자체 | `#root.event` 혹은 `event` |
+| 어규먼트 배열 | 루트 객체 | 메소드를 호출하는데 전달되는 어규먼트들 | `#root.args` or `args`; `args[0]`는 첫번째 어규먼트를 의미한다 |
+| 어규먼트 이름 | 평가 컨텍스트 | 메소드 어규먼트의 이름. 만약에 이름을 사용할 수 없다면(예를 들면, 컴파일된 바이트코드에 디버그 정보가 없을 경우), 각각의 어규먼트들은 `#a<#arg>` 표현으로 사용가능하다 여기서 `<#arg>`는 어규먼트 인덱스(0에서 시작)를 의미한다. | `#blEvent` 또는 `#a0` (`#p0` 혹은 `#p<#arg>`를 대신하여 사용할 수 있다) |
+
+`#root.event`는 해당하는 이벤트에 접근할 수 있도록 해준다. 메소드가 이벤트가 아닌 임의의 객체를 참조하는 형태인 경우에도 가능하다.
+
+이벤트 처리의 결과 새로운 이벤트를 발행해야 하는 경우, 메소드가 해당하는 이벤트를 반환하도록 변경하면 된다. 아래는 그 예시이다:
+
+```java
+@EventListener
+public ListUpdateEvent handleBlackListEvent(BlackListEvent event) {
+        // notificationAddress를 이용하여 적합한 부분에 알림처리한다...
+        // 그 후 ListUpdateEvent를 발행한다...
+}
+```
+
+| |
+| --- |
+| ***!** 이 기능은 [비동기 리스너](#context-functionality-events-async)에서는 동작하지 않는다.*|
+
+위 메소드에서 `BlackListEvent`를 처리할 때마다 새로운 `ListUpdateEvent`가 발행된다. 여러개의 이벤트를 발행해야 한다면 이벤트 `Collection`을 반환하면 된다.
+
 <h5 id="context-functionality-events-async">비동기 리스너</h5>
 <h5 id="context-functionality-events-order">리스너 순서 정하기</h5>
 <h5 id="context-functionality-events-generics">Generic 이벤트</h5>

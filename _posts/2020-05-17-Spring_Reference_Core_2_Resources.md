@@ -21,6 +21,26 @@ sitemap:
 
 1. <a href="../spring-reference-core-1-beans"> IoC 컨테이너 </a>
 1. <a href="#resources"> 리소스 </a>
+    1. <a href="#resources-introduction">소개</a>
+    1. <a href="#resources-resource">Resource 인터페이스</a>
+    1. <a href="#resources-implementations">내장된 Resource 구현체</a>
+        1. <a href="#resources-implementations-urlresource">`UrlResource`</a>
+        1. <a href="#resources-implementations-classpathresource">`ClassPathResource`</a>
+        1. <a href="#resources-implementations-filesystemresource">`FileSystemResource`</a>
+        1. <a href="#resources-implementations-servletcontextresource">`ServletContextResource`</a>
+        1. <a href="#resources-implementations-inputstreamresource">`InputStreamResource`</a>
+        1. <a href="#resources-implementations-bytearrayresource">`ByteArrayResource`</a>
+    1. <a href="#resources-resourceLoader">`ResourceLoader`</a>
+    1. <a href="#resources-resourceloaderaware">`ResourceLoaderAware`</a>
+    1. <a href="#resources-as-dependencies">의존성으로서 리소스</a>
+    1. <a href="#resources-app-ctx">어플리케이션 컨텍스트와 리소스 경로</a>
+        1. <a href="#resources-app-ctx-construction">어플리케이션 컨텍스트 생성하기</a>
+            1. <a href="#resources-app-ctx-classpathxml">`ClassPathXmlApplicationContext`인스턴스 생성하기 - 속성법</a>
+        1. <a href="#resources-app-ctx-wildcards-in-resource-paths">어플리케이션 컨텍스트 생성자 리소스 경로에 와일드카드 사용하기</a>
+            1. <a href="#resources-app-ctx-ant-patterns-in-paths">Ant 표현 형식</a>
+            1. <a href="#resources-classpath-wildcards">`classpath:&` 접두사</a>
+            1. <a href="#resources-wildcards-in-path-other-stuff">와일드카드와 관련된 다른 이야기들</a>
+        1. <a href="#resources-filesystemresource-caveats">`FileSystemResource`에 대한 경고</a>
 1. <a href="../spring-reference-core-3-validation/#validation"> 검증, 데이터 바인딩, 타입 변환 </a>
 1. <a href="../spring-reference-core-4-expressions/#expressions"> 스프링 표현 언어(SpEL) </a>
 1. <a href="../spring-reference-core-5-aop/#aop"> 스프링과 함께하는 관점 지향 프로그래밍(AOP) </a>

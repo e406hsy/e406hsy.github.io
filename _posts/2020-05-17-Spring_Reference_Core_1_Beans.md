@@ -249,7 +249,7 @@ ApplicationContext context = new ClassPathXmlApplicationContext("services.xml", 
 
 | |
 | ----- |
-| ***!** 스프링 IoC 컨테이너에 대하여 배운 이후, URI로 적힌 위치로부터 손쉽게 읽어오는 방법을 제공하는 스프링 `Resource` 추상화([리소스](../spring-reference-core-1-resources#resources)에 설명되어 있다.)에 대하여 알고 싶을 수도 있다. 특히 [어플리케이션 컨텍스트와 리소스 경로]에 설명되어 있는대로, 어플리케이션 컨텍스트를 만드는데 `Resource`경로를 사용한다.* |
+| ***!** 스프링 IoC 컨테이너에 대하여 배운 이후, URI로 적힌 위치로부터 손쉽게 읽어오는 방법을 제공하는 스프링 `Resource` 추상화([리소스](../spring-reference-core-2-resources#resources)에 설명되어 있다.)에 대하여 알고 싶을 수도 있다. 특히 [어플리케이션 컨텍스트와 리소스 경로]에 설명되어 있는대로, 어플리케이션 컨텍스트를 만드는데 `Resource`경로를 사용한다.* |
 
 아래의 예시는 서비스 레이어 `(services.xml)`객체 설정 파일이다:
 
@@ -2027,7 +2027,7 @@ public interface BeanNameAware {
 | `LoadTimeWeaverAware` | 로드 타임에 클래스 정의를 수행하는 위버 | [스프링 프레임워크에서 AspectJ를 이용하여 로드타임 위빙하기](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#aop-aj-ltw) |
 | `MessageSourceAware` | 메세지를 처리하는 전략 설정 | [`ApplicationContext`의 추가적인 기능](#context-introduction) |
 | `NotificationPublisherAware` | 스프링 JMX 알림 발행자 | [알림](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#jmx-notifications) |
-| `ResourceLoaderAware` | 저수준 자원에 접근하는 로더 | [리소스](../spring-reference-core-1-resources#resources) | 
+| `ResourceLoaderAware` | 저수준 자원에 접근하는 로더 | [리소스](../spring-reference-core-2-resources#resources) | 
 | `ServletConfigAware` | 현재 `ServletConfig`. 웹-aware `ApplicationContext`에서만 사용 가능하다 | [스프링 MVC](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/web.html#mvc) |
 | `ServletContextAware` | 현재 `ServletContext`. 웹-aware `ApplicationContext`에서만 사용 가능하다 | [스프링 MVC](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/web.html#mvc) |
 
@@ -5487,7 +5487,7 @@ public class EntityCreatedEvent<T> extends ApplicationEvent implements Resolvabl
 
 <h4 id="context-functionality-resources">로우레벨 자원에 편리한 접근</h4>
 
-어플리케이션 컨텍스트의 이해와 최적화를 위해 스프링 [`Resource` 추상화](../spring-reference-core-1-resources#resources)에 대해 익숙해져야 한다.
+어플리케이션 컨텍스트의 이해와 최적화를 위해 스프링 [`Resource` 추상화](../spring-reference-core-2-resources#resources)에 대해 익숙해져야 한다.
 
 `ResourceLoader`는 `Resource` 객체를 로드하는데 사용되며 어플리케이션 컨텍스트는 그 자체로 `ResourceLoader`이다. `Resource`는 근본적으로 JDK `java.net.URL` 클래스의 확장된 버전이다. 사실 `Resource`의 구현은 `java.net.URL`을 감싸고 있는 형태로 구현되어 있다. `Resource`는 파일시스템, 클래스패스, 표준 URL등 다양한 곳으로 부터 로우레벨 자원을 획득할 수 있다. 자원의 위치가 접두사가 없는 일반적인 경로라면 어플리케이션 컨텍스트에 따라 이러한 자원을 얻는 곳이 다르다.
 
@@ -5598,4 +5598,4 @@ cfg.postProcessBeanFactory(factory);
 | --- |
 | ***!** `AnnotationConfigApplicationContext`는 일반적인 어노테이션 후처리기가 등록되어 있다. 또한 `@EnableTransactionManagement`와 같은 설정 어노테이션을 처리하기 위해 추가적인 후처리기를 가져오는 경우도 있다. 스프링 어노테이션 레벨 설정 모델을 추상화하기 위해 이러한 빈 후처리기는 단지 컨테이너 내부의 상세 구현에만 존재한다.*|
 
-[다음 장에서 계속](../spring-reference-core-1-resources#resources)
+[다음 장에서 계속](../spring-reference-core-2-resources#resources)

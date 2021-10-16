@@ -2,14 +2,14 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 createdDate:   2020-05-17T18:42:00+09:00
-date:   2021-10-14T16:31:00+09:00
+date:   2021-10-16T14:09:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 1. IoC 컨테이너"
 pagination: enabled
 author: SoonYong Hong
 categories: Spring_Reference
 tags: Spring 
 sitemap:
-    changefreq: weekly
+    changefreq: yearly
 ---
 
 이 내용은 [스프링 문서 5.2.6.RELEASE](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#spring-core)를 번역한 내용으로 오역이 있을 수 있습니다.
@@ -5426,16 +5426,176 @@ public ListUpdateEvent handleBlackListEvent(BlackListEvent event) {
 위 메소드에서 `BlackListEvent`를 처리할 때마다 새로운 `ListUpdateEvent`가 발행된다. 여러개의 이벤트를 발행해야 한다면 이벤트 `Collection`을 반환하면 된다.
 
 <h5 id="context-functionality-events-async">비동기 리스너</h5>
+
+특정 이벤트 리스너가 이벤트 처리를 비동기로 진행하기를 원한다면, [일반적인 `@Async` 지원](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/integration.html#scheduling-annotation-support-async)과 마찬가지로 사용할 수 있다. 아래는 그 예시이다:
+
+```java
+@EventListener
+@Async
+public void processBlackListEvent(BlackListEvent event) {
+    // 별개의 쓰레드에서 BlackListEvent가 처리된다.
+}
+```
+
+비동기 이벤트를 사용할 때의 한계점에 대해 잘 알고 사용해야 한다:
+
+* 비동기 이벤트 리스너가 `Exception`을 발생시킬경우, 호출처에 전달되지 않는다. 자세한 내용은 `AsyncUncaughtExceptionHandler`를 확인하면 된다.
+* 이벤트를 반환하는 방식으로 새로운 이벤트를 발생시키는 기능을 비동기 이벤트 리스너는 사용할 수 없다. 새로운 이벤트를 발생시켜야 한다면, [`ApplicationEventPublisher`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/aop/interceptor/AsyncUncaughtExceptionHandler.html)를 주입하여 수동으로 이벤트를 발생시켜야 한다.
+
 <h5 id="context-functionality-events-order">리스너 순서 정하기</h5>
+
+특정 리스너가 다른 리스너보다 늦게 실행되야 한다면 `@Order` 어노테이션을 메소드 정의에 추가하여 설정할 수 있다. 아래는 그 예시이다:
+
+```java
+@EventListener
+@Order(42)
+public void processBlackListEvent(BlackListEvent event) {
+        // notificationAddress를 이용하여 적합한 부분에 알림처리한다...
+}
+```
+
 <h5 id="context-functionality-events-generics">Generic 이벤트</h5>
 
+이벤트 구조에 제네릭을 사용하는 것도 가능하다. `EntityCreatedEvent<T>`를 생각 해보자. 여기서 T는 생성된 엔티티의 타입이다. 예를 들면 `Person` 타입의 `EntityCreatedEvent`의 리스너를 아래와 같이 설정할 수 있다:
+
+```java
+@EventListener
+public void onPersonCreated(EntityCreatedEvent<Person> event) {
+    // ...
+}
+```
+
+타입 제거때문에 이러한 방법은 오직 이벤트 리스너 필터에서 제네릭 타입을 확인할 수 있는 경우에만 사용가능하다(즉, `class PersonCreatedEvent extends EntityCreatedEvent<Person> { …​ }`와 같은 경우).
+
+특정 환경에서 모든 이벤트가 같은 구조를 가지는 경우 이 작업은 지루한 작업이 될수 있다. 이러한 경우 `ResolvableTypeProvider`를 구현하여 프레임워크가 런타임 환경이 제공하는 것 이상의 정보를 얻도록 할 수 있다. 아래는 그 예시이다:
+
+```java
+public class EntityCreatedEvent<T> extends ApplicationEvent implements ResolvableTypeProvider {
+
+    public EntityCreatedEvent(T entity) {
+        super(entity);
+    }
+
+    @Override
+    public ResolvableType getResolvableType() {
+        return ResolvableType.forClassWithGenerics(getClass(), ResolvableType.forInstance(getSource()));
+    }
+}
+```
+
+| |
+| --- |
+| ***@** 이 기능은 이벤트로 `ApplicationEvent`를 사용할 때 뿐만 아니라 임의의 객체를 사용할 때에도 정상 동작한다.*|
 
 <h4 id="context-functionality-resources">로우레벨 자원에 편리한 접근</h4>
+
+어플리케이션 컨텍스트의 이해와 최적화를 위해 스프링 [`Resource` 추상화](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources)에 대해 익숙해져야 한다.
+
+`ResourceLoader`는 `Resource` 객체를 로드하는데 사용되며 어플리케이션 컨텍스트는 그 자체로 `ResourceLoader`이다. `Resource`는 근본적으로 JDK `java.net.URL` 클래스의 확장된 버전이다. 사실 `Resource`의 구현은 `java.net.URL`을 감싸고 있는 형태로 구현되어 있다. `Resource`는 파일시스템, 클래스패스, 표준 URL등 다양한 곳으로 부터 로우레벨 자원을 획득할 수 있다. 자원의 위치가 접두사가 없는 일반적인 경로라면 어플리케이션 컨텍스트에 따라 이러한 자원을 얻는 곳이 다르다.
+
+`ResourceLoaderAware`콜백 인터페이스를 구현한 빈을 어플리케이션 컨텍스트에 배포한다면, 초기화 시점에 어플리케이션 컨텍스트가 자기 자신을 `ResourceLoader`로써 파라메터로 콜백 메소드를 호출할 것이다. 또한 정적 자원을 접근하기 위해 `Resource`타입의 프로퍼티를 이용할 수 있다. 이러한 프로퍼티는 다른 일반적인 프로퍼티처럼 주입될 것이다. 이러한 `Resource` 프로퍼티를 일반적인 `String`형태의 경로로 나타낼 수 있다. 이러한 경우, 빈이 배포되는 시점에 자동으로 문자열로부터 실제 `Resource` 객체로 전환해줄 것이다.
+
+`ApplicationContext`의 생성자에 제공되는 자원의 경로 또한 다른 경로와 마찬가지이다. 이러한 경로도 컨텍스트 구현체에 따라 적절한 방식으로 처리될 것이다. 예를 들면 `ClassPathXmlApplicationContext`는 단순한 경로를 클래스 패스 경로로 인식한다. 또한 어플리케이션 컨텍스트의 종류가 무엇이든간에 자원의 경로에 접두사를 붙여 특정 방식으로 인식되도록 할 수 있다.
+
 <h4 id="context-create">웹 어플리케이션을 위한 편리한 ApplicationContext 인스턴스화</h4>
+
+`ContextLoader`를 사용하여 `ApplicationContext` 인스턴스를 선언적으로 생성할 수 있다. 물론 `ApplicationContext` 구현체를 사용하여 프로그래밍적으로 `ApplicationContext`를 생성하는 것도 가능하다.
+
+`ContextLoaderListener`를 사용하여 `ApplicationContext`를 등록하는 예시이다:
+
+```xml
+<context-param>
+    <param-name>contextConfigLocation</param-name>
+    <param-value>/WEB-INF/daoContext.xml /WEB-INF/applicationContext.xml</param-value>
+</context-param>
+
+<listener>
+    <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+</listener>
+```
+
+리스너틑 `contextConfigLocation`파라메터를 확인한다. 이 파라메터가 없으면 리스너는 `/WEB-INF/applicationContext.xml`을 
+기본값으로 사용한다. 이 파라메터가 있으면 `String`을 이미 정의된 경계기호(쉼표, 쌍반점, 공백)으로 구분하여 어플리케이션 컨텍스트가 확인해야하는 위치로 사용한다. Ant 형식의 경로 표현도 사용 가능하다. 예를 들면 `/WEB-INF/*Context.xml` (`WEB-INF` 디렉토리 내부의 `Context.xml`로 끝나는 모든 파일), `/WEB-INF/**/*Context.xml`(`WEB-INF`하위의 모든 디렉토리 내부의 `Context.xml`로 끝나는 파일)
+
 <h4 id="context-deploy-rar">스프링 ApplicationContext를 Java EE RAR 파일로 배포하기</h4>
 
+스프링 `ApplicationContext`를 컨텍스트, 필요한 빈 클래스들, 라이브러리 JAR파일을 RAR 파일로 배포할 수 있다. 이 작업은 Java EE 서버 설비에 접근할 수 있는 독립적인 `ApplicationContext`를 구동시키는 것과 같은 작업이다. RAR 배포는 자바 EE 환경에서 스프링 `ApplicationContext`를 부팅하기 위해 HTTP 연결점이 없는 WAR 파일을 배포하는 것보다 더 자연스러운 방식이다.
+
+RAR 배포는 HTTP 연결점이 없는 대신에 메세지 연결점이 있고 스케쥴된 작업이 있는 컨텍스트의 경우에 이상적이다. 이러한 컨텍스트의 빈들은 JTA 트랜잭션 관리자나 JNDI JDBC `DataSource` 인스턴스, JMS `ConnectionFactory`와 같은 어플리케이션 서버 자원들 사용할 수 있다. 또한 스프링의 표준 트랜잭션 관리, JNDI & JMX 지원 기능을 이용하여 플랫폼의 JMX 서버에 등록할 수 있다. 어플리케이션 컴포넌트는 스프링 `TaskManager` 추상화를 통해 어플리케이션 서버의 JCA `WorkManager`와 상호작용할 수 있다.
+
+RAR 배포와 관련되 자세한 설정에 관한 정보는 [`SpringContextResourceAdapter`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/jca/context/SpringContextResourceAdapter.html) 자바독에서 확인할 수 있다.
+
+스프링 어플리케이션을 Java EE RAR 파일로 손쉽게 배포하기 위해서는:
+
+1. 모든 어플리케이션 클래스를 RAR 파일(확장자만 다른 표준 JAR 파일)로 패키징 한다. 필요한 모든 JAR를 RAR 아카이브 루트에 추가한다. `META-INF/ra.xml`을 배포 설명자([`SpringContextResourceAdapter`자바독](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/jca/context/SpringContextResourceAdapter.html)에 설명되어 있다)로 추가하고 연관되는 스프링 XML 빈 정의 파일(일반적으로 `META-INF/applicationContext.xml`)을 추가한다.
+
+2. 생성된 RAR 파일으 어플리케이션 서버의 배포 디렉토리에 옮긴다.
+
+| |
+| --- |
+| ***!** 이러한 RAR 파일은 보통 스스로를 포장한다. 내부 컴포넌트들을 외부에 노출시키지 않고 심지어 같은 어플리케이션의 다른 모듈에 노출시키지 않는다. RAR 기반 `ApplicationContext`은 보통 다른 모듈과 공유하는 JMS 목적지를 통하여 상호작용한다. RAR 기반 `ApplicationContext`는 작업을 스케쥴할 수 있고 파일시스템의 새로운 파일에 반응할 수 있다. 외부에 동기화된 접근이 필요한 경우, RMI 연결점을 노출시킬 수 있다. 이러한 RMI 연결점은 같은 기기의 다른 어플리케이션 모듈에 의해 사용된다.*|
 
 <h3 id="beans-beanfactory">빈 팩토리</h3>
 
+`BeanFactory` API는 스프링 IoC 컨테이너의 기반이 되는 기술을 제공한다. 이 API는 일반적으로 스프링의 다른 부분과 관련된 써드 파티 프레임워크를 통합하는데 사용된다. `DefaultListableBeanFactory` 구현체는 `GenericApplicationContext` 하이 레벨 컨테이너의 내부에서 관련된 작업을 위임받는 주요 클래스이다.
+
+`BeanFactory`와 그와 관련된 인터페이스(`BeanFactoryAware`, `InitializingBean`, `DisposableBean`)은 다른 프레임워크 컴포넌트의 주요 통합 지점이다. 어노테이션이나 리플렉션을 필요로 하지 않기 때문에, 컨테이너나 다른 컴포넌트와 효율적인 상호작용을 할 수 있다. 어플리케이션 레벨 빈들이 같은 콜백 인터페이스를 사용할 수도 있지만 일반적으로 어노테이션이나 프로그래밍적 설정을 통한 선언적인 의존성 주입을 선호한다.
+
+`BeanFactory` API와 `DefaultListableBeanFactory` 구현체는 설정 형식이나 컴포넌트 어노에이션에 대한 추정을 하지 않는다. 이러한 작업은 확장기능(`XmlBeanDefinitionReader`나 `AutowiredAnnotationBeanPostProcessor`)에서 처리되며 메타데이터 표현으로 `BeanDefinition` 객체에 작업한다. 이것이 스프링 컨테이너가 확장성이 있고 유연한 이유이다.
+
 <h4 id="context-introduction-ctx-vs-beanfactory">BeanFactory? 혹은 ApplicationContext?</h4>
 
+이 장에서 `BeanFactory`와 `ApplicationContext` 간의 차이점, 부팅과정에서 구현방법에 대해 이야기 할것이다.
+
+`ApplicationContext`를 사용하지 않아야하는 특별한 이유가 없다면 `ApplicationContext`를 사용해야 한다. `GenericApplicationContext`, 자식클래스인 `AnnotationConfigApplicationContext`는 커스텀 부팅에 자주 사용되는 구현체이다. 이 것이 스프링 핵심 컨테이너를 일반적인 용도로 사용할 때, 가장 최선의 시작점이다: 설정 파일을 로드하고 클래스 패스 스캔을 시작하고 빈 정의와 어노테이션이 적용된 클래스들을 등록하고 (스프링 5.0부터) 함수형 빈 정의를 등록하는 용도 등등.
+
+`ApplicationContext`는 `BeanFactory`의 모든 기능을 포함하고 있기 때문에, 일반적인 `BeanFactory`를 사용하는 것보다 더 좋다. 단, 빈 처리하는 과정을 완전히 통제할 필요가 있는 경우는 예외이다. `ApplicationContext` 내부에서 (`GenericApplicationContext`와 같은 구현체 내부를 말한다) 몇몇 종류의 빈들은 컨벤션에 따라 발견된다(후처리기와 같은 빈들을 이름이나 타입으로 발견한다). 반면에 `DefaultListableBeanFactory`는 그러한 특별한 빈에 대하여 알지 못한다.
+
+어노테이션 처리나 AOP 프록시 처리와 같은 대부분의 컨테이너 확장 기능들을 처리하기 위해서 [`BeanPostProcessor` 확장 지점](#beans-factory-extension-bpp)이 필요하다. 단순히 `DefaultListableBeanFactory`를 사용하면 이러한 후처리기는 발견되지 않고 활성화되지도 않는다. 이러한 상황은 혼란스러울 수 있다. 왜냐하면 빈 설정에는 아무 문제가 없기 때문이다. 단지 이러한 경우에는 컨테이너가 추가적인 단계를 진행해 처리할 필요가 있는 것이다.
+
+아래의 표는 `BeanFactory`와 `ApplicationContext` 인터페이스와 구현체에서 제공하는 기능의 리스트이다:
+
+#### 표 9. 기능
+
+| 기능 | `BeanFactory` | `ApplicationContext` |
+| ----- | ----- | ----- |
+| 빈 초기화와 빈 연결하기 | 예 | 예 |
+| 생명주기 관리 | 아니오 | 예 |
+| `BeanPostProcessor` 자동 등록 | 아니오 | 예 |
+| `BeanFactoryPostProcessor` 자동 등록 | 아니오 | 예 |
+| 편리한 `MessageSource` 접근 (국제화 처리) | 아니오 | 예 |
+| `ApplicationEvent` 발행 기능 | 아니오 | 예 |
+
+`DefaultListableBeanFactory`에 빈 후처리기 빈들을 명시적으로 등록해주기 위해서는 `addBeanPostProcessor`를 프로그래밍 적으로 호출해야 한다. 아래는 그 예시이다:
+
+```java
+DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+// 빈 정의들로 빈 팩토리를 생성한다.
+
+// 이제 필요한 BeanPostProcessor 들을 추가한다.
+factory.addBeanPostProcessor(new AutowiredAnnotationBeanPostProcessor());
+factory.addBeanPostProcessor(new MyBeanPostProcessor());
+
+// 이제 빈 팩토리를 사용하기 시작한다.
+```
+
+`DefaultListableBeanFactory`에 `BeanFactoryPostProcessor`를 적용하기 위해서는 `postProcessBeanFactory` 메소드를 호출해야 한다. 아래는 그 예시이다:
+
+```java
+DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(factory);
+reader.loadBeanDefinitions(new FileSystemResource("beans.xml"));
+
+// 프로퍼티 파일로 부터 몇몇 프로퍼티를 가져온다.
+PropertySourcesPlaceholderConfigurer cfg = new PropertySourcesPlaceholderConfigurer();
+cfg.setLocation(new FileSystemResource("jdbc.properties"));
+
+// 이제 필요한 대체작업을 진행한다.
+cfg.postProcessBeanFactory(factory);
+```
+
+두가지 경우 모두 불편하게도 명시적인 등록과정이 있다. 이것이 스프링 백엔드 어플리케이션에서 `ApplicationContext`를 `DefaultListableBeanFactory`보다 선호하는 이유이다. 특히 기업에서 사용하는 설정에는 `BeanFactoryPostProcessor`와 `BeanPostProcessor`에 의존하는 경우가 많아서 더욱 그러하다.
+
+| |
+| --- |
+| ***!** `AnnotationConfigApplicationContext`는 일반적인 어노테이션 후처리기가 등록되어 있다. 또한 `@EnableTransactionManagement`와 같은 설정 어노테이션을 처리하기 위해 추가적인 후처리기를 가져오는 경우도 있다. 스프링 어노테이션 레벨 설정 모델을 추상화하기 위해 이러한 빈 후처리기는 단지 컨테이너 내부의 상세 구현에만 존재한다.*|

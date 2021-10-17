@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 createdDate:   2021-10-16T17:07:00+09:00
-date:   2021-10-16T17:07:00+09:00
+date:   2021-10-17T09:25:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 pagination: enabled
 author: SoonYong Hong

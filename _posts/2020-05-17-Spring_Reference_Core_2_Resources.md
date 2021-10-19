@@ -117,8 +117,26 @@ public interface InputStreamSource {
 | ***!** `Resource`추상화는 기능을 대체하지는 않는다. 예를 들면, `UrlResource`는 URL을 감싸는 클래스이며 실제 동작시에는 `URL`이 실제 작업을 진행한다.* |
 
 <h3 id="resources-implementations">내장된 Resource 구현체</h3>
+
+스프링은 아래의 `Resource` 구현체를 포함하고 있다:
+
+* [`UrlResource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources-implementations-urlresource)
+* [`ClassPathResource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources-implementations-classpathresourcehttps://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources-implementations-classpathresource)
+* [`FileSystemResource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources-implementations-filesystemresource)
+* [`ServletContextResource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources-implementations-servletcontextresource)
+* [`InputStreamResource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources-implementations-inputstreamresource)
+* [`ByteArrayResource`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/spring-framework-reference/core.html#resources-implementations-bytearrayresource)
+
 <h4 id="resources-implementations-urlresource">`UrlResource`</h4>
+
+`UrlResource`는 `java.net.URL`을 감싸는 래퍼 클래스로 파일, HTTP, FTP 등 URL을 통하여 획득할 수 있는 자원에 접근할 때 사용한다. 모든 URL은 표준 `String` 표현법을 가진다. 이 표현법에서 접두사로 URL 타입을 나타낸다. 예를 들면 파일 시스템 경로에 접근하는 `file:`, HTTP 프로토콜로 자원에 접근하는 `http:`, FTP 프로토콜로 자원에 접근하는 `ftp:` 등등 있다.
+
+`UrlResource`는 `UrlResource` 생성자를 사용해서 명시적으로 생성된다. 하지만 경로 표현을 나타내는 `String` 어규먼트를 사용하는 API에서 내부적으로 생성하는 경우도 매우 많다. 이러한 내부적으로 생성되는 경우, `PropertyEditor`가 `Resource`의 타입을 결정한다. `classpath:`와 같은 잘 알려진 접두사를 사용한다면, 그 접두사에 알맞은 `Resource`를 생성한다. 하지만 적절한 `Resource`를 찾지 못한다면 일반적인 URL 문자열로 가정하여 `UrlResource`를 생성한다.
+
 <h4 id="resources-implementations-classpathresource">`ClassPathResource`</h4>
+
+
+
 <h4 id="resources-implementations-filesystemresource">`FileSystemResource`</h4>
 <h4 id="resources-implementations-servletcontextresource">`ServletContextResource`</h4>
 <h4 id="resources-implementations-inputstreamresource">`InputStreamResource`</h4>

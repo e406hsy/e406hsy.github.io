@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 createdDate:   2021-10-16T17:07:00+09:00
-date:   2021-10-17T09:25:00+09:00
+date:   2021-10-20T18:51:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 pagination: enabled
 author: SoonYong Hong
@@ -135,10 +135,22 @@ public interface InputStreamSource {
 
 <h4 id="resources-implementations-classpathresource">`ClassPathResource`</h4>
 
+이 클래스는 클래스패스에서 획득해야하는 자원을 나타내는 클래스이다. 이 클래스는 쓰레드 컨텍스트  클래스로더, 주어진 클래스로더 혹은 그 클래스 자체를 이용하여 자원을 로드한다.
 
+이 `Resource` 구현체는 자원이 jar파일의 클래스 패스안에 있지 않고 파일시스템에 있을 경우 `java.io.File`로 전환을 지원한다. 첨언하자면, 많은 `Resource` 구현체들은 `java.net.URL`로 전환을 지원한다.
+
+`ClassPathResource`는 `ClassPathResource` 생성자를 사용해서 명시적으로 생성된다. 하지만 경로 표현을 나타내는 `String` 어규먼트를 사용하는 API에서 내부적으로 생성하는 경우도 매우 많다. 이러한 내부적으로 생성되는 경우, `PropertyEditor`가 `Resource`의 타입을 결정한다. `classpath:` 접두사를 사용한다면, `ClassPathResource`를 생성한다.
 
 <h4 id="resources-implementations-filesystemresource">`FileSystemResource`</h4>
+
+`java.io.File`과 `java.nio.file.Path`를 다루는 `Resource` 구현체이다. `File`과 `URL`로의 전환을 지원한다.
+
 <h4 id="resources-implementations-servletcontextresource">`ServletContextResource`</h4>
+
+웹 어플리케이션 루트 디렉토리로부터 상대 경로를 해석하는 `ServletContext`의 자원을 처리하는 `Resource` 구현체이다.
+
+URL과 스트림을 처리할 수 있다. 또한 웹 어플리케이션 아카이브가 확장되어 있고 파일시스템에 자원이 존재하는 경우 `java.io.File`도 처리할 수 있다. 확장되는가, 파일시스템에 있는가, JAR에 있는가, DB에 있는가 와는 상관없이 실제로는 처리할 수 있는지 없는지는 서블릿 컨테이너에 달려 있다.
+
 <h4 id="resources-implementations-inputstreamresource">`InputStreamResource`</h4>
 <h4 id="resources-implementations-bytearrayresource">`ByteArrayResource`</h4>
 <h3 id="resources-resourceLoader">`ResourceLoader`</h3>

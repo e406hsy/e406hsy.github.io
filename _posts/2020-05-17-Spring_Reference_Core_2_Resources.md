@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 createdDate:   2021-10-16T17:07:00+09:00
-date:   2021-10-20T18:51:00+09:00
+date:   2021-10-22T19:58:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 pagination: enabled
 author: SoonYong Hong
@@ -40,7 +40,7 @@ sitemap:
 <h5 id="resources-app-ctx-ant-patterns-in-paths">Ant 표현 형식</a>
 <h5 id="resources-classpath-wildcards">`classpath:&` 접두사</a>
 <h5 id="resources-wildcards-in-path-other-stuff">와일드카드와 관련된 다른 이야기들</a>
-<h4 id="resources-filesystemresource-caveats">`FileSystemResource`에 대한 경고</a>
+<h4 id="resources-filesystemresource-caveats">`FileSystemResource`에 대한 주의사항</a>
 1. <a href="../spring-reference-core-3-validation/#validation"> 검증, 데이터 바인딩, 타입 변환 </a>
 1. <a href="../spring-reference-core-4-expressions/#expressions"> 스프링 표현 언어(SpEL) </a>
 1. <a href="../spring-reference-core-5-aop/#aop"> 스프링과 함께하는 관점 지향 프로그래밍(AOP) </a>
@@ -152,8 +152,67 @@ public interface InputStreamSource {
 URL과 스트림을 처리할 수 있다. 또한 웹 어플리케이션 아카이브가 확장되어 있고 파일시스템에 자원이 존재하는 경우 `java.io.File`도 처리할 수 있다. 확장되는가, 파일시스템에 있는가, JAR에 있는가, DB에 있는가 와는 상관없이 실제로는 처리할 수 있는지 없는지는 서블릿 컨테이너에 달려 있다.
 
 <h4 id="resources-implementations-inputstreamresource">`InputStreamResource`</h4>
+
+`InputStreamResource`는 `InputStream`을 처리하는 `Resource` 구현체이다. 이 구현체는 다른 `Resource` 구현체가 사용불가 할때만 사용해야 한다. 즉, `ByteArrayResource`나 여타 파일 기반 `Resource` 구현체를 사용할 수 있다면 사용해야 한다.
+
+다른 `Resource` 구현체와 달리 이미 개봉된 자원에 대한 것이다. 즉 `isOpen()`메소드는 `true`를 반환한다. 여러번 읽을 필요가 있는 자원이나 계속 유지해야 하는 자원에는 사용하지 말아야 한다.
+
 <h4 id="resources-implementations-bytearrayresource">`ByteArrayResource`</h4>
+
+바이트 배열을 처리하는 `Resource` 구현체이다. 주어진 바이트 배열을 `ByteArrayInputStream`으로 바꿔 처리한다.
+
+단 한번만 사용할 수 있는 `InputStreamResource`를 사용하지 않고 주어진 바이트 배열을 로드하는데 유용하게 사용된다.
+
 <h3 id="resources-resourceLoader">`ResourceLoader`</h3>
+
+`ResourceLoader` 인터페이스는 `Resource` 인스턴스를 로드하여 반환할 수 있는 객체에 사용된다. 아래는 `ResourceLoader` 인터페이스의 정의이다:
+
+```java
+ public interface ResourceLoader {
+
+    Resource getResource(String location);
+}
+```
+
+모든 어플리케이션 컨텍스트는 `ResourceLoader`인터페이스의 구현체이다. 즉 모든 어플리케이션 컨텍스트를 사용하여 `Resource`를 획득할 수 있다.
+
+특정 어플리케이션 컨텍스트에서 `getResource()`를 호출할 경우 파라메터로 전달하는 경로에 구체적인 접두사가 없다면 어플리케이션 컨텍스트 타입에 따라서 반환되는 `Resource`의 타입이 결정된다. 아래의 예시가 `ClassPathXmlApplicationContext` 인스턴스로 실행했다고 생각해보다:
+
+```java
+Resource template = ctx.getResource("some/resource/path/myTemplate.txt");
+```
+
+`ClassPathXmlApplicationContext`의 경우 `ClassPathResource`를 반환한다. 같은 메소드가 `FileSystemXmlApplicationContext`에서 실행되면 `FileSystemResource`를 반환할 것이다. `WebApplicationContext`의 경우는 `ServletContextResource`이다. 각각에 컨텍스트에 걸맞는 것을 반환할 것이다.
+
+즉 특정 어플리케이션 컨특스트에 걸맞는 방식으로 리소스를 로드할 수가 있다는 말이다.
+
+반면에 `classpath:` 접두사를 사용하여 어플리케이션 컨텍스트의 종류와 관계없이 `ClassPathResource`가 사용되도록 할 수 있다. 아래는 그 예시이다:
+
+```java
+Resource template = ctx.getResource("classpath:some/resource/path/myTemplate.txt");
+```
+
+비슷하게 `java.net.URL` 표준 접두사를 사용하여 `UrlResource`를 사용되도록 할 수 있다. 아래의 예시는 `file` 접두사와 `http` 접두사의 예시이다:
+
+```java
+Resource template = ctx.getResource("file:///some/resource/path/myTemplate.txt");
+```
+
+```java
+Resource template = ctx.getResource("https://myhost.com/resource/path/myTemplate.txt");
+```
+
+아래 표는 `String`경로를 `Resource`로 전환하는 전략에 대해 보여준다.
+
+#### 표 10. 리소스 문자열
+
+| 접두사 | 예시 | 설명 |
+| ----- | ----- | ----- |
+| classpath: | `classpath:com/myapp/config.xml` | 클래스 패스에서 로드한다. |
+| file: | `file:///data/config.xml` | 파일 시스템에서 `URL`로서 로드한다. 자세한 내용은 [`FileSystemResource`에 대한 주의사항](#resources-filesystemresource-caveats)을 보면된다. |
+| http: | `https://myserver/logo.png` | `URL`로서 로드한다. |
+| (없음) | `/data/config.xml` | `ApplicationContext`에 따라 다르다. |
+
 <h3 id="resources-resourceloaderaware">`ResourceLoaderAware`</h3>
 <h3 id="resources-as-dependencies">의존성으로서 리소스</h3>
 <h3 id="resources-app-ctx">어플리케이션 컨텍스트와 리소스 경로</h3>
@@ -163,4 +222,4 @@ URL과 스트림을 처리할 수 있다. 또한 웹 어플리케이션 아카�
 <h5 id="resources-app-ctx-ant-patterns-in-paths">Ant 표현 형식</h5>
 <h5 id="resources-classpath-wildcards">`classpath:&` 접두사</h5>
 <h5 id="resources-wildcards-in-path-other-stuff">와일드카드와 관련된 다른 이야기들</h5>
-<h4 id="resources-filesystemresource-caveats">`FileSystemResource`에 대한 경고</h4>
+<h4 id="resources-filesystemresource-caveats">`FileSystemResource`에 대한 주의사항</h4>

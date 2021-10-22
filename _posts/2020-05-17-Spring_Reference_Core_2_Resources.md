@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 createdDate:   2021-10-16T17:07:00+09:00
-date:   2021-10-22T19:58:00+09:00
+date:   2021-10-23T08:51:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 pagination: enabled
 author: SoonYong Hong
@@ -214,9 +214,55 @@ Resource template = ctx.getResource("https://myhost.com/resource/path/myTemplate
 | (없음) | `/data/config.xml` | `ApplicationContext`에 따라 다르다. |
 
 <h3 id="resources-resourceloaderaware">`ResourceLoaderAware`</h3>
+
+`ResourceLoaderAware`인터페이스는 `ResourceLoacer`의 참조를 제공받는 콜백 인터페이스이다. 아래는 `ResourceLoaderAware`인터페이스의 정의이다:
+
+```java
+public interface ResourceLoaderAware {
+
+    void setResourceLoader(ResourceLoader resourceLoader);
+}
+```
+
+클래스가 `ResourceLoaderAware`를 구현하고 어플리케이션 컨텍스트에 (스프링 빈으로서) 배포되었다면, 어플리케이션 컨텍스트에 의하여 `ResourceLoaderAware`로서 처리될 것이다. 어플리케이션 컨텍스트는 `setResourceLoader(ResourceLoader)`를 호출하면서 자기자신을 어규먼트로 넘겨줄 것이다(모든 어플리케이션 컨텍스트는 `ResoureLoader`인터페이스의 구현체임을 이미 언급하였었다).
+
+`ApplicationContext`가 `ResourceLoader`이기 때문에 `ApplicationContextAware`인터페이스를 구현한 경우에도 어플리케이션 컨텍스트를 전달받아서 자원을 로드하는데 사용할 수 있다. 하지만 일반적으로 `ResourceLoader`인터페이스만 필요하다면 `ResourceLoader`를 사용하는 것이 좋다. 그렇게하면 스프링의 `ApplicationContext` 인터페이스 전체가 아닌 자원을 로드하는데 사용하는 인터페이스(유틸리티 인터페이스)와만 결합하게 되어 결합도가 낮아지게 된다.
+
+어플리케이션 컴포넌트에서 `ResourceLoaderAware`인터페이스 대신 빈 자동 연결을 이용하여 `ResourceLoader`를 획득할 수 있다. `constructor`나 `byType` 자동연결 모드 ([자동연결 협력자](../spring-reference-core-1-beans/#beans-factory-autowire)에서 설명되었다)를 사용하면 각각 생성자의 어규먼트와 메소드 파라메터로 `ResourceLoader`를 획득할 수 있다. 더 많은 유연성을 확보하기 위해서(필드 자동연결과 파라메터 여러개인 메소드 자동연결을 포함하는 내용이다), 어노테이션 기반 자동연결 기능을 사용하는 것도 좋다. 이러한 경우에 `ResourceLoader`는 필드, 생성자 어규먼트, 메소드 파라메터를 통하여 타입기반 자동연결 될 수 있다. 단 필드, 생성자, 메소드에 `@Autowired`를 사용했을 경우이다. 자세한 내용은 [`@Autowired` 사용하기](../spring-reference-core-1-beans/#beans-factory-autowire)에서 볼 수 있다.
+
 <h3 id="resources-as-dependencies">의존성으로서 리소스</h3>
+
+빈 내부에 동적으로 자원의 경로를 획득하는 과정이 있다면, `ResourceLoader`인터페이스를 사용하여 자원을 획득하는 것이 알맞다. 예를 들어, 유저의 선택에 따라서 특정한 템플릿을 로드해야하는 경우를 생각해보자. 해당 자원이 정적이라면 `ResourceLoader`를 사용하지 않는 것이 맞는 방법이다. 대신 `Resource` 프로퍼티를 가져 `Resource`를 주입받으면 된다.
+
+이러한 `Resource`프로퍼티를 주입하는 것은 매우 간단한다. 왜냐하면 모든 어플리케이션 컨텍스트는 `PropertyEditor`라는 특별한 자바빈을 등록하여 사용한다. 이 빈은 `String`을 `Resource` 객체로 변환한다. 그래서 `myBean`이 `Resource`타입의 프로퍼티를 가지는 빈이라면 아래의 예시처럼 자원을 표현하는 간단한 문자열로 설정할 수 있다:
+
+```xml
+<bean id="myBean" class="...">
+    <property name="template" value="some/resource/path/myTemplate.txt"/>
+</bean>
+```
+
+위 예시에서 자원의 경로에 접두사가 없다. 모든 어플리케이션 컨텍스트는 `ResourceLoader`이기에 어플리케이션 컨텍스트의 타입에 따라 자원이 `ClassPathResource`, `FileSystemResource`, `ServletContextResource`로서 로드될 것이다.
+
+특정한 타입의 `Resource`를 사용하려면 접두사를 사용하면 된다. 아래의 두개의 예시는 각각 `ClassPathResource`와 `UrlResource`(이 경우에서는 파일 시스템에서 자원을 획득한다)를 사용하는 예시이다:
+
+```xml
+<property name="template" value="classpath:some/resource/path/myTemplate.txt">
+```
+
+```xml
+<property name="template" value="file:///some/resource/path/myTemplate.txt"/>
+```
+
+
 <h3 id="resources-app-ctx">어플리케이션 컨텍스트와 리소스 경로</h3>
+
+이 장에서 어플리케이션 컨텍스트가 어떻게 자원을 생성하는지 이야기할 것이다. XML을 사용하여 자원을 생성하는 방법, 와일드 카드를 사용하는 방법 등등이 포함되어 있다.
+
 <h4 id="resources-app-ctx-construction">어플리케이션 컨텍스트 생성하기</h4>
+
+
+
 <h5 id="resources-app-ctx-classpathxml">`ClassPathXmlApplicationContext`인스턴스 생성하기 - 속성법</h5>
 <h4 id="resources-app-ctx-wildcards-in-resource-paths">어플리케이션 컨텍스트 생성자 리소스 경로에 와일드카드 사용하기</h4>
 <h5 id="resources-app-ctx-ant-patterns-in-paths">Ant 표현 형식</h5>

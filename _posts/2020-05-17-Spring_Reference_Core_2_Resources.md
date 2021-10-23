@@ -261,9 +261,55 @@ public interface ResourceLoaderAware {
 
 <h4 id="resources-app-ctx-construction">어플리케이션 컨텍스트 생성하기</h4>
 
+일반적으로 어플리케이션 컨텍스트 구현체들의 생성자는 컨텍스트 정의 xml 파일과 같은 자원의 경로를 한개 혹은 여러개의 문자열로 받아서 사용한다.
 
+이러한 경로에 접두사가 없다면 어플리케이션 컨텍스트의 종류에 따라 특정한 `Resource`가 생성되어 빈정의를 로드하는데 사용된다. 예를 들면, 아래의 `ClassPathXmlApplicationContext`을 생성하는 예시를 보자:
+
+```java
+ApplicationContext ctx = new ClassPathXmlApplicationContext("conf/appContext.xml");
+```
+
+`ClassPathResource`가 사용되어서 클래스패스로부터 빈 정의를 로드한다. 하지만 아래의 `FileSystemXmlApplicationContext`을 생성하는 예시를 보자:
+
+```java
+ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("conf/appContext.xml");
+```
+
+이제 빈 정의를 파일 시스템에서 로드한다(이 경우, 현재 디렉토리에서부터 상대경로이다).
+
+특정한 클래스패스 접두사나 표준 URL 접두사를 사용하면 기본 타입의 `Resource` 대신 특정한 타입의 `Resource`를 사용해 빈 정의를 로드한다. 아래의 예시를 보자:
+
+```java
+ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("classpath:conf/appContext.xml");
+```
+
+`FileSystemXmlApplicationContext`를 사용하여 클래스패스로부터 빈 정의를 읽어왔다. 클래스패스로부터 읽어왔음에도 `FileSystemXmlApplicationContext`를 사용한 경우이다. 이 어플리케이션 컨텍스트를 `ResourceLoader`로서 사용할 경우 접두사가 없는 모든 경로는 여전히 파일시스템 경로로 여길 것이다.
 
 <h5 id="resources-app-ctx-classpathxml">`ClassPathXmlApplicationContext`인스턴스 생성하기 - 속성법</h5>
+
+`ClassPathXmlApplicationContext`은 손쉽게 초기화 할 수 있는 다양한 생성자를 가지고 있다. 가장 기본적인 방법은 단순히 XML 파일의 이름을 포함하고 있는 문자열들의 배열과 한개의 `Class`를 제공하는 것이다. `ClassPathXmlApplicationContext`는 제공된 클래스로부터 경로 정보를 획득한다.
+
+아래의 디렉토리 구조를 생각해보자:
+
+```
+com/
+  foo/
+    services.xml
+    daos.xml
+    MessengerService.class
+```
+
+아래의 예시는 `services.xml`과 `daos.xml`로 구성되는 `ClassPathXmlApplicationContext`를 초기화 하는 예시이다:
+
+```java
+ApplicationContext ctx = new ClassPathXmlApplicationContext(
+    new String[] {"services.xml", "daos.xml"}, MessengerService.class);
+```
+
+[`ClassPathXmlApplicationContext`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/jca/context/SpringContextResourceAdapter.html) 자바독에서 다양한 생성자에 대한 자세한 내용을 볼 수 있다.
+
 <h4 id="resources-app-ctx-wildcards-in-resource-paths">어플리케이션 컨텍스트 생성자 리소스 경로에 와일드카드 사용하기</h4>
 <h5 id="resources-app-ctx-ant-patterns-in-paths">Ant 표현 형식</h5>
 <h5 id="resources-classpath-wildcards">`classpath:&` 접두사</h5>

@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 createdDate:   2021-10-16T17:07:00+09:00
-date:   2021-10-23T08:51:00+09:00
+date:   2021-10-28T16:00:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 pagination: enabled
 author: SoonYong Hong
@@ -38,7 +38,7 @@ sitemap:
 <h5 id="resources-app-ctx-classpathxml">`ClassPathXmlApplicationContext`인스턴스 생성하기 - 속성법</a>
 <h4 id="resources-app-ctx-wildcards-in-resource-paths">어플리케이션 컨텍스트 생성자 리소스 경로에 와일드카드 사용하기</a>
 <h5 id="resources-app-ctx-ant-patterns-in-paths">Ant 표현 형식</a>
-<h5 id="resources-classpath-wildcards">`classpath:&` 접두사</a>
+<h5 id="resources-classpath-wildcards">`classpath*:` 접두사</a>
 <h5 id="resources-wildcards-in-path-other-stuff">와일드카드와 관련된 다른 이야기들</a>
 <h4 id="resources-filesystemresource-caveats">`FileSystemResource`에 대한 주의사항</a>
 1. <a href="../spring-reference-core-3-validation/#validation"> 검증, 데이터 바인딩, 타입 변환 </a>
@@ -311,7 +311,37 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext(
 [`ClassPathXmlApplicationContext`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/jca/context/SpringContextResourceAdapter.html) 자바독에서 다양한 생성자에 대한 자세한 내용을 볼 수 있다.
 
 <h4 id="resources-app-ctx-wildcards-in-resource-paths">어플리케이션 컨텍스트 생성자 리소스 경로에 와일드카드 사용하기</h4>
+
+어플리케이션 컨텍스트 생성자에 전달되는 자원의 경로는 `Resource`한 개를 의미하는 단순 경로일 수도 있고 "classpath*:" 접두사를 가지고 있거나 Ant 형식의 표현식일 수도 있다(Ant 형식의 표현식은 스프링 `PathMather` 유틸리티를 이용해 경로를 확인한다). "classpath*:" 접두사와 Ant 형식의 표현식 모두 와일드카드를 사용하는 방식이다.
+
+여러 구성요소가 모여서 구성되는 어플리케이션을 설정할 때, 이 방법을 사용할 수 있다. 모든 구성요소는 미리 정해진 경로에 컨텍스트 정의를 발급하고 최종 어플리케이션에서 "classpath*:"접두사를 사용하여 모든 컨텍스트 정의를 모아서 어플리케이션을 생성한다.
+
+와일드카드는 어플리케이션 컨텍스트 생성자에서만 사용된다(혹은 `PathMatcher` 유틸리티를 직접 사용할 수도 있다). `Resource` 타입 자체와는 아무 관련이 없다. `classpath*:` 접두사를 `Resource` 생성자에서 사용할 수 없다.
+
 <h5 id="resources-app-ctx-ant-patterns-in-paths">Ant 표현 형식</h5>
-<h5 id="resources-classpath-wildcards">`classpath:&` 접두사</h5>
+
+아래 예시처럼 Ant 형식의 패턴을 사용하여 경로를 나타낼 수 있다:
+
+```
+/WEB-INF/*-context.xml
+com/mycompany/**/applicationContext.xml
+file:C:/some/path/*-context.xml
+classpath:com/mycompany/**/applicationContext.xml
+```
+
+Ant 형식의 표현으로 경로를 나타내는 경우에 와일드카드를 처리하기 위한 복잡한 과정이 추가된다. 와일드카드가 나오기 전까지의 경로로 `Resource`를 획득한 뒤, 그 리소스에서 URL을 획득한다. 이 URL이 `jar:` URL이나 여타 컨테이너에 종속적인 URL(WebLogic의 `zip:`, WebSphere의 `wsjar` 등등)이 아니라면 URL로 `java.io.File`을 만들어서 파일시스템을 탐색하는데에 사용한다. jar URL인 경우에는 `java.net.JarUrlConnection`을 가져와서 탐색에 사용하거나 수동으로 jar URL 경로를 파싱하여 탐색한다.
+
+###### 휴대성과 관련된 내용
+
+경로가 파일 URL인 경우(기본 `ResourceLoader`에 의해서 내부적으로 파일 URL로 처리되는 경우와 명시적으로 파일 URL임을 표시한 경우 모두를 말한다), 와일드카드를 사용해서 휴대성을 보장한다.
+
+명시된 경로가 클래스패스 경로일 경우, `ClassLoader.getResource()`를 사용하여 와일드카드가 나오기 전까지의 URL을 획득한다. 이 URL이 파일이 아닌 중간 경로이기에 어떠한 URL이 반환될지는 정해져 있지 않다(`ClassLoader` 자바독에 자세히 나와있다). 실제 사용할 때 반환되는 URL은 디렉토리를 나타내는 `java.io.File`이거나 jar URL이다. 하지만 여기에는 휴대성의 문제가 있다.
+
+와일드카드가 나오기 전까지의 경로가 jar URL이라면 `java.net.JarURLConnection`을 가져오거나 수동으로 URL을 파싱해서 와일드카드를 처리해야한다. 이 방법은 대부분의 환경에서 실패한다. 따라서 jar에서 리소스를 가져올 때, 와일드카드를 사용하는 방법은 철처히 테스트를 한 후에 사용해야한다.
+
+<h5 id="resources-classpath-wildcards">`classpath*:` 접두사</h5>
+
+
+
 <h5 id="resources-wildcards-in-path-other-stuff">와일드카드와 관련된 다른 이야기들</h5>
 <h4 id="resources-filesystemresource-caveats">`FileSystemResource`에 대한 주의사항</h4>

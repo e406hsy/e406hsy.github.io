@@ -2,19 +2,17 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 createdDate:   2021-10-16T17:07:00+09:00
-date:   2021-10-28T16:00:00+09:00
+date:   2021-11-07T14:04:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 2. 리소스"
 pagination: enabled
 author: SoonYong Hong
 categories: Spring_Reference
 tags: Spring 
 sitemap:
-    changefreq: weekly
+    changefreq: yearly
 ---
 
 이 내용은 [스프링 문서 5.2.6.RELEASE](https://docs.spring.io/spring/docs/5.2.6.RELEASE/spring-framework-reference/core.html#spring-core)를 번역한 내용으로 오역이 있을 수 있습니다.
-
-현재 내용 작성중입니다.
 
 # 목차
 <h2><a href="../spring-reference-core-1-beans/#spring-core"> 핵심 기술 </a></h2>
@@ -341,7 +339,84 @@ Ant 형식의 표현으로 경로를 나타내는 경우에 와일드카드를 �
 
 <h5 id="resources-classpath-wildcards">`classpath*:` 접두사</h5>
 
+XML 기반의 어플리케이션 컨텍스트를 생성할 때, 아래의 예시처럼 `classpath*:` 접두사를 사용하여 위치를 나타내는 경우가 많다:
 
+```java
+ApplicationContext ctx =
+    new ClassPathXmlApplicationContext("classpath*:conf/appContext.xml");
+```
+
+주어진 이름에 일치하는 모든 클래스패스 자원을 합쳐 어플리케이션 컨텍스트 정의로 사용하도록 하는 접두사이다. (내부적으로 `ClassLoader.getResources(...)`를 호출하여 자원을 획득한다.)
+
+| |
+| ----- |
+| ***!** 클래스로더의 `getResources()` 메소드에 의존하여 와일드카드를 처리한다. 대부분의 어플리케이션 서버들은 자신만의 클래스로더 구현체를 가지고 있으며 각각 다르게 동작한다. 특히 jar 파일을 다루는 동작에서 서로 다르게 동작한다. `classpath*`가 동작하는지 확인하는 간단한 방법으로 `getClass().getClassLoader().getResources("<jar내부에있는아무파일">)`을 호출하여 클래스로더가 파일을 로드하도록 하는 방법이다. 다른 위치에 같은 이름을 가진 파일에 이 테스트를 실행하여 잘못된 결과를 얻게된다면 어플리케이션 서버 설정문서를 확인해서 클래스로더 동작에 영향을 미치는 설정을 찾아보도록 하자.* |
+
+`classpath*:`접두사와 `PathMatcher`를 섞어서 사용할 수 있다(예를 들면 `classpath*:META_INF/*-beans.xml`). 이러한 경우에 처리 원리는 간단하다: 와일드 카드가 아닌 경로로 `ClassLoader.getResources()`를 호출하여 적합한 자원 경로를 획득한뒤 각각의 경로에 대하여 `PathMatcher`처리 방식을 적용하여 나머지 하위 와일드카드 경로를 처리한다.
 
 <h5 id="resources-wildcards-in-path-other-stuff">와일드카드와 관련된 다른 이야기들</h5>
+
+`classpath*:`가 Ant 형식의 패턴과 같이 사용되는 경우, 최소한 한개의 루트 디렉토리가 패턴이전에 존재하지 않는 경우 올바르게 동작하지 않을 수 있다. 단 파일시스템에 목표로하는 파일이 있는 경우에는 정상동작한다. 이 말은 `classpath*:*.xml`과 같은 패턴을 사용하면 jar의 루트에서 파일을 가져오지 못하고 확장된 디렉토리의 루트에서 파일을 가져오게 된다.
+
+JDK의 `Classloader.getResources()`에 빈 문자열(검색을 위한 루트 경로를 의미한다)을 사용하여 호출하면 파일시스템 위치를 반환한다. 그리고 스프링은 이 메소드를 사용하여 클래스패트 경로를 처리한다. 스프링은 `URLClassLodaer`의 런타임 설정과 `java.class.path` 매니페스트를 고려하지만 원하는 동작을 보장하지는 못한다.
+
+| |
+| ----- |
+| ***!** 클래스 패스의 패키지를 검색하기 위해서는 일치하는 디렉토리가 클래스패스에 있어야한다. Ant로 JAR를 빌드할 때, JAR 작업의 files-only를 활성화 하지 않아야한다. 또한 일부 환경에서 보안상의 이유로 클래스패스 디렉토리가 노출되지 않는다 - 예를들면 JDK 1.7.0_45 이상의 독립 어플리케이션에서 발생한다 (매니페스트에 'Trusted-Library`를 설정할 필요가 있다. 자세한 내용은 [https://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources](https://stackoverflow.com/questions/19394570/java-jre-7u45-breaks-classloader-getresources)를 보자). JDK 모듈 경로(jigsaw)에서 스프링의 클래스패스 스캔은 기대하는대로 동작한다. 하지만 자원을 걸맞은 위치에 넣는것을 추천한다. 위에 언급한 문제를 피할 수 있기 때문이다.* |
+
+Ant 형식 패턴과 `classpath:`를 동시에 사용하였을 때, 루트 패키지가 여러 클래스패스 경로에서 사용되면 자원을 찾지 못할 수 있다. 아래의 예시를 보자:
+
+```
+com/mycompany/package1/service-context.xml
+```
+
+이제 Ant 형식 패턴의 예시를 보자:
+
+```
+classpath:com/mycompany/**/service-context.xml
+```
+
+이러한 자원은 한 경로에만 존재할 수 있다. 하지만 위의 예시에서 `getResources("com/mycompany");`를 먼저 호출하게 된다. 만약 기본 패키지 노드가 여러개의 클래스 로더 위치에 존재한다면 실제 자원은 발견되지 않을 수 있다. 따라서 이러한 경우 `classpath*:`과 Ant 형식 패턴을 사용하여 모든 클래스 패스 위치를 검색하도록 하는 것이 좋다.
+
 <h4 id="resources-filesystemresource-caveats">`FileSystemResource`에 대한 주의사항</h4>
+
+`FileSystemApplicationContext`과 관련없는 `FileSystemResource` (즉, `FileSystemApplicationContext`가 `ResourceLoader`가 아닌 경우)는 절대 경로와 상대경로를 기대한대로 처리한다. 상대경로는 현재 디렉토리로부터 상대적으로 처리하고 절대 경로는 파일시스템의 루트에서부터 처리한다.
+
+하지만 구버전과 호환을 위하여 `FileSystemApplicationContext`가 `ResourceLoader`인 경우에는 다르다. `FileSystemApplicationContext`는 모든 `FileSystemResource`가 경로를 상대경로로 처리하도록 만든다. 경로가 /로 시작하는지와는 무관하게 모두 상대경로로 처리한다. 이 말은 아래 예시들이 모두 동일한 예시라는 의미이다:
+
+```java
+ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("conf/context.xml");
+```
+
+```java
+ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("/conf/context.xml");
+```
+
+아래의 예시도 동일한 예시이다(하나는 절대 경로로 나머지 하나는 상대 경로로 처리되는 것이 알맞은 처리방법이기는 하다).
+
+```java
+FileSystemXmlApplicationContext ctx = ...;
+ctx.getResource("some/resource/path/myTemplate.txt");
+```
+
+```java
+FileSystemXmlApplicationContext ctx = ...;
+ctx.getResource("/some/resource/path/myTemplate.txt");
+```
+
+절대 경로로 사용할 필요가 있다면 `FileSystemResource`나 `FileSystemXmlApplicationContext`에 절대 경로를 사용하는 것을 피하고 `file:` URL 접두사를 사용하여 `UrlResource`를 사용하는 것이 좋다. 아래는 그 예시이다:
+
+```java
+// 컨텍스트가 무엇인지와는 무관하게 UrlResource가 사용될 것이다.
+ctx.getResource("file:///some/resource/path/myTemplate.txt");
+```
+
+```java
+// FileSystemXmlApplicationContext가 UrlResource로 자원을 로드하도록 한다.
+ApplicationContext ctx =
+    new FileSystemXmlApplicationContext("file:///conf/context.xml");
+```
+
+[다음 장에서 계속](../spring-reference-core-3-validation/#validation)

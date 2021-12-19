@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 createdDate:   2021-11-07T14:04:00+09:00
-date:   2021-11-07T14:04:00+09:00
+date:   2021-12-07T14:04:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 pagination: enabled
 author: SoonYong Hong

@@ -35,7 +35,7 @@ tags: DataBase Mysql Index DBMS
 <td>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>1</td></tr><tr><td>인덱스 키</td><td>자식노드 주소</td></tr></thead>
-    <tbody><tr><td>Apple</td><td>2</td></tr><tr><td>Jebra</td><td>3</td></tr></tbody>
+    <tbody><tr><td>Apple</td><td>2</td></tr><tr><td>Job</td><td>3</td></tr></tbody>
     </table>
 </td>
 <td>
@@ -48,7 +48,7 @@ tags: DataBase Mysql Index DBMS
 	</div>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>3</td></tr><tr><td>인덱스 키</td><td>자식노드 주소</td></tr></thead>
-    <tbody><tr><td>Jebra</td><td>7</td></tr><tr><td>Loop</td><td>8</td></tr><tr><td>Good</td><td>9</td></tr></tbody>
+    <tbody><tr><td>Job</td><td>7</td></tr><tr><td>Loop</td><td>8</td></tr><tr><td>Good</td><td>9</td></tr></tbody>
     </table>
 </td>
 <td>
@@ -75,7 +75,7 @@ tags: DataBase Mysql Index DBMS
 	</div>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>7</td></tr><tr><td>인덱스 키</td><td>데이터 주소</td></tr></thead>
-    <tbody><tr><td>Jebra</td><td>12027</td></tr><tr><td>Keep</td><td>13339</td></tr></tbody>
+    <tbody><tr><td>Job</td><td>12027</td></tr><tr><td>Keep</td><td>13339</td></tr></tbody>
     </table>
 </td>
 </tr>
@@ -97,7 +97,7 @@ tags: DataBase Mysql Index DBMS
 <td>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>1</td></tr><tr><td>인덱스 키</td><td>자식노드 주소</td></tr></thead>
-    <tbody><tr><td>Apple</td><td>2</td></tr><tr><td>Jebra</td><td>3</td></tr></tbody>
+    <tbody><tr><td>Apple</td><td>2</td></tr><tr><td>Job</td><td>3</td></tr></tbody>
     </table>
 </td>
 <td>
@@ -110,7 +110,7 @@ tags: DataBase Mysql Index DBMS
 	</div>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>3</td></tr><tr><td>인덱스 키</td><td>자식노드 주소</td></tr></thead>
-    <tbody><tr><td>Jebra</td><td>7</td></tr><tr><td>Loop</td><td>8</td></tr><tr><td>Good</td><td>9</td></tr></tbody>
+    <tbody><tr><td>Job</td><td>7</td></tr><tr><td>Loop</td><td>8</td></tr><tr><td>Good</td><td>9</td></tr></tbody>
     </table>
 </td>
 <td>
@@ -137,7 +137,7 @@ tags: DataBase Mysql Index DBMS
 	</div>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>7</td></tr><tr><td>인덱스 키</td><td>Data</td></tr></thead>
-    <tbody><tr><td>Jebra</td><td>1개,얼룩말,$10000</td></tr><tr><td>Keep</td><td>null,보관,null</td></tr></tbody>
+    <tbody><tr><td>Job</td><td>1개,직업,$10000</td></tr><tr><td>Keep</td><td>null,보관,null</td></tr></tbody>
     </table>
 </td>
 </tr>
@@ -157,7 +157,7 @@ tags: DataBase Mysql Index DBMS
 <td>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>1</td></tr><tr><td>인덱스 키</td><td>자식노드 주소</td></tr></thead>
-    <tbody><tr><td>Apple</td><td>2</td></tr><tr><td>Jebra</td><td>3</td></tr></tbody>
+    <tbody><tr><td>Apple</td><td>2</td></tr><tr><td>Job</td><td>3</td></tr></tbody>
     </table>
 </td>
 <td>
@@ -170,7 +170,7 @@ tags: DataBase Mysql Index DBMS
 	</div>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>3</td></tr><tr><td>인덱스 키</td><td>자식노드 주소</td></tr></thead>
-    <tbody><tr><td>Jebra</td><td>7</td></tr><tr><td>Loop</td><td>8</td></tr><tr><td>Good</td><td>9</td></tr></tbody>
+    <tbody><tr><td>Job</td><td>7</td></tr><tr><td>Loop</td><td>8</td></tr><tr><td>Good</td><td>9</td></tr></tbody>
     </table>
 </td>
 <td>
@@ -197,7 +197,7 @@ tags: DataBase Mysql Index DBMS
 	</div>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>7</td></tr><tr><td>인덱스 키</td><td>데이터 주소</td></tr></thead>
-    <tbody><tr><td>Jebra</td><td>12027</td></tr><tr><td>Keep</td><td>13339</td></tr></tbody>
+    <tbody><tr><td>Job</td><td>12027</td></tr><tr><td>Keep</td><td>13339</td></tr></tbody>
     </table>
 </td>
 </tr>
@@ -223,7 +223,7 @@ tags: DataBase Mysql Index DBMS
 12027
 </td>
 <td>
-Jebra,1개,얼룩말,$10000
+Job,1개,직업,$10000
 </td>
 </tr>
 <tr>
@@ -404,7 +404,7 @@ Mysql InnoDB에서는 클러스터 인덱스와 넌클러스터 인덱스 모두
 <td>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>4</td></tr><tr><td>PK</td><td>Data</td></tr></thead>
-    <tbody><tr><td>12027</td><td>Jebra,1개,얼룩말,$10000</td></tr><tr><td>12314</td><td>Apple,10개,사과,10</td></tr><tr><td>12321</td><td>Banana,20개,바나나,12</td></tr></tbody>
+    <tbody><tr><td>12027</td><td>Job,1개,직업,$10000</td></tr><tr><td>12314</td><td>Apple,10개,사과,10</td></tr><tr><td>12321</td><td>Banana,20개,바나나,12</td></tr></tbody>
     </table>
 	<div style="text-align: center;">
 		&uarr; &darr;
@@ -441,7 +441,7 @@ Mysql InnoDB에서는 클러스터 인덱스와 넌클러스터 인덱스 모두
 <td>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>1</td></tr><tr><td>인덱스 키</td><td>자식노드 주소</td></tr></thead>
-    <tbody><tr><td>Apple</td><td>2</td></tr><tr><td>Jebra</td><td>3</td></tr></tbody>
+    <tbody><tr><td>Apple</td><td>2</td></tr><tr><td>Job</td><td>3</td></tr></tbody>
     </table>
 </td>
 <td>
@@ -454,7 +454,7 @@ Mysql InnoDB에서는 클러스터 인덱스와 넌클러스터 인덱스 모두
 	</div>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>3</td></tr><tr><td>인덱스 키</td><td>자식노드 주소</td></tr></thead>
-    <tbody><tr><td>Jebra</td><td>7</td></tr><tr><td>Loop</td><td>8</td></tr><tr><td>Good</td><td>9</td></tr></tbody>
+    <tbody><tr><td>Job</td><td>7</td></tr><tr><td>Loop</td><td>8</td></tr><tr><td>Good</td><td>9</td></tr></tbody>
     </table>
 </td>
 <td>
@@ -481,7 +481,7 @@ Mysql InnoDB에서는 클러스터 인덱스와 넌클러스터 인덱스 모두
 	</div>
     <table>
     <thead style="background-color: #d8dfec"><tr><td>페이지</td><td>7</td></tr><tr><td>인덱스 키</td><td>PK</td></tr></thead>
-    <tbody><tr><td>Jebra</td><td>12027</td></tr><tr><td>Keep</td><td>13339</td></tr></tbody>
+    <tbody><tr><td>Job</td><td>12027</td></tr><tr><td>Keep</td><td>13339</td></tr></tbody>
     </table>
 </td>
 </tr>

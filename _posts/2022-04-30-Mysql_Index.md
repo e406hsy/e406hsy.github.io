@@ -2,7 +2,7 @@
 layout: post
 title:  "DataBase Index - Mysql"
 createdDate:   2022-04-30T08:27:00+09:00
-date:   2022-04-30T08:27:00+09:00
+date:   2022-06-01T10:57:00+09:00
 pagination: enabled
 author: SoonYong Hong
 categories: DataBase

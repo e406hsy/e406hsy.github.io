@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 createdDate:   2021-11-07T14:04:00+09:00
-date:   2022-06-02T06:22:00+09:00
+date:   2022-06-27T21:14:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 pagination: enabled
 author: SoonYong Hong
@@ -163,7 +163,15 @@ public class CustomerValidator implements Validator {
 validator에 전달되는 `Errors` 객체를 통해 검증오류를 알린다. 스프링 웹 MVC의 경우 `<spring:bind/>` 태그를 사용하여 에러메세지를 살필수 있다. 혹은 `Errors`객체를 직접 확인하는 것도 가능하다. `Errors`객체가 제공하는 메서드에 대한 자세한 내용은 [자바독](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframeworkvalidation/Errors.html)에서 확인할 수 있다.
 
 <h3 id="validation-conversion">코드를 에러메세지에 연결하기</h3>
+
+데이터 바인딩과 검증에 관한 내용을 완료했다. 이 장에서는 검증 오류에 맞는 메세지를 결과로 반환하는 방법에 대하여 이야기할 것이다. [이전 장](#validator)의 예시에서 우리는 `name`과 `age`필드를 검증하여 거부했었다. `MessageSource`를 이용하여 검증 실패 메세지를 전달하려면 필드(여기서는 name과 age)를 거부할 때 사용한 에러코드를 이용하면 된다. 우리가 `Errors`인터페이스의 `rejectValue`나 다른 `reject`메소드를 호출하면 내부 구현체가 전달받은 에러코드를 등록할 것이며 추가적으로 다른 에러코드도 같이 등록할 수 있다. `MessageCodesResolver`는 `Errors` 인터페이스가 등록한 에러코드가 어떤 것인지 결정할 것이다. 기본적으로, `DefaultMessageCodesResolver`는 내가 전달한 에러코드에 연결된 메세지뿐만 아니라 reject 메소드에서 거부한 필드의 이름을 포함하는 다른 메세지도 등록한다. 그래서 `rejectValue("age", "too.darn.old")` 메소드로 필드를 거부하는 경우, `too.darn.old`와는 별개로, 스프링이 `too.darn.old.age`와 `too.darn.old.age.int`도 등록한다(첫번째는 필드이름이 추가됬고 두번째는 필드의 타입도 추가됬다). 에러메세지를 노출할 때, 개발자에게 도움을 주기위해 구현되었다.
+
+`MessageCodesResolver`와 기본 전략에 대하여 더 알고 싶은 경우 [`MessageCodesResolver`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/validation/MessageCodesResolver.html)와 [`DefaultMessageCodesResolver`](https://docs.spring.io/spring-framework/docs/5.2.6.RELEASE/javadoc-api/org/springframework/validation/DefaultMessageCodesResolver.html)의 자바독을 살펴보면 된다.
+
 <h3 id="beans-beans">`BeanWrapper`와 빈 관리하기</h3>
+
+
+
 <h4 id="beans-beans-conventions">기본 프로퍼티, 중첩 프로퍼티 설정하기 그리고 획득하기</h4>
 <h4 id="beans-beans-conversion">여러 내장 PropertyEditor 구현체</h4> 
 <h5 id="beans-beans-conversion-customeditor-registration">커스텀 PropertyEditor 구현체 추가적으로 등록하기</h5>

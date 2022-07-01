@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 createdDate:   2021-11-07T14:04:00+09:00
-date:   2022-06-27T21:14:00+09:00
+date:   2022-07-02T08:04:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 pagination: enabled
 author: SoonYong Hong
@@ -170,9 +170,98 @@ validator에 전달되는 `Errors` 객체를 통해 검증오류를 알린다. �
 
 <h3 id="beans-beans">`BeanWrapper`와 빈 관리하기</h3>
 
+`org.springframework.beans` 패키지는 자바빈 표준을 충족하고 있다. 자바빈은 어규먼트가 없는 기본 생성자가 있고 네이밍 컨벤션을 따른다. 예를 들면 `bingoMadness`라는 프로퍼티의 세터는 `setBingoMadness(..)`며 게터는 `getBingoMadness(..)`이다. 자바빈과 그 스펙에 대하여 자세히 알고 싶으면 [자바빈](https://docs.oracle.com/javase/8/docs/api/java/beans/package-summary.html)을 보아라.
 
+`BeansWrapper` 인터페이스와 그 구현체(`BeansWrapperImpl`)은 beans패키지에서 중요한 클래스이다. 자바독에서 언급했듯이, `BeansWrapper`는 프로퍼티를 가져오고 프로퍼티를 설정하며 프로퍼티 설명자를 가져오고 프로퍼티를 질의한다. 또한 `BeanWrapper`는 중첩 프로퍼티도 지원한다. 깊이에 제한없이 하위 프로퍼티를 설정할 수 있다. 또한 `BeanWrapper`는 타겟 클래스에서 자바빈 표준을 지원하는 코드를 작성하지 않아도 자바빈 표준 `PropertyChangeListeners`와 `VetoableChangeListener`를 추가해 줄 수 있다. 또한 `BeansWrapper`는 인덱스가 설정된 프로퍼티도 지원한다. `BeanWrapper`는 일반적으로 어플리케이션에서 직접 사용되지 않고 `DataBinder`와 `BeanFactory`에서 사용된다.
+
+`BeanWrapper`가 동작하는 방법은 이름에서 유추할수 있듯이 빈을 감싸서 프로퍼티를 설정하거나 가져오는 방식으로 되어있다.
 
 <h4 id="beans-beans-conventions">기본 프로퍼티, 중첩 프로퍼티 설정하기 그리고 획득하기</h4>
+
+`BeanWrapper`구현체에서 오버로드되는 메소드인 `setPropertyValue`와 `getPropertyValue`를 사용하여 프로퍼티를 설정하거나 가져온다. 자바독에 자세한 내용이 있다. 아래의 표는 이러한 컨벤션의 예시이다:
+
+#### 표 11. 프로퍼티 예시
+
+| 표현 | 설명 |
+| ----- | ----- |
+| `name` | 프로퍼티 `name`을 의미한다. `setName(..)`을 포함하며 `getName()`이나 `isName()` 메소드를 포함한다. |
+| `account.name` | 프로퍼티 `account`의 중첩 프로퍼티 `name`을 의미한다. `getAccount().getName()`이나 `getAccount().setName()`와 같은 메소드들을 포함한다. |
+| `account[2]` | 프로퍼티 `account`의 세번째 요소를 의미한다. 인덱스가 있는 프로퍼티는 `array`나 `list` 혹은 다른 순서가 있는 컬렉션의 형태이다. |
+| `account[COMPANYNAME]` | `account` `Map` 프로퍼티의 `COMPANYNAME` 키를 가진 엔트리의 값을 의미한다 |
+
+(이 다음장은 `BeanWrapper`를 직접적으로 사용할 계획이 없다면 별로 중요하지 않을 수 있다. `DataBinder`와 `BeanFactory`, 이 두 인터페이스의 구현체만 사용할 예정이라면, [`PropertyEditors` 섹션](#beans-beans-conversion)으로 넘어가도 좋다.)
+
+아래의 두 예제 클래스는 `BeanWrapper`를 사용하여 프로퍼티를 설정하고 가져오는 예시이다:
+
+```java
+public class Company {
+
+    private String name;
+    private Employee managingDirector;
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Employee getManagingDirector() {
+        return this.managingDirector;
+    }
+
+    public void setManagingDirector(Employee managingDirector) {
+        this.managingDirector = managingDirector;
+    }
+}
+```
+
+```java
+public class Employee {
+
+    private String name;
+
+    private float salary;
+
+    public String getName() {
+        return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public float getSalary() {
+        return salary;
+    }
+
+    public void setSalary(float salary) {
+        this.salary = salary;
+    }
+}
+```
+
+아래의 코드 예시는 `Companies`와 `Employees` 인스턴스의 프로퍼티를 가져오고 변경하는 예시이다:
+
+```java
+BeanWrapper company = new BeanWrapperImpl(new Company());
+// company의 name을 설정한다.
+company.setPropertyValue("name", "Some Company Inc.");
+// ... 아래 방식으로도 설정할 수 있다.
+PropertyValue value = new PropertyValue("name", "Some Company Inc.");
+company.setPropertyValue(value);
+
+// director를 만들어서 company에 연결한다.
+BeanWrapper jim = new BeanWrapperImpl(new Employee());
+jim.setPropertyValue("name", "Jim Stravinsky");
+company.setPropertyValue("managingDirector", jim.getWrappedInstance());
+
+// company를 통하여 managingdirector의 salary를 가져온다. 
+Float salary = (Float) company.getPropertyValue("managingDirector.salary");
+```
+
+
 <h4 id="beans-beans-conversion">여러 내장 PropertyEditor 구현체</h4> 
 <h5 id="beans-beans-conversion-customeditor-registration">커스텀 PropertyEditor 구현체 추가적으로 등록하기</h5>
 <h3 id="core-convert">스프링 타입 변환</h3>

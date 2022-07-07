@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 createdDate:   2021-11-07T14:04:00+09:00
-date:   2022-07-02T08:04:00+09:00
+date:   2022-07-07T18:52:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 pagination: enabled
 author: SoonYong Hong
@@ -263,6 +263,76 @@ Float salary = (Float) company.getPropertyValue("managingDirector.salary");
 
 
 <h4 id="beans-beans-conversion">여러 내장 PropertyEditor 구현체</h4> 
+
+스프링은 `PropertyEditor`의 개념을 `Object`와 `String`간의 변환에 사용한다. 객체의 프로퍼티를 다양한 방법으로 표현할 때 유용하게 사용한다. 예를 들면, `Date`를 사람이 읽을 수 있는 방식으로 표현할 수 있고 (예를 들면, `String`:`2008-02-13`) 반대로 사람이 읽는 형식을 원래대로 바꿀 수 있다(더 나아가 사람이 읽을 수 있는 모든 형식을 `Date`객체로 바꿀 수 있다). 이 방식을 적용하려면 `java.beans.PropertyEdiotr` 타입의 커스텀 에디터를 등록하면 된다. `BeanWrapper`나 특정 역흐름제어 컨테이너에 커스텀 에디터를 등록하여 프로퍼티를 원하는 타입으로 전환하는 방법을 알려 줄 수 있다. `PropertyEditor`에 대한 자세한 정보는 [오라클 `java.beans`패키지 자바독](https://docs.oracle.com/javase/8/docs/api/java/beans/package-summary.html)을 확인하세요.
+
+스프링에서 프로퍼티 변환이 사용되는 예시이다:
+
+* `PropertyEditor` 구현체를 사용하여 빈에 프로퍼티를 설정한다. XML에 스프링 빈을 정의하고 `String`을 프로퍼티 값에 사용했을 때, 해당 프로퍼티에 대응하는 세터의 파라메터가 `Class` 타입이라면 `ClassEditor`를 사용하여 `Class` 객체로 변환한다.
+* 스프링 MVC 프레임워크는 `PropertyEditor` 구현체를 사용하여 HTTP 요청 파라메터를 변환한다.
+
+스프링은 다양한 내장 `PropertyEditor` 구현체를 제공한다. `org.springframework.beans.propertyeditors` 패키지에 포함되어 있다. 대부분은 `BeanWrapperImpl`에 기본적으로 등록되어 있다. 프로퍼티 에디터는 설정가능하기 때문에 커스텀 구현체를 등록하여 기본 동작을 변경 할 수 있다. 아래 표는 스프링이 제공하는 `PropertyEditor` 구현체이다:
+
+#### 표 12. 내장 `PropertyEditor` 구현체
+
+| 클래스 | 설명 |
+| ----- | ----- |
+| `ByteArrayPropertyEditor` | 바이트 배열을 처리하는 에디터. 문자열을 대응하는 바이트 표현으로 변환한다. `BeanWrapperImpl`에 의하여 기본으로 등록된다. |
+| `ClassEditor` | 클래스를 표현하는 문자열을 실제 클래스로 변환한다. 그 반대도 변환한다. 클래스가 없으면 `IllegalArgumentException`을 발생시킨다. `BeanWrapperImpl`에 의하여 기본으로 등록된다. |
+| `CustomBooleanEditor` | `Boolean` 프로퍼티를 변환하며 수정가능하다. `BeanWrapperImpl`에 의하여 기본으로 등록되지만 커스텀 에디터 인스턴스를 등록하여 덮어쓰기가 가능하다. |
+| `CustomCollectionEditor` | 컬렉션을 처리하는 에디터. 컬렉션을 원하는 타입의 컬렉션으로 변환한다. |
+| `CustomDateEditor` | `java.util.Date`를 처리하는 에디터. 커스텸 `DateFormat`을 사용할 수 있다. 기본으로 등록되지 않는다. 반드시 적절한 날짜 형식과 함께 사용자가 직접 등록해야한다. |
+| `CustomNumberEditor` | `Number`의 하위 클래스 (예를 들면, `Integer`, `Long`, `Float`, `Double`)를 처리하는 에디터. `BeanWrapperImpl`에 의하여 기본으로 등록되지만 커스텀 에디터 인스턴스를 등록하여 덮어쓰기가 가능하다. |
+| `FildEditor` | 문자열을 `java.io.File` 객체로 변환한다. `BeanWrapperImpl`에 의하여 기본으로 등록된다. |
+| `InputStreamEditor` | 문자열을 입뎍받아 `ResourceEditor`와 `Resource`를 거쳐 `InputStream`으로 변환하는 에디터. `InputStream`을 닫지 않는다는 것에 유의하십시오. `BeanWrapperImpl`에 의하여 기본으로 등록된다. |
+| `LocaleEditor` | 문자열(`[country][variant]`형식, `Locale`의 `toString()`메소드와 동일)과 `Locale` 객체간의 변환을 한다. `BeanWrapperImpl`에 의하여 기본으로 등록된다. |
+| `PatternEditor` | 문자열과 `java.util.regex.Pattern` 객체간의 변환을 한다. |
+| `PropertiesEditor` | 문자열(`java.util.Properties`클래스의 자바독에 정의된 형식)과 `Properties` 객체간의 변환을 한다.  `BeanWrapperImpl`에 의하여 기본으로 등록된다. |
+| `StringTrimmerEditor` | 문자열의 좌우 공백을 제거하는 에디터. 기본으로 등록되지 않는다. 사용자가 직접 등록해야한다. |
+| `URLEditor` | 문자열로 표현된 URL과 `URL` 객체간의 변환을 한다.  `BeanWrapperImpl`에 의하여 기본으로 등록된다. |
+
+스프링은 `java.beans.PropertyEditorManager`를 사용하여 프로퍼티 에디터를 찾는 검색 경로를 설정한다. 이 검색 경로에는 `sun.bean.editors`가 포함되어 있고 이 경로는 `Font`, `Color`, 대부분의 기본 타입에 대응하는 `PropertyEditor` 구현체들을 가지고 있다. 또한 표준 자바빈즈 인프라는 `PropertyEditor`클래스가 처리하는 클래스와 같은 패키지에 있고 같은 이름에 `Editor`가 붙어 있다면 자동으로 `PropertyEditor` 클래스를 찾아 등록한다(명시적으로 등록할 필요가 없다). 예를 들면, 아래와 같은 패키지와 클래스가 있으면 `SomethingEditor` 클래스가 `PropertyEditor`로 등록되어 `Something` 타입의 처리에 사용된다.
+
+```
+com
+  chank
+    pop
+      Something
+      SomethingEditor // Something 클래스에 사용되는 PropertyEditor
+```
+
+또한 `BeanInfo` 자바빈즈 동작을 이용할 수 있다([여기](https://docs.oracle.com/javase/tutorial/javabeans/advanced/customization.html)에 자세히 설명되어 있다). 아래 예시는 `BeanInfo` 동작을 사용하여 `PropertyEditor`를 등록하는 예시이다:
+
+```
+com
+  chank
+    pop
+      Something
+      SomethingBeanInfo // Something 클래스를 위한 BeanInfo
+```
+
+아래의 자바코드는 `Something` 클래스의 `age` 프로퍼티에 `CustomNumberEditor`를 연결하는 `SomethingBeanInfo` 클래스의 코드이다4
+
+```java
+public class SomethingBeanInfo extends SimpleBeanInfo {
+
+    public PropertyDescriptor[] getPropertyDescriptors() {
+        try {
+            final PropertyEditor numberPE = new CustomNumberEditor(Integer.class, true);
+            PropertyDescriptor ageDescriptor = new PropertyDescriptor("age", Something.class) {
+                public PropertyEditor createPropertyEditor(Object bean) {
+                    return numberPE;
+                };
+            };
+            return new PropertyDescriptor[] { ageDescriptor };
+        }
+        catch (IntrospectionException ex) {
+            throw new Error(ex.toString());
+        }
+    }
+}
+```
+
 <h5 id="beans-beans-conversion-customeditor-registration">커스텀 PropertyEditor 구현체 추가적으로 등록하기</h5>
 <h3 id="core-convert">스프링 타입 변환</h3>
 <h4 id="core-convert-Converter-API">Converter SPI</h4>

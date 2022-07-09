@@ -2,7 +2,7 @@
 layout: post
 title:  "[Spring Reference] 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 createdDate:   2021-11-07T14:04:00+09:00
-date:   2022-07-07T18:52:00+09:00
+date:   2022-07-09T15:01:00+09:00
 excerpt: "한글 번역 : 스프링 레퍼런스 #1 핵심 - 3. 검증, 데이터 바인딩, 타입 변환"
 pagination: enabled
 author: SoonYong Hong
@@ -334,6 +334,76 @@ public class SomethingBeanInfo extends SimpleBeanInfo {
 ```
 
 <h5 id="beans-beans-conversion-customeditor-registration">커스텀 PropertyEditor 구현체 추가적으로 등록하기</h5>
+
+문자열을 프로퍼티에 사용할 때, 스프링 컨테이너는 자바빈즈 표준 `PropertyEditor` 구현체를 사용하여 문자열을 복잡한 자바 타입으로 변환한다. 스프링은 다양한 커스텀 `PropertyEditor` 구현체(예를 들면, 문자열로 표현된 클래스 이름을 `Class` 객체로 변환하는 에디터)를 미리 등록한다. 추가적으로, 자바의 표준 자바빈즈 `ProperteyEditor` 검색 동작법은 규칙에 맟게 명명되고 지원하는 대상 클래스와 같은 패키지에 있으면 자동으로 검색한다.
+
+다른 커스텀 `PropertyEditor`를 등록하려면 몇가지 방법이 있다. 가장 수작업인 방법이자 추천하지 않는 방법은 `BeanFactory` 참조를 가지고 있을 때, `ConfigurableBeanFactory`인터페이스의 `registerCustomEditor()` 메소드를 호출하는 것이다. 또다른 (아주 약간 더 편리한) 방법은 `CustomEditorConfigurer`라는 빈 팩토리 후 처리기를 사용하는 것이다. `BeanFactory` 구현체와 빈 팩토리 후 처리기를 사용할 수 있지만, `CustomEditorConfigurer`는 중첩 프로퍼티 설정이 필요하다. 그래서 `ApplicationDontext` 사용을 추천한다. 다른 빈을 등록하는 것과 같은 방식으로 사용가능하다.
+
+모든 빈 팩토리와 어플리케이션 컨텍스트는 `BeanWrapper`를 이용하여 내장 프로퍼티 에디터를 사용한다. `BeanWrapper`가 등록하는 표준 에디터는 [이전 장](#beans-beans-conversion)에 나열되어 있다. 추가적으로 `ApplilcationContext`는 추가적인 에디터를 추가하거나 덮어 씌워 어플리케이션 컨텍스트 종류에 맟는 동작을 한다.
+
+표준 자바빈즈 `PropertyEditor`는 문자열로 표현된 프로퍼티 값을 복잡한 프로퍼티의 타입으로 변경하는 기능을 한다. 빈 팩토리 후 처리기인 `CustomEditorConfigurer`를 사용하여 `ApplicationContext`에 `PropertiEditor`를 추가할 수 있다.
+
+다음 예시를 보자. `ExoticType`과 `DependsOnExoticType`이 있으며 `DependsOnExoticType`은 `ExoticType`을 프로퍼티로 필요로 한다.
+
+```java
+package example;
+
+public class ExoticType {
+
+    private String name;
+
+    public ExoticType(String name) {
+        this.name = name;
+    }
+}
+
+public class DependsOnExoticType {
+
+    private ExoticType type;
+
+    public void setType(ExoticType type) {
+        this.type = type;
+    }
+}
+```
+
+프로퍼티를 설정할 때, 문자열을 사용하여 설정할 수 있기를 원한다. `PropertyEditor`가 문자열을 `ExoticType` 인스텬스로 변경한다. 아래의 그 설정 예시이다4
+
+```xml
+<bean id="sample" class="example.DependsOnExoticType">
+    <property name="type" value="aNameForExoticType"/>
+</bean>
+```
+
+`PropertyEditor` 구현체는 아래처럼 생겼다:
+
+```java
+// converts string representation to ExoticType object
+package example;
+
+public class ExoticTypeEditor extends PropertyEditorSupport {
+
+    public void setAsText(String text) {
+        setValue(new ExoticType(text.toUpperCase()));
+    }
+}
+```
+
+마지막으로 아래 예시는 `CustomEditorConfigurer`를 사용하여 `ApplicationContext`에 `PropertyEditor`를 등록하는 예시이다4
+
+```xml
+<bean class="org.springframework.beans.factory.config.CustomEditorConfigurer">
+    <property name="customEditors">
+        <map>
+            <entry key="example.ExoticType" value="example.ExoticTypeEditor"/>
+        </map>
+    </property>
+</bean>
+```
+
+###### `PropertyEditorRegistrar` 사용하기
+
+
 <h3 id="core-convert">스프링 타입 변환</h3>
 <h4 id="core-convert-Converter-API">Converter SPI</h4>
 <h4 id="core-convert-ConverterFactory-SPI">ConverterFactory 사용하기</h4>
